@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- Remove replaced Projects -->
+  <remove-project name="platform/system/libhidl" />
+  <remove-project name="platform/system/libhwbinder" />
+  
+  <!-- Anbox Projects -->
+  <project path="system/libhidl" name="Anbox-halium/android_system_libhidl" />
+  <project path="system/libhwbinder" name="Anbox-halium/android_system_libhwbinder" />
+  <project path="anbox-patches" name="Anbox-halium/anbox-patches" />
+
+</manifest>
