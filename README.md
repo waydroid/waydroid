@@ -19,7 +19,7 @@ Then to sync up:
 ```
 repo sync
 ```
-Then to apply sana patches:
+Then to apply anbox patches:
 ```
 anbox-patches/apply-patches.sh --mb
 ```

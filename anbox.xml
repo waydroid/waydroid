@@ -8,7 +8,8 @@
   <project path="system/libhidl" name="Anbox-halium/android_system_libhidl" />
   <project path="system/libhwbinder" name="Anbox-halium/android_system_libhwbinder" />
   <project path="anbox-patches" name="Anbox-halium/anbox-patches" />
-  
+  <project path="device/halium/anbox_arm64" name="Anbox-halium/android_device_halium_anbox_arm64" />
+
   <!-- Audio -->
   <project path="external/alsa-lib" name="Anbox-halium/android_external_alsa-lib" />
   <project path="external/alsa-plugins" name="Anbox-halium/android_external_alsa-plugins" />
