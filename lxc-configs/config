@@ -1,0 +1,49 @@
+#lxc.rootfs.path = loop:/home/alien/system.img
+lxc.rootfs.path = /home/anbox/rootfs
+lxc.utsname = anbox
+lxc.arch = aarch64
+lxc.autodev = 0
+# lxc.autodev.tmpfs.size = 25000000
+lxc.aa_profile = unconfined
+
+lxc.init_cmd = /init
+
+lxc.mount.auto = cgroup:ro sys:ro proc
+
+lxc.mount.entry = tmpfs dev tmpfs nosuid 0 0
+lxc.mount.entry = /dev/zero dev/zero none bind,create=file,optional 0 0
+#lxc.mount.entry = /dev/random dev/random none bind,create=file,optional 0 0
+#lxc.mount.entry = /dev/null dev/null none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/full dev/full none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/ashmem dev/ashmem none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/fuse dev/fuse none bind,create=file,optional 0 0
+
+# necessary dev nodes (renamed)
+lxc.mount.entry = /dev/anbox-binder dev/binder none bind,create=file 0 0
+lxc.mount.entry = /dev/anbox-vndbinder dev/vndbinder none bind,create=file 0 0
+
+# necessary device nodes (same name)
+lxc.mount.entry = /dev/ashmem dev/ashmem none bind,create=file 0 0
+
+#lxc.mount.entry = /dev/fuse dev/fuse none bind,create=file 0 0
+lxc.mount.entry = /dev/ion dev/ion none bind,create=file,optional 0 0
+
+# temp - allow access to /dev/input
+#lxc.mount.entry = /dev/input dev/input none bind,create=dir,optional 0 0
+lxc.mount.entry = /sys/module/lowmemorykiller sys/module/lowmemorykiller none bind,create=dir,optional 0 0
+# Mount /data - always /home/.android now
+lxc.mount.entry = tmpfs mnt tmpfs mode=0755,uid=0,gid=1000
+
+# useful device properties from the host
+# lxc.mount.entry = /home/anbox/generated_props system/vendor/alien.prop none bind,create=file 0 0
+
+# Xkb - required for on screen keyboard
+# lxc.mount.entry = /usr/share/X11/xkb usr/share/X11/xkb none bind 0 0
+
+# necessary device nodes for adb
+lxc.mount.entry = none dev/pts devpts defaults,mode=644,ptmxmode=666,create=dir 0 0
+lxc.mount.entry = /dev/uhid dev/uhid none bind,create=file,defaults,optional 0 0
+
+lxc.include = /var/lib/lxc/anbox/bsp_config
+
+lxc.hook.post-stop = /dev/null
