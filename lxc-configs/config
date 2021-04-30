@@ -10,6 +10,13 @@ lxc.init_cmd = /init
 
 lxc.mount.auto = cgroup:ro sys:ro proc
 
+lxc.network.type = veth
+lxc.network.flags = up
+lxc.network.link = lxcbr0
+lxc.network.name = eth0
+lxc.network.hwaddr = 00:16:3e:f9:d3:03
+lxc.network.mtu = 1500
+
 lxc.mount.entry = tmpfs dev tmpfs nosuid 0 0
 lxc.mount.entry = /dev/zero dev/zero none bind,create=file,optional 0 0
 #lxc.mount.entry = /dev/random dev/random none bind,create=file,optional 0 0
