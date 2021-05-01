@@ -1,4 +1,5 @@
-#lxc.rootfs.path = loop:/home/alien/system.img
+# Anbox LXC Config
+
 lxc.rootfs.path = /home/anbox/rootfs
 lxc.utsname = anbox
 lxc.arch = aarch64
@@ -17,40 +18,48 @@ lxc.network.name = eth0
 lxc.network.hwaddr = 00:16:3e:f9:d3:03
 lxc.network.mtu = 1500
 
+# Necessary dev nodes
 lxc.mount.entry = tmpfs dev tmpfs nosuid 0 0
 lxc.mount.entry = /dev/zero dev/zero none bind,create=file,optional 0 0
-#lxc.mount.entry = /dev/random dev/random none bind,create=file,optional 0 0
-#lxc.mount.entry = /dev/null dev/null none bind,create=file,optional 0 0
 lxc.mount.entry = /dev/full dev/full none bind,create=file,optional 0 0
 lxc.mount.entry = /dev/ashmem dev/ashmem none bind,create=file,optional 0 0
 lxc.mount.entry = /dev/fuse dev/fuse none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/ion dev/ion none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/char dev/char none bind,create=dir,optional 0 0
 
-# necessary dev nodes (renamed)
+# Graphic dev nodes
+lxc.mount.entry = /dev/kgsl-3d0 dev/kgsl-3d0 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/mali0 dev/mali0 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/pmsg0 dev/pmsg0 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/fb0 dev/fb0 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/graphics/fb0 dev/graphics/fb0 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/fb1 dev/fb1 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/graphics/fb1 dev/graphics/fb1 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/fb2 dev/fb2 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/graphics/fb2 dev/graphics/fb2 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/dri dev/dri none bind,create=dir,optional 0 0
+
+# Binder dev nodes
 lxc.mount.entry = /dev/anbox-binder dev/binder none bind,create=file 0 0
 lxc.mount.entry = /dev/anbox-vndbinder dev/vndbinder none bind,create=file 0 0
+lxc.mount.entry = /dev/anbox-hwbinder dev/hwbinder none bind,create=file 0 0
+lxc.mount.entry = /dev/hwbinder dev/host_hwbinder none bind,create=file 0 0
 
-# necessary device nodes (same name)
-lxc.mount.entry = /dev/ashmem dev/ashmem none bind,create=file 0 0
-
-#lxc.mount.entry = /dev/fuse dev/fuse none bind,create=file 0 0
-lxc.mount.entry = /dev/ion dev/ion none bind,create=file,optional 0 0
-
-# temp - allow access to /dev/input
-#lxc.mount.entry = /dev/input dev/input none bind,create=dir,optional 0 0
-lxc.mount.entry = /sys/module/lowmemorykiller sys/module/lowmemorykiller none bind,create=dir,optional 0 0
-# Mount /data - always /home/.android now
-lxc.mount.entry = tmpfs mnt tmpfs mode=0755,uid=0,gid=1000
-
-# useful device properties from the host
-# lxc.mount.entry = /home/anbox/generated_props system/vendor/alien.prop none bind,create=file 0 0
-
-# Xkb - required for on screen keyboard
-# lxc.mount.entry = /usr/share/X11/xkb usr/share/X11/xkb none bind 0 0
-
-# necessary device nodes for adb
+# Necessary device nodes for adb
 lxc.mount.entry = none dev/pts devpts defaults,mode=644,ptmxmode=666,create=dir 0 0
 lxc.mount.entry = /dev/uhid dev/uhid none bind,create=file,defaults,optional 0 0
 
-lxc.include = /var/lib/lxc/anbox/bsp_config
+# Low memory killer sys node
+lxc.mount.entry = /sys/module/lowmemorykiller sys/module/lowmemorykiller none bind,create=dir,optional 0 0
+
+# Mount /data
+lxc.mount.entry = tmpfs mnt tmpfs mode=0755,uid=0,gid=1000
+lxc.mount.entry = /home/anbox/data data none bind 0 0
+
+# Mount host /vendor to /vendor_extra
+lxc.mount.entry = /vendor vendor_extra none bind,optional 0 0
+
+# Recursive mount /run to provide necessary host sockets
+lxc.mount.entry = /run run none rbind,create=dir 0 0
 
 lxc.hook.post-stop = /dev/null
