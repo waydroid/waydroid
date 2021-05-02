@@ -35,4 +35,10 @@ chmod 777 -R /run/user/32011
 chmod 777 /dev/sw_sync
 chmod 777 /sys/kernel/debug/sync/sw_sync
 
+# Media nodes permissions
+chmod 777 /dev/Vcodec
+chmod 777 /dev/MTK_SMI
+chmod 777 /dev/mdp_sync
+chmod 777 /dev/mtk_cmdq
+
 lxc-start -n anbox -F -- /init

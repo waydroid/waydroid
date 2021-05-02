@@ -67,4 +67,10 @@ lxc.mount.entry = /run run none rbind,create=dir 0 0
 lxc.mount.entry = /dev/sw_sync dev/sw_sync none bind,create=file,optional 0 0
 lxc.mount.entry = /sys/kernel/debug sys/kernel/debug none rbind,create=dir,optional 0 0
 
+# Media dev nodes (for Mediatek)
+lxc.mount.entry = /dev/Vcodec dev/Vcodec none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/MTK_SMI dev/MTK_SMI none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/mdp_sync dev/mdp_sync none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/mtk_cmdq dev/mtk_cmdq none bind,create=file,optional 0 0
+
 lxc.hook.post-stop = /dev/null
