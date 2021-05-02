@@ -58,6 +58,7 @@ lxc.mount.entry = /home/anbox/data data none bind 0 0
 
 # Mount host /vendor to /vendor_extra
 lxc.mount.entry = /vendor vendor_extra none bind,optional 0 0
+lxc.mount.entry = /odm odm_extra none bind,optional 0 0
 
 # Recursive mount /run to provide necessary host sockets
 lxc.mount.entry = /run run none rbind,create=dir 0 0
