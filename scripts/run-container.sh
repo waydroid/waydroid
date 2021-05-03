@@ -31,4 +31,8 @@ chmod 666 /dev/anbox-*binder
 # Wayland socket permissions
 chmod 777 -R /run/user/32011
 
+# Set sw_sync permissions
+chmod 777 /dev/sw_sync
+chmod 777 /sys/kernel/debug/sync/sw_sync
+
 lxc-start -n anbox -F -- /init

@@ -62,4 +62,8 @@ lxc.mount.entry = /vendor vendor_extra none bind,optional 0 0
 # Recursive mount /run to provide necessary host sockets
 lxc.mount.entry = /run run none rbind,create=dir 0 0
 
+# Necessary sw_sync node for HWC
+lxc.mount.entry = /dev/sw_sync dev/sw_sync none bind,create=file,optional 0 0
+lxc.mount.entry = /sys/kernel/debug sys/kernel/debug none rbind,create=dir,optional 0 0
+
 lxc.hook.post-stop = /dev/null
