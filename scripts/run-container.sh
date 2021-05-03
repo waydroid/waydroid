@@ -40,5 +40,7 @@ chmod 777 /dev/Vcodec
 chmod 777 /dev/MTK_SMI
 chmod 777 /dev/mdp_sync
 chmod 777 /dev/mtk_cmdq
+chmod 777 /dev/video32
+chmod 777 /dev/video33
 
 lxc-start -n anbox -F -- /init

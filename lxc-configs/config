@@ -73,4 +73,8 @@ lxc.mount.entry = /dev/MTK_SMI dev/MTK_SMI none bind,create=file,optional 0 0
 lxc.mount.entry = /dev/mdp_sync dev/mdp_sync none bind,create=file,optional 0 0
 lxc.mount.entry = /dev/mtk_cmdq dev/mtk_cmdq none bind,create=file,optional 0 0
 
+# Media dev nodes (for Qcom)
+lxc.mount.entry = /dev/video32 dev/video32 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/video33 dev/video33 none bind,create=file,optional 0 0
+
 lxc.hook.post-stop = /dev/null
