@@ -7,9 +7,8 @@ stop anbox-container || true
 # start cgroup-lite, else container may fail to start.
 start cgroup-lite
 
-# stop sensorfw
-# NOTE: it is temporary solution, that workes only on halium devices.
-stop sensorfw
+# start sensors hal
+start anbox-sensors
 
 # start lxc-net, that sets up lxc bridge
 start lxc-net
