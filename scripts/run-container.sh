@@ -13,6 +13,9 @@ start anbox-sensors
 # start lxc-net, that sets up lxc bridge
 start lxc-net
 
+# stop nfcd to not conflict with anbox
+stop nfcd
+
 # umount rootfs if it was mounted
 umount -l rootfs || true
 
