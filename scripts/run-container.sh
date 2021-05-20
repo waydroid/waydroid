@@ -24,6 +24,14 @@ mount anbox_arm64_vendor.img rootfs/vendor
 mount -o remount,ro rootfs
 mount -o bind anbox.prop rootfs/vendor/anbox.prop
 
+if mountpoint -q -- /odm; then
+    mount -o bind /odm rootfs/odm_extra
+else
+    if [ -d /vendor/odm ]; then
+        mount -o bind /vendor/odm rootfs/odm_extra
+    fi
+fi
+
 # Anbox binder permissions
 chmod 666 /dev/anbox-*binder
 
