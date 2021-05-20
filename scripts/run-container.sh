@@ -46,6 +46,16 @@ if [ ! -z $SKU ]; then
     cp -p /odm/etc/permissions/sku_${SKU}/android.hardware.nfc.* rootfs/vendor/etc/permissions/
     cp -p /odm/etc/permissions/sku_${SKU}/android.hardware.consumerir.xml rootfs/vendor/etc/permissions/
 fi
+if [ -f /vendor/lib/libladder.so ] && [ ! -f rootfs/vendor/lib/libladder.so ]; then
+    cd rootfs/vendor/lib
+    wget https://github.com/GS290-dev/gigaset_gs290_dump/raw/full_k63v2_64_bsp-user-10-QP1A.190711.020-1597810494-release-keys/vendor/lib/libladder.so
+    cd ../../..
+fi
+if [ -f /vendor/lib64/libladder.so ] && [ ! -f rootfs/vendor/lib64/libladder.so ]; then
+    cd rootfs/vendor/lib64
+    wget https://github.com/GS290-dev/gigaset_gs290_dump/raw/full_k63v2_64_bsp-user-10-QP1A.190711.020-1597810494-release-keys/vendor/lib64/libladder.so
+    cd ../../..
+fi
 mount -o remount,ro rootfs/vendor
 
 # Anbox binder permissions
