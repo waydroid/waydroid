@@ -24,7 +24,7 @@ mkdir -p /home/anbox/data
 mount anbox_arm64_system.img rootfs
 mount -o remount,ro rootfs
 mount anbox_arm64_vendor.img rootfs/vendor
-mount -o remount,ro rootfs
+mount -o remount,ro rootfs/vendor
 mount -o bind anbox.prop rootfs/vendor/anbox.prop
 
 if mountpoint -q -- /odm; then
@@ -34,6 +34,19 @@ else
         mount -o bind /vendor/odm rootfs/odm_extra
     fi
 fi
+
+# TODO: Move this to installer script
+SKU=`getprop ro.boot.product.hardware.sku`
+mount -o remount,rw rootfs/vendor
+cp -p /vendor/etc/permissions/android.hardware.nfc.* rootfs/vendor/etc/permissions/
+cp -p /vendor/etc/permissions/android.hardware.consumerir.xml rootfs/vendor/etc/permissions/
+cp -p /odm/etc/permissions/android.hardware.nfc.* rootfs/vendor/etc/permissions/
+cp -p /odm/etc/permissions/android.hardware.consumerir.xml rootfs/vendor/etc/permissions/
+if [ ! -z $SKU ]; then
+    cp -p /odm/etc/permissions/sku_${SKU}/android.hardware.nfc.* rootfs/vendor/etc/permissions/
+    cp -p /odm/etc/permissions/sku_${SKU}/android.hardware.consumerir.xml rootfs/vendor/etc/permissions/
+fi
+mount -o remount,ro rootfs/vendor
 
 # Anbox binder permissions
 chmod 666 /dev/anbox-*binder
