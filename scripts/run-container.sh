@@ -6,6 +6,7 @@ stop anbox-container || true
 
 # start cgroup-lite, else container may fail to start.
 start cgroup-lite
+umount -l /sys/fs/cgroup/schedtune
 
 # start sensors hal
 start anbox-sensors
