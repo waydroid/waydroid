@@ -27,6 +27,10 @@ if [ ! -z $MEDIA_PROFILES ]; then
     MEDIA_PROFILES_EXTRA=`getprop media.settings.xml | sed "s/vendor/vendor_extra/" | sed "s/odm/odm_extra/"`
     MEDIA_PROFILES_PROP="media.settings.xml=${MEDIA_PROFILES_EXTRA}"
 fi
+CCODEC=`getprop debug.stagefright.ccodec`
+if [ ! -z $CCODEC ]; then
+    CCODEC_PROP="debug.stagefright.ccodec=${CCODEC}"
+fi
 
 echo "Asking for root access"
 sudo -s <<EOF
@@ -79,6 +83,7 @@ fi
 echo "ro.hardware.gralloc=${GRALLOC}" >> anbox.prop
 echo "${EGL_PROP}" >> anbox.prop
 echo "${MEDIA_PROFILES_PROP}" >> anbox.prop
+echo "${CCODEC_PROP}" >> anbox.prop
 
 echo "Geting latest lxc config"
 mkdir /var/lib/lxc/anbox
