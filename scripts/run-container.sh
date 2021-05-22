@@ -13,6 +13,7 @@ start anbox-sensors
 
 # start lxc-net, that sets up lxc bridge
 start lxc-net
+brctl addbr anbox0
 
 # stop nfcd to not conflict with anbox
 stop nfcd
