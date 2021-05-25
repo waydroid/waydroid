@@ -68,17 +68,17 @@ chmod +x run-container.sh
 if [ -f anbox.prop ]; then
     mv anbox.prop anbox.prop.bak
 fi
-if grep -q "spurv.display_height" anbox.prop.bak; then
-    grep "spurv.display_height" anbox.prop.bak >> anbox.prop
+if grep -q "anbox.display_height" anbox.prop.bak; then
+    grep "anbox.display_height" anbox.prop.bak >> anbox.prop
 else
     echo "NOTE: Edit /home/anbox/anbox.prop based on your device screen resolution"
-    echo "spurv.display_height=1920" >> anbox.prop
+    echo "anbox.display_height=1920" >> anbox.prop
 fi
-if grep -q "spurv.display_width" anbox.prop.bak; then
-    grep "spurv.display_width" anbox.prop.bak >> anbox.prop
+if grep -q "anbox.display_width" anbox.prop.bak; then
+    grep "anbox.display_width" anbox.prop.bak >> anbox.prop
 else
     echo "NOTE: Edit /home/anbox/anbox.prop based on your device screen resolution"
-    echo "spurv.display_width=1080" >> anbox.prop
+    echo "anbox.display_width=1080" >> anbox.prop
 fi
 echo "ro.hardware.gralloc=${GRALLOC}" >> anbox.prop
 echo "${EGL_PROP}" >> anbox.prop
