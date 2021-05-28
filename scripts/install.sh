@@ -1,36 +1,10 @@
 #!/bin/bash
 
 echo "Generating device properties"
-GRALLOC=`getprop ro.hardware.gralloc`
-if [ -z $GRALLOC ] || [ ! -f /vendor/lib/hw/gralloc.$GRALLOC.so ]; then
-    GRALLOC=`getprop ro.hardware`
-    if [ -z $GRALLOC ] || [ ! -f /vendor/lib/hw/gralloc.$GRALLOC.so ]; then
-        GRALLOC=`getprop ro.product.board`
-        if [ -z $GRALLOC ] || [ ! -f /vendor/lib/hw/gralloc.$GRALLOC.so ]; then
-            GRALLOC=`getprop ro.board.platform`
-            if [ -z $GRALLOC ] || [ ! -f /vendor/lib/hw/gralloc.$GRALLOC.so ]; then
-                GRALLOC=`getprop ro.arch`
-                if [ -z $GRALLOC ] || [ ! -f /vendor/lib/hw/gralloc.$GRALLOC.so ]; then
-                    GRALLOC="gbm"
-                fi
-            fi
-        fi
-    fi
-fi
-EGL=`getprop ro.hardware.egl`
-if [ ! -z $EGL ]; then
-    EGL_PROP="ro.hardware.egl=${EGL}"
-fi
-
-MEDIA_PROFILES=`getprop media.settings.xml`
-if [ ! -z $MEDIA_PROFILES ]; then
-    MEDIA_PROFILES_EXTRA=`getprop media.settings.xml | sed "s/vendor/vendor_extra/" | sed "s/odm/odm_extra/"`
-    MEDIA_PROFILES_PROP="media.settings.xml=${MEDIA_PROFILES_EXTRA}"
-fi
-CCODEC=`getprop debug.stagefright.ccodec`
-if [ ! -z $CCODEC ]; then
-    CCODEC_PROP="debug.stagefright.ccodec=${CCODEC}"
-fi
+rm -f generate-props.sh
+wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/generate-props.sh
+chmod +x generate-props.sh
+. generate-props.sh
 
 echo "Asking for root access"
 sudo -s <<EOF
@@ -80,10 +54,17 @@ else
     echo "NOTE: Edit /home/anbox/anbox.prop based on your device screen resolution"
     echo "anbox.display_width=1080" >> anbox.prop
 fi
-echo "ro.hardware.gralloc=${GRALLOC}" >> anbox.prop
+echo "${GRALLOC_PROP}" >> anbox.prop
 echo "${EGL_PROP}" >> anbox.prop
 echo "${MEDIA_PROFILES_PROP}" >> anbox.prop
 echo "${CCODEC_PROP}" >> anbox.prop
+echo "${EXT_LIB_PROP}" >> anbox.prop
+echo "${VULKAN_PROP}" >> anbox.prop
+echo "${DPI_PROP}" >> anbox.prop
+echo "${GLES_VER_PROP}" >> anbox.prop
+echo "${XDG_PROP}" >> anbox.prop
+echo "${WAYLAND_DISP_PROP}" >> anbox.prop
+echo "${PULSE_PROP}" >> anbox.prop
 
 echo "Geting latest lxc config"
 mkdir /var/lib/lxc/anbox
