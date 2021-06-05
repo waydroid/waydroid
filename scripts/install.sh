@@ -38,6 +38,9 @@ echo "Geting latest runner script"
 rm -f run-container.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/run-container.sh
 chmod +x run-container.sh
+rm -f stop-container.sh
+wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/stop-container.sh
+chmod +x stop-container.sh
 
 if [ -f anbox.prop ]; then
     mv anbox.prop anbox.prop.bak
@@ -100,4 +103,5 @@ initctl --user stop pulseaudio
 initctl --user start pulseaudio
 
 echo "Installing Finished!"
-echo "Run anbox container with /home/anbox/run-container.sh on terminal"
+echo "Run anbox container with \"sudo /home/anbox/run-container.sh\" on terminal"
+echo "Stop anbox container with \"sudo /home/anbox/stop-container.sh\" on terminal"
