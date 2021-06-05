@@ -62,6 +62,7 @@ mount -o remount,ro rootfs/vendor
 
 # Anbox binder permissions
 chmod 666 /dev/anbox-*binder
+chmod 777 /dev/ashmem
 
 # Wayland socket permissions
 chmod 777 -R /run/user/32011
@@ -77,5 +78,10 @@ chmod 777 /dev/mdp_sync
 chmod 777 /dev/mtk_cmdq
 chmod 777 /dev/video32
 chmod 777 /dev/video33
+
+# Graphics nodes permissions
+chmod 777 -R /dev/dri/*
+chmod 777 -R /dev/graphics/*
+chmod 777 -R /dev/fb*
 
 lxc-start -n anbox -F -- /init
