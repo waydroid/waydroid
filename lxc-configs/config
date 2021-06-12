@@ -43,7 +43,7 @@ lxc.mount.entry = /dev/dri dev/dri none bind,create=dir,optional 0 0
 lxc.mount.entry = /dev/anbox-binder dev/binder none bind,create=file 0 0
 lxc.mount.entry = /dev/anbox-vndbinder dev/vndbinder none bind,create=file 0 0
 lxc.mount.entry = /dev/anbox-hwbinder dev/hwbinder none bind,create=file 0 0
-lxc.mount.entry = /dev/hwbinder dev/host_hwbinder none bind,create=file 0 0
+lxc.mount.entry = /dev/hwbinder dev/host_hwbinder none bind,create=file,optional 0 0
 
 # Necessary device nodes for adb
 lxc.mount.entry = none dev/pts devpts defaults,mode=644,ptmxmode=666,create=dir 0 0
