@@ -20,10 +20,13 @@ fi
 
 echo "Installing packages"
 apt update
-apt install -y qtwayland5 qml-module-qtwayland-compositor
-rm anbox-sensors_0.1.0_arm64.deb
-wget https://github.com/Anbox-halium/anbox-sensors/releases/download/v0.1.0/anbox-sensors_0.1.0_arm64.deb
-dpkg -i anbox-sensors_0.1.0_arm64.deb
+apt install -y lxc1 qtwayland5 qml-module-qtwayland-compositor
+apt install -y libgbinder sensorfw-qt5 libsensorfw-qt5-plugins || touch NO_SENSORS
+if [ ! -f NO_SENSORS ]; then
+    rm anbox-sensors_0.1.0_arm64.deb
+    wget https://github.com/Anbox-halium/anbox-sensors/releases/download/v0.1.0/anbox-sensors_0.1.0_arm64.deb
+    dpkg -i anbox-sensors_0.1.0_arm64.deb || touch NO_SENSORS
+fi
 
 echo "Geting anbox images"
 if [ -f anbox_arm64_system.img ]; then
@@ -68,6 +71,10 @@ echo "${GLES_VER_PROP}" >> anbox.prop
 echo "${XDG_PROP}" >> anbox.prop
 echo "${WAYLAND_DISP_PROP}" >> anbox.prop
 echo "${PULSE_PROP}" >> anbox.prop
+if [ -f NO_SENSORS ]; then
+	echo "anbox.stub_sensors_hal=1" >> anbox.prop
+	rm NO_SENSORS
+fi
 
 echo "Geting latest lxc config"
 mkdir /var/lib/lxc/anbox
