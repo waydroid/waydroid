@@ -44,6 +44,9 @@ chmod +x run-container.sh
 rm -f stop-container.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/stop-container.sh
 chmod +x stop-container.sh
+rm -f anbox-net.sh
+wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/anbox-net.sh
+chmod +x anbox-net.sh
 
 if [ -f anbox.prop ]; then
     mv anbox.prop anbox.prop.bak

@@ -1,19 +1,15 @@
 #!/bin/sh -
 
-distrosysconfdir="@LXC_DISTRO_SYSCONF@"
-varrun="@RUNTIME_PATH@/lxc"
-varlib="@LOCALSTATEDIR@/lib"
-
-# These can be overridden in @LXC_DISTRO_SYSCONF@/lxc
-#   or in @LXC_DISTRO_SYSCONF@/lxc-net
+varrun="/run/anbox-lxc"
+varlib="/var/lib"
 
 USE_LXC_BRIDGE="true"
-LXC_BRIDGE="lxcbr0"
-LXC_BRIDGE_MAC="00:16:3e:00:00:00"
-LXC_ADDR="10.0.3.1"
+LXC_BRIDGE="anbox0"
+LXC_BRIDGE_MAC="00:16:3e:00:00:01"
+LXC_ADDR="192.168.250.1"
 LXC_NETMASK="255.255.255.0"
-LXC_NETWORK="10.0.3.0/24"
-LXC_DHCP_RANGE="10.0.3.2,10.0.3.254"
+LXC_NETWORK="192.168.250.0/24"
+LXC_DHCP_RANGE="192.168.250.2,192.168.250.254"
 LXC_DHCP_MAX="253"
 LXC_DHCP_CONFILE=""
 LXC_DHCP_PING="true"
@@ -24,8 +20,6 @@ LXC_IPV6_ADDR=""
 LXC_IPV6_MASK=""
 LXC_IPV6_NETWORK=""
 LXC_IPV6_NAT="false"
-
-[ ! -f $distrosysconfdir/lxc ] || . $distrosysconfdir/lxc
 
 use_nft() {
     [ -n "$NFT" ] && nft list ruleset > /dev/null 2>&1 && [ "$LXC_USE_NFT" = "true" ]
@@ -114,7 +108,7 @@ add rule ip lxc postrouting ip saddr ${LXC_NETWORK} ip daddr != ${LXC_NETWORK} c
 start() {
     [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
 
-    [ ! -f "${varrun}/network_up" ] || { echo "lxc-net is already running"; exit 1; }
+    [ ! -f "${varrun}/network_up" ] || { echo "anbox-net is already running"; exit 1; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         stop force || true
@@ -125,7 +119,7 @@ start() {
     cleanup() {
         set +e
         if [ "$FAILED" = "1" ]; then
-            echo "Failed to setup lxc-net." >&2
+            echo "Failed to setup anbox-net." >&2
             stop force
             exit 1
         fi
@@ -224,7 +218,7 @@ delete table ip6 lxc;"
 stop() {
     [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
 
-    [ -f "${varrun}/network_up" ] || [ "$1" = "force" ] || { echo "lxc-net isn't running"; exit 1; }
+    [ -f "${varrun}/network_up" ] || [ "$1" = "force" ] || { echo "anbox-net isn't running"; exit 1; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         _ifdown

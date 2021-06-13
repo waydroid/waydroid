@@ -11,9 +11,8 @@ umount -l /sys/fs/cgroup/schedtune
 # start sensors hal
 start anbox-sensors
 
-# start lxc-net, that sets up lxc bridge
-start lxc-net
-brctl addbr anbox0
+# start anbox-net, that sets up lxc bridge
+/home/anbox/anbox-net.sh start
 
 # stop nfcd to not conflict with anbox
 stop nfcd
