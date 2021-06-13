@@ -9,7 +9,7 @@ for p in "ro.hardware.$1" "ro.hardware" "ro.product.board" "ro.arch" "ro.board.p
             HAL_FILE=/vendor/$l/hw/$1.$(getprop $p).so
             HAL_FILE_PATH=$(readlink -f $HAL_FILE)
             if [ -f "$HAL_FILE_PATH" ]; then
-                HAL_PROP=$(echo $HAL_FILE_PATH |sed "s|.*$1.\(.*\).so|\1|")
+                HAL_PROP=$(echo $HAL_FILE |sed "s|.*$1.\(.*\).so|\1|")
                 if [ "$HAL_PROP" != "" ]; then
                     break
                 fi
