@@ -36,6 +36,8 @@ fi
 rm -f latest-raw-images.zip
 wget https://build.lolinet.com/file/lineage/anbox_arm64/latest-raw-images.zip
 unzip latest-raw-images.zip
+mkdir -p /home/anbox/rootfs
+mkdir -p /home/anbox/data
 
 echo "Geting latest runner script"
 rm -f run-container.sh
@@ -78,6 +80,12 @@ if [ -f NO_SENSORS ]; then
 	echo "anbox.stub_sensors_hal=1" >> anbox.prop
 	rm NO_SENSORS
 fi
+
+# TODO: Get rid of this
+rm -f vendor-fixup.sh
+wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/vendor-fixup.sh
+chmod +x vendor-fixup.sh
+./vendor-fixup.sh
 
 echo "Geting latest lxc config"
 mkdir /var/lib/lxc/anbox
