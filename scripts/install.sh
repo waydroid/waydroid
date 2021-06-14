@@ -127,6 +127,9 @@ fi
 mv config_* config
 sed -i "s/LXCARCH/$UNAME_ARCH/" config
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/lxc-configs/config_nodes
+if [ ! -e /dev/hwbinder ]; then
+        sed -i "/host_hwbinder/d" config_nodes
+fi
 
 if ! grep -q "module-native-protocol-unix auth-anonymous=1" /etc/pulse/touch-android9.pa; then
     echo "Pulseaudio config patching"
