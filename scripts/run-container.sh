@@ -50,8 +50,11 @@ fi
 chmod 666 /dev/anbox-*binder
 chmod 777 /dev/ashmem
 
-# Wayland socket permissions
-chmod 777 -R /run/user/32011
+# Wayland and pulse socket permissions
+XDG_PATH=`cat anbox.prop | grep anbox.xdg_runtime_dir | cut -f 2- -d "="`
+PULSE_PATH=`cat anbox.prop | grep anbox.pulse_runtime_path | cut -f 2- -d "="`
+chmod 777 -R $PULSE_PATH
+chmod 777 -R $XDG_PATH
 
 # Set sw_sync permissions
 chmod 777 /dev/sw_sync
