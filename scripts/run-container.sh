@@ -1,6 +1,18 @@
 #!/bin/bash
 cd /home/anbox
 
+if [ ! -e /dev/anbox-hwbinder ] || [ ! -e /dev/ashmem ]; then
+    modprobe binder_linux devices="anbox-binder,anbox-hwbinder,anbox-vndbinder"
+    modprobe ashmem_linux
+    mkdir /dev/binderfs
+    mount -t binder binder /dev/binderfs
+    ln -s /dev/binderfs/* /dev/
+fi
+if [ ! -e /dev/anbox-hwbinder ] || [ ! -e /dev/ashmem ]; then
+    echo "ERROR: Binder and ashmem nodes not found!"
+    exit
+fi
+
 # just in case, stop Anbox 7
 stop anbox-container || true
 
