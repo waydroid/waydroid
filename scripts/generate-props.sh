@@ -27,6 +27,8 @@ echo $HAL_PROP
 GRALLOC=$(find_hal gralloc)
 if [ -z $GRALLOC ]; then
     GRALLOC="gbm"
+    EGL_PROP="ro.hardware.egl=mesa"
+    CCODEC_PROP="debug.stagefright.ccodec=0"
 fi
 GRALLOC_PROP="ro.hardware.gralloc=${GRALLOC}"
 
