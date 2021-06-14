@@ -43,3 +43,15 @@ Execute command blew:
 wget -O - https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/install.sh | bash
 ```
 Note: Run installer on the user you are willing to install anbox on 
+
+Patching kernel
+---------------
+Running anbox requires: 
+* Veth for networking
+* Ashmem
+* Specific binder nodes (anbox-binder anbox-hwbinder anbox-vndbinder)
+Checkout defconfig kernel patcher [script](https://github.com/Anbox-halium/anbox-halium/blob/lineage-17.1/scripts/check-kernel-config.sh) for patching halium devices kernel.
+```
+check-kernel-config.sh halium_device_defconfig -w 
+```
+On mainline devices it is highly recommanded to use needed drivers as module. (binder_linux and ashmem_linux)
