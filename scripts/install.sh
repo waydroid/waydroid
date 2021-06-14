@@ -48,7 +48,7 @@ fi
 
 echo "Installing packages"
 apt update
-apt install -y lxc1 qtwayland5 qml-module-qtwayland-compositor
+apt install -y lxc1
 apt install -y libgbinder sensorfw-qt5 libsensorfw-qt5-plugins || touch NO_SENSORS
 if [ ! -f NO_SENSORS ]; then
     rm anbox-sensors_0.1.0_${ARCH}.deb
@@ -139,11 +139,6 @@ mount -o remount,ro /
 echo "Going back to phablet user"
 EOF
 cd /home/phablet
-
-echo "Installing anbox launcher"
-rm anbox.rudiimmer_1.0_all.click
-wget https://build.lolinet.com/file/lineage/anbox_${ARCH}/anbox.rudiimmer_1.0_all.click
-pkcon install-local anbox.rudiimmer_1.0_all.click --allow-untrusted
 
 echo "Restarting Pulseaudio service"
 initctl --user stop pulseaudio

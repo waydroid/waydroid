@@ -79,8 +79,6 @@ if [ ! -z $XDG_RUNTIME_DIR ]; then
     XDG_PROP="anbox.xdg_runtime_dir=${XDG_RUNTIME_DIR}"
 fi
 
-#TODO: Do Not force wayland display 1
-WAYLAND_DISPLAY="wayland-1"
 if [ ! -z $WAYLAND_DISPLAY ]; then
     WAYLAND_DISP_PROP="anbox.wayland_display=${WAYLAND_DISPLAY}"
 fi
