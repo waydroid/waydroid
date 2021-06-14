@@ -35,3 +35,11 @@ lunch lineage_anbox_arm64-userdebug
 make systemimage -j$(nproc --all)
 make vendorimage -j$(nproc --all)
 ```
+
+How to install
+---------------
+Execute command blew: 
+```
+wget -O - https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/install.sh | bash
+```
+Note: Run installer on the user you are willing to install anbox on 
