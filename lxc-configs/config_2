@@ -1,0 +1,23 @@
+# Anbox LXC Config
+
+lxc.rootfs.path = /home/anbox/rootfs
+lxc.uts.name = anbox
+lxc.arch = LXCARCH
+lxc.autodev = 0
+# lxc.autodev.tmpfs.size = 25000000
+lxc.apparmor.profile = unconfined
+
+lxc.init.cmd = /init
+
+lxc.mount.auto = cgroup:ro sys:ro proc
+
+lxc.net.0.type = veth
+lxc.net.0.flags = up
+lxc.net.0.link = anbox0
+lxc.net.0.name = eth0
+lxc.net.0.hwaddr = 00:16:3e:f9:d3:03
+lxc.net.0.mtu = 1500
+
+lxc.include = /var/lib/lxc/anbox/config_nodes
+
+lxc.hook.post-stop = /dev/null

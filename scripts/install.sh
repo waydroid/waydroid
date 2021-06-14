@@ -118,9 +118,15 @@ chmod +x vendor-fixup.sh
 echo "Geting latest lxc config"
 mkdir /var/lib/lxc/anbox
 cd /var/lib/lxc/anbox
-rm -f config
-wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/lxc-configs/config
+rm -f config*
+if [ `lxc-info --version | cut -d "." -f 1` -gt 2 ]; then
+    wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/lxc-configs/config_2
+else
+    wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/lxc-configs/config_1
+fi
+mv config_* config
 sed -i "s/LXCARCH/$UNAME_ARCH/" config
+wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/lxc-configs/config_nodes
 
 if ! grep -q "module-native-protocol-unix auth-anonymous=1" /etc/pulse/touch-android9.pa; then
     echo "Pulseaudio config patching"
