@@ -37,6 +37,12 @@ mount -o remount,ro rootfs
 mount anbox_*_vendor.img rootfs/vendor
 mount -o remount,ro rootfs/vendor
 mount -o bind anbox.prop rootfs/vendor/anbox.prop
+if [ -d /vendor/lib/egl ]; then
+    mount -o bind /vendor/lib/egl rootfs/vendor/lib/egl
+fi
+if [ -d /vendor/lib64/egl ]; then
+    mount -o bind /vendor/lib64/egl rootfs/vendor/lib64/egl
+fi
 
 if mountpoint -q -- /odm; then
     mount -o bind /odm rootfs/odm_extra
