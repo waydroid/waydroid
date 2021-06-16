@@ -1,5 +1,33 @@
 #!/bin/bash
 
+SUPPORTED_ARCHS="x86_64 aarch64 armv8l"
+UNAME_ARCH=`uname -m`
+
+for a in $SUPPORTED_ARCHS; do
+    if [ $UNAME_ARCH == $a ]; then
+        ARCH=$a
+    fi
+done
+if [ -z ${ARCH} ]; then
+    echo "ERROR: Your system with arch $UNAME_ARCH is not supported"
+    exit
+fi
+if [ $UNAME_ARCH == "aarch64" ]; then
+    ARCH="arm64"
+fi
+if [ $UNAME_ARCH == "armv8l" ]; then
+    ARCH="arm64"
+fi
+if [ $UNAME_ARCH == "armv7l" ]; then
+    ARCH="arm"
+fi
+if [ $UNAME_ARCH == "i386" ]; then
+    ARCH="x86"
+fi
+if [ $UNAME_ARCH == "i686" ]; then
+    ARCH="x86"
+fi
+
 echo "Generating device properties"
 rm -f generate-props.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/generate-props.sh
@@ -23,18 +51,18 @@ apt update
 apt install -y lxc1 qtwayland5 qml-module-qtwayland-compositor
 apt install -y libgbinder sensorfw-qt5 libsensorfw-qt5-plugins || touch NO_SENSORS
 if [ ! -f NO_SENSORS ]; then
-    rm anbox-sensors_0.1.0_arm64.deb
-    wget https://github.com/Anbox-halium/anbox-sensors/releases/download/v0.1.0/anbox-sensors_0.1.0_arm64.deb
-    dpkg -i anbox-sensors_0.1.0_arm64.deb || touch NO_SENSORS
+    rm anbox-sensors_0.1.0_${ARCH}.deb
+    wget https://github.com/Anbox-halium/anbox-sensors/releases/download/v0.1.0/anbox-sensors_0.1.0_${ARCH}.deb
+    dpkg -i anbox-sensors_0.1.0_${ARCH}.deb || touch NO_SENSORS
 fi
 
 echo "Geting anbox images"
-if [ -f anbox_arm64_system.img ]; then
-    mv anbox_arm64_system.img anbox_arm64_system.img.bak
-    mv anbox_arm64_vendor.img anbox_arm64_vendor.img.bak
+if [ -f anbox_${ARCH}_system.img ]; then
+    mv anbox_${ARCH}_system.img anbox_${ARCH}_system.img.bak
+    mv anbox_${ARCH}_vendor.img anbox_${ARCH}_vendor.img.bak
 fi
 rm -f latest-raw-images.zip
-wget https://build.lolinet.com/file/lineage/anbox_arm64/latest-raw-images.zip
+wget https://build.lolinet.com/file/lineage/anbox_${ARCH}/latest-raw-images.zip
 unzip latest-raw-images.zip
 mkdir -p /home/anbox/rootfs
 mkdir -p /home/anbox/data
@@ -85,13 +113,14 @@ fi
 rm -f vendor-fixup.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/vendor-fixup.sh
 chmod +x vendor-fixup.sh
-./vendor-fixup.sh
+./vendor-fixup.sh $ARCH
 
 echo "Geting latest lxc config"
 mkdir /var/lib/lxc/anbox
 cd /var/lib/lxc/anbox
 rm -f config
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/lxc-configs/config
+sed -i "s/LXCARCH/$UNAME_ARCH/" config
 
 if ! grep -q "module-native-protocol-unix auth-anonymous=1" /etc/pulse/touch-android9.pa; then
     echo "Pulseaudio config patching"
@@ -113,7 +142,7 @@ cd /home/phablet
 
 echo "Installing anbox launcher"
 rm anbox.rudiimmer_1.0_all.click
-wget https://build.lolinet.com/file/lineage/anbox_arm64/anbox.rudiimmer_1.0_all.click
+wget https://build.lolinet.com/file/lineage/anbox_${ARCH}/anbox.rudiimmer_1.0_all.click
 pkcon install-local anbox.rudiimmer_1.0_all.click --allow-untrusted
 
 echo "Restarting Pulseaudio service"

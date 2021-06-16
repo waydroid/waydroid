@@ -32,9 +32,9 @@ stop nfcd
 # umount rootfs if it was mounted
 umount -l rootfs || true
 
-mount anbox_arm64_system.img rootfs
+mount anbox_*_system.img rootfs
 mount -o remount,ro rootfs
-mount anbox_arm64_vendor.img rootfs/vendor
+mount anbox_*_vendor.img rootfs/vendor
 mount -o remount,ro rootfs/vendor
 mount -o bind anbox.prop rootfs/vendor/anbox.prop
 
