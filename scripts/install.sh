@@ -48,7 +48,7 @@ fi
 
 echo "Installing packages"
 apt update
-apt install -y lxc1
+apt install -y lxc1 || apt install -y lxc
 apt install -y libgbinder sensorfw-qt5 libsensorfw-qt5-plugins || touch NO_SENSORS
 if [ ! -f NO_SENSORS ]; then
     rm anbox-sensors_0.1.0_${ARCH}.deb
