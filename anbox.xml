@@ -5,11 +5,13 @@
   <remove-project name="platform/system/libhwbinder" />
   <remove-project name="platform/external/libdrm" />
   <remove-project name="platform/external/mesa3d" />
+  <remove-project name="hardware/intel/common/libva" />
 
   <project path="system/libhidl" name="Anbox-halium/android_system_libhidl" />
   <project path="system/libhwbinder" name="Anbox-halium/android_system_libhwbinder" />
   <project path="external/libdrm" name="Anbox-halium/android_external_libdrm" />
   <project path="external/mesa3d" name="Anbox-halium/android_external_mesa3d" />
+  <project path="hardware/intel/common/libva" name="Anbox-halium/android_hardware_intel_common_libva" />
 
   <!-- Anbox Projects -->
   <project path="anbox-patches" name="Anbox-halium/anbox-patches" />
@@ -23,5 +25,9 @@
 
   <!-- Display -->
   <project path="external/llvm90" name="Anbox-halium/android_external_llvm90" />
+  
+  <!-- Media -->
+  <project path="external/ffmpeg" name="Anbox-halium/android_external_ffmpeg" />
+  <project path="external/stagefright-plugins" name="Anbox-halium/android_external_stagefright-plugins" />
 
 </manifest>
