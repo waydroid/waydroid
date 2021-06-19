@@ -5,7 +5,7 @@
   <remove-project name="platform/system/libhwbinder" />
   <remove-project name="platform/external/libdrm" />
   <remove-project name="platform/external/mesa3d" />
-  <remove-project name="hardware/intel/common/libva" />
+  <remove-project name="platform/hardware/intel/common/libva" />
 
   <project path="system/libhidl" name="Anbox-halium/android_system_libhidl" />
   <project path="system/libhwbinder" name="Anbox-halium/android_system_libhwbinder" />
