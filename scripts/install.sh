@@ -108,6 +108,8 @@ if [ -f NO_SENSORS ]; then
 	echo "anbox.stub_sensors_hal=1" >> anbox.prop
 	rm NO_SENSORS
 fi
+# TODO: Drop this
+echo "anbox.active_apps=full" >> anbox.prop
 
 # TODO: Get rid of this
 rm -f vendor-fixup.sh
