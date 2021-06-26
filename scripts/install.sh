@@ -83,15 +83,15 @@ if [ -f anbox.prop ]; then
 fi
 if grep -q "anbox.display_height" anbox.prop.bak; then
     grep "anbox.display_height" anbox.prop.bak >> anbox.prop
-else
-    echo "NOTE: Edit /home/anbox/anbox.prop based on your device screen resolution"
-    echo "anbox.display_height=1920" >> anbox.prop
 fi
 if grep -q "anbox.display_width" anbox.prop.bak; then
     grep "anbox.display_width" anbox.prop.bak >> anbox.prop
-else
-    echo "NOTE: Edit /home/anbox/anbox.prop based on your device screen resolution"
-    echo "anbox.display_width=1080" >> anbox.prop
+fi
+if grep -q "anbox.display_height_padding" anbox.prop.bak; then
+    grep "anbox.display_height_padding" anbox.prop.bak >> anbox.prop
+fi
+if grep -q "anbox.display_width_padding" anbox.prop.bak; then
+    grep "anbox.display_width_padding" anbox.prop.bak >> anbox.prop
 fi
 echo "${GRALLOC_PROP}" >> anbox.prop
 echo "${EGL_PROP}" >> anbox.prop
