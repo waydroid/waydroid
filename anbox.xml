@@ -16,6 +16,7 @@
   <!-- Anbox Projects -->
   <project path="anbox-patches" name="Anbox-halium/anbox-patches" />
   <project path="device/halium/anbox" name="Anbox-halium/android_device_halium_anbox" />
+  <project path="hardware/anbox/interfaces" name="Anbox-halium/android_hardware_anbox_interfaces" />
 
   <!-- Audio -->
   <project path="external/alsa-lib" name="Anbox-halium/android_external_alsa-lib" />
