@@ -35,7 +35,7 @@ chmod +x generate-props.sh
 . generate-props.sh
 
 echo "Asking for root access"
-sudo -s <<EOF
+sudo bash <<EOF
 mount -o remount,rw /
 
 mkdir /home/anbox
