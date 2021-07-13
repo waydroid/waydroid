@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if ! $(which getprop); then
+    echo "getprop not found, assuming this is a mainline device"
+    alias getprop=true
+fi
+
 find_hal ()
 {
 HAL_PROP=
