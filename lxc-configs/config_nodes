@@ -12,6 +12,7 @@ lxc.mount.entry = /dev/char dev/char none bind,create=dir,optional 0 0
 # Graphic dev nodes
 lxc.mount.entry = /dev/kgsl-3d0 dev/kgsl-3d0 none bind,create=file,optional 0 0
 lxc.mount.entry = /dev/mali0 dev/mali0 none bind,create=file,optional 0 0
+lxc.mount.entry = /dev/pvr_sync dev/pvr_sync none bind,create=file,optional 0 0
 lxc.mount.entry = /dev/pmsg0 dev/pmsg0 none bind,create=file,optional 0 0
 lxc.mount.entry = /dev/fb0 dev/fb0 none bind,create=file,optional 0 0
 lxc.mount.entry = /dev/graphics/fb0 dev/graphics/fb0 none bind,create=file,optional 0 0
