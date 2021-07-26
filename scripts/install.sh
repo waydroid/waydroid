@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SUPPORTED_ARCHS="x86_64 aarch64 armv8l"
-UNAME_ARCH=`uname -m`
+UNAME_ARCH=$(uname -m)
 
 for a in $SUPPORTED_ARCHS; do
     if [ $UNAME_ARCH == $a ]; then
@@ -10,26 +10,31 @@ for a in $SUPPORTED_ARCHS; do
 done
 if [ -z ${ARCH} ]; then
     echo "ERROR: Your system with arch $UNAME_ARCH is not supported"
-    exit
+    exit 1
 fi
+
 if [ $UNAME_ARCH == "aarch64" ]; then
     ARCH="arm64"
 fi
-if [ $UNAME_ARCH == "armv8l" ]; then
+
+elif [ $UNAME_ARCH == "armv8l" ]; then
     ARCH="arm64"
 fi
-if [ $UNAME_ARCH == "armv7l" ]; then
+
+elif [ $UNAME_ARCH == "armv7l" ]; then
     ARCH="arm"
 fi
-if [ $UNAME_ARCH == "i386" ]; then
-    ARCH="x86"
-fi
-if [ $UNAME_ARCH == "i686" ]; then
+
+elif [ $UNAME_ARCH == "i386" ]; then
     ARCH="x86"
 fi
 
-echo "Generating device properties"
-rm -f generate-props.sh
+elif [ $UNAME_ARCH == "i686" ]; then
+    ARCH="x86"
+fi
+
+echo "Generating device properties..."
+rm -rf generate-props.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/generate-props.sh
 chmod +x generate-props.sh
 . generate-props.sh
@@ -46,7 +51,7 @@ if ! grep -q "#LD_LIBRARY_PATH" /etc/environment; then
     sed -i -e "s/^LD_LIBRARY_PATH/#LD_LIBRARY_PATH/" /etc/environment
 fi
 
-echo "Installing packages"
+echo "Installing packages..."
 apt update
 apt install -y lxc1 || apt install -y lxc
 apt install -y libgbinder sensorfw-qt5 libsensorfw-qt5-plugins || touch NO_SENSORS
@@ -61,20 +66,20 @@ if [ -f anbox_${ARCH}_system.img ]; then
     mv anbox_${ARCH}_system.img anbox_${ARCH}_system.img.bak
     mv anbox_${ARCH}_vendor.img anbox_${ARCH}_vendor.img.bak
 fi
-rm -f latest-raw-images.zip
+rm -rf latest-raw-images.zip
 wget https://build.lolinet.com/file/lineage/anbox_${ARCH}/latest-raw-images.zip
 unzip latest-raw-images.zip
 mkdir -p /home/anbox/rootfs
 mkdir -p /home/anbox/data
 
-echo "Geting latest runner script"
-rm -f run-container.sh
+echo "Getting latest container script..."
+rm -rf run-container.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/run-container.sh
 chmod +x run-container.sh
-rm -f stop-container.sh
+rm -rf stop-container.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/stop-container.sh
 chmod +x stop-container.sh
-rm -f anbox-net.sh
+rm -rf anbox-net.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/anbox-net.sh
 chmod +x anbox-net.sh
 
@@ -106,22 +111,22 @@ echo "${WAYLAND_DISP_PROP}" >> anbox.prop
 echo "${PULSE_PROP}" >> anbox.prop
 if [ -f NO_SENSORS ]; then
 	echo "anbox.stub_sensors_hal=1" >> anbox.prop
-	rm NO_SENSORS
+	rm -rf NO_SENSORS
 fi
 # TODO: Drop this
 echo "anbox.active_apps=full" >> anbox.prop
 
 # TODO: Get rid of this
-rm -f vendor-fixup.sh
+rm -rf vendor-fixup.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/vendor-fixup.sh
 chmod +x vendor-fixup.sh
 ./vendor-fixup.sh $ARCH
 
-echo "Geting latest lxc config"
-mkdir /var/lib/lxc/anbox
+echo "Getting latest lxc config..."
+mkdir -p /var/lib/lxc/anbox
 cd /var/lib/lxc/anbox
-rm -f config*
-if [ `lxc-info --version | cut -d "." -f 1` -gt 2 ]; then
+rm -rf config*
+if [ "$(lxc-info --version | cut -d "." -f 1)" -gt "2" ]; then
     wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/lxc-configs/config_2
 else
     wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/lxc-configs/config_1
@@ -134,7 +139,7 @@ if [ ! -e /dev/hwbinder ]; then
 fi
 
 if ! grep -q "module-native-protocol-unix auth-anonymous=1" /etc/pulse/touch-android9.pa; then
-    echo "Pulseaudio config patching"
+    echo "Pulse audio config patching..."
     sed -i "s/module-native-protocol-unix/module-native-protocol-unix auth-anonymous=1/" /etc/pulse/touch-android9.pa
 fi
 
@@ -147,14 +152,14 @@ fi
 
 mount -o remount,ro /
 
-echo "Going back to phablet user"
+echo "Going back to phablet user..."
 EOF
 cd /home/phablet
 
-echo "Restarting Pulseaudio service"
+echo "Restarting Pulse audio service..."
 initctl --user stop pulseaudio
 initctl --user start pulseaudio
 
-echo "Installing Finished!"
+echo "Installation Finished!"
 echo "Run anbox container with \"sudo /home/anbox/run-container.sh\" on terminal"
 echo "Stop anbox container with \"sudo /home/anbox/stop-container.sh\" on terminal"

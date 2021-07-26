@@ -1,16 +1,29 @@
 #!/bin/bash
+
+ered() {
+	echo -e "\033[31m" $@
+}
+
+egreen() {
+	echo -e "\033[32m" $@
+}
+
+ewhite() {
+	echo -e "\033[37m" $@
+}
+
 cd /home/anbox
 
 if [ ! -e /dev/anbox-hwbinder ] || [ ! -e /dev/ashmem ]; then
     modprobe binder_linux devices="anbox-binder,anbox-hwbinder,anbox-vndbinder"
     modprobe ashmem_linux
-    mkdir /dev/binderfs
+    mkdir -p /dev/binderfs
     mount -t binder binder /dev/binderfs
     ln -s /dev/binderfs/* /dev/
 fi
 if [ ! -e /dev/anbox-hwbinder ] || [ ! -e /dev/ashmem ]; then
-    echo "ERROR: Binder and ashmem nodes not found!"
-    exit
+    ered "ERROR: Binder and ashmem nodes not found!"
+    exit 1
 fi
 
 # just in case, stop Anbox 7
@@ -21,7 +34,7 @@ start cgroup-lite
 umount -l /sys/fs/cgroup/schedtune
 
 # start sensors hal
-anbox-sensord &
+anbox-sensord
 
 # start anbox-net, that sets up lxc bridge
 /home/anbox/anbox-net.sh start
@@ -54,29 +67,32 @@ fi
 
 # Anbox binder permissions
 chmod 666 /dev/anbox-*binder
-chmod 777 /dev/ashmem
+chmod 666 /dev/ashmem
 
 # Wayland and pulse socket permissions
-XDG_PATH=`cat anbox.prop | grep anbox.xdg_runtime_dir | cut -f 2- -d "="`
-PULSE_PATH=`cat anbox.prop | grep anbox.pulse_runtime_path | cut -f 2- -d "="`
-chmod 777 -R $PULSE_PATH
-chmod 777 -R $XDG_PATH
+XDG_PATH=$(cat anbox.prop | grep anbox.xdg_runtime_dir | cut -f 2- -d "=")
+PULSE_PATH=$(cat anbox.prop | grep anbox.pulse_runtime_path | cut -f 2- -d "=")
+chmod 666 -R $PULSE_PATH
+chmod 666 -R $XDG_PATH
 
 # Set sw_sync permissions
-chmod 777 /dev/sw_sync
-chmod 777 /sys/kernel/debug/sync/sw_sync
+chmod 666 /dev/sw_sync
+chmod 666 /sys/kernel/debug/sync/sw_sync
 
 # Media nodes permissions
-chmod 777 /dev/Vcodec
-chmod 777 /dev/MTK_SMI
-chmod 777 /dev/mdp_sync
-chmod 777 /dev/mtk_cmdq
-chmod 777 /dev/video32
-chmod 777 /dev/video33
+chmod 666 /dev/Vcodec
+chmod 666 /dev/MTK_SMI
+chmod 666 /dev/mdp_sync
+chmod 666 /dev/mtk_cmdq
+chown system /dev/video*
+chgrp camera /dev/video*
+chmod 660 /dev/video*
 
 # Graphics nodes permissions
-chmod 777 -R /dev/dri/*
-chmod 777 -R /dev/graphics/*
-chmod 777 -R /dev/fb*
+chgrp graphics /dev/dri/*
+chmod 666 -R /dev/dri/*
+chgrp graphics /dev/graphics/*
+chmod 666 -R /dev/graphics/*
+chmod 666 -R /dev/fb*
 
 lxc-start -n anbox -F -- /init

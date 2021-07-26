@@ -1,4 +1,16 @@
-#!/bin/sh -
+#!/bin/sh
+
+ered() {
+	echo -e "\033[31m" $@
+}
+
+egreen() {
+	echo -e "\033[32m" $@
+}
+
+ewhite() {
+	echo -e "\033[37m" $@
+}
 
 varrun="/run/anbox-lxc"
 varlib="/var/lib"
@@ -40,8 +52,7 @@ if ! use_nft; then
     $IPTABLES_BIN -w -L -n > /dev/null 2>&1 || use_iptables_lock=""
 fi
 
-_netmask2cidr ()
-{
+_netmask2cidr() {
     # Assumes there's no "255." after a non-255 byte in the mask
     local x=${1##*255.}
     set -- 0^^^128^192^224^240^248^252^254^ $(( (${#1} - ${#x})*2 )) ${x%%.*}
@@ -55,7 +66,7 @@ _ifdown() {
 }
 
 _ifup() {
-    MASK=`_netmask2cidr ${LXC_NETMASK}`
+    MASK=$(_netmask2cidr ${LXC_NETMASK})
     CIDR_ADDR="${LXC_ADDR}/${MASK}"
     ip addr add ${CIDR_ADDR} broadcast + dev ${LXC_BRIDGE}
     ip link set dev ${LXC_BRIDGE} address $LXC_BRIDGE_MAC
@@ -95,8 +106,7 @@ start_nftables() {
 add table ip6 lxc;
 flush table ip6 lxc;
 add chain ip6 lxc postrouting { type nat hook postrouting priority 100; };
-add rule ip6 lxc postrouting ip saddr ${LXC_IPV6_NETWORK} ip daddr != ${LXC_IPV6_NETWORK} counter masquerade;
-"
+add rule ip6 lxc postrouting ip saddr ${LXC_IPV6_NETWORK} ip daddr != ${LXC_IPV6_NETWORK} counter masquerade"
     fi
     NFT_RULESET="${NFT_RULESET};
 add table inet lxc;
@@ -117,7 +127,7 @@ add rule ip lxc postrouting ip saddr ${LXC_NETWORK} ip daddr != ${LXC_NETWORK} c
 start() {
     [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
 
-    [ ! -f "${varrun}/network_up" ] || { echo "anbox-net is already running"; exit 1; }
+    [ ! -f "${varrun}/network_up" ] || { ered "anbox-net is already running!"; exit 1; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         stop force || true
@@ -128,7 +138,7 @@ start() {
     cleanup() {
         set +e
         if [ "$FAILED" = "1" ]; then
-            echo "Failed to setup anbox-net." >&2
+            ered "Failed to setup anbox-net!" >&2
             stop force
             exit 1
         fi
@@ -227,7 +237,7 @@ delete table ip6 lxc;"
 stop() {
     [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
 
-    [ -f "${varrun}/network_up" ] || [ "$1" = "force" ] || { echo "anbox-net isn't running"; exit 1; }
+    [ -f "${varrun}/network_up" ] || [ "$1" = "force" ] || { ered "anbox-net isn't running"; exit 1; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         _ifdown
@@ -237,13 +247,13 @@ stop() {
             stop_iptables
         fi
 
-        pid=`cat "${varrun}"/dnsmasq.pid 2>/dev/null` && kill -9 $pid
-        rm -f "${varrun}"/dnsmasq.pid
+        pid=$(cat "${varrun}"/dnsmasq.pid 2>/dev/null) && killall -9 "$pid"
+        rm -rf "${varrun}"/dnsmasq.pid
         # if $LXC_BRIDGE has attached interfaces, don't destroy the bridge
         ls /sys/class/net/${LXC_BRIDGE}/brif/* > /dev/null 2>&1 || ip link delete ${LXC_BRIDGE}
     fi
 
-    rm -f "${varrun}"/network_up
+    rm -rf "${varrun}"/network_up
 }
 
 # See how we were called.

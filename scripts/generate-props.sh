@@ -1,7 +1,6 @@
 #!/bin/sh
 
-find_hal ()
-{
+find_hal() {
 HAL_PROP=
 for p in "ro.hardware.$1" "ro.hardware" "ro.product.board" "ro.arch" "ro.board.platform"; do
     if [ "$(getprop $p)" != "" ]; then
@@ -25,32 +24,32 @@ echo $HAL_PROP
 }
 
 GRALLOC=$(find_hal gralloc)
-if [ -z $GRALLOC ]; then
+if [ -z "$GRALLOC" ]; then
     GRALLOC="gbm"
     EGL_PROP="ro.hardware.egl=mesa"
     CCODEC_PROP="debug.stagefright.ccodec=0"
 fi
 GRALLOC_PROP="ro.hardware.gralloc=${GRALLOC}"
 
-EGL=`getprop ro.hardware.egl`
-if [ ! -z $EGL ]; then
+EGL=$(getprop ro.hardware.egl)
+if [ ! -z "$EGL" ]; then
     EGL_PROP="ro.hardware.egl=${EGL}"
 fi
 
-MEDIA_PROFILES=`getprop media.settings.xml`
+MEDIA_PROFILES=$(getprop media.settings.xml)
 if [ ! -z $MEDIA_PROFILES ]; then
-    MEDIA_PROFILES_EXTRA=`echo ${MEDIA_PROFILES} | sed "s/vendor/vendor_extra/" | sed "s/odm/odm_extra/"`
+    MEDIA_PROFILES_EXTRA=$(echo ${MEDIA_PROFILES} | sed "s/vendor/vendor_extra/" | sed "s/odm/odm_extra/")
     MEDIA_PROFILES_PROP="media.settings.xml=${MEDIA_PROFILES_EXTRA}"
 fi
 
-CCODEC=`getprop debug.stagefright.ccodec`
+CCODEC=$(getprop debug.stagefright.ccodec)
 if [ ! -z $CCODEC ]; then
     CCODEC_PROP="debug.stagefright.ccodec=${CCODEC}"
 fi
 
-EXT_LIB=`getprop ro.vendor.extension_library`
-if [ ! -z $EXT_LIB ]; then
-    EXT_LIB_EXTRA=`echo ${EXT_LIB} | sed 's/vendor/vendor_extra/g'`
+EXT_LIB=$(getprop ro.vendor.extension_library)
+if [ ! -z "$EXT_LIB" ]; then
+    EXT_LIB_EXTRA=$(echo ${EXT_LIB} | sed 's/vendor/vendor_extra/g')
     EXT_LIB_PROP="ro.vendor.extension_library=${EXT_LIB_EXTRA}"
 fi
 
@@ -64,7 +63,7 @@ fi
 DPI=$(getprop ro.sf.lcd_density)
 if [ -z $DPI ]; then
     if [ ! -z $GRID_UNIT_PX ]; then
-        DPI=`echo $GRID_UNIT_PX | awk '{$1=int($1*20);printf $1}'`
+        DPI=$(echo $GRID_UNIT_PX | awk '{$1=int($1*20);printf $1}')
     else
         DPI="420"
     fi
@@ -73,7 +72,7 @@ DPI_PROP="ro.sf.lcd_density=${DPI}"
 
 GLES_VER=$(getprop ro.opengles.version)
 if [ -z $GLES_VER ]; then
-    GLES_VER="196608"
+    GLES_VER="196610"
 fi
 GLES_VER_PROP="ro.opengles.version=${GLES_VER}"
 

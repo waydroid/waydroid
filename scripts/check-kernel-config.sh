@@ -1,9 +1,21 @@
 #!/bin/bash
 
+ered() {
+	echo -e "\033[31m" $@
+}
+
+egreen() {
+	echo -e "\033[32m" $@
+}
+
+ewhite() {
+	echo -e "\033[37m" $@
+}
+
 FILE=$1
 
 [ -f "$FILE" ] || {
-	echo "Provide a config file as argument"
+	ewhite "Provide a config file as argument"
 	exit
 }
 
@@ -26,32 +38,21 @@ CONFIGS_OFF="
 CONFIGS_EQ="
 CONFIG_ANDROID_BINDER_DEVICES=\"binder,hwbinder,vndbinder,anbox-binder,anbox-hwbinder,anbox-vndbinder\"
 "
-ered() {
-	echo -e "\033[31m" $@
-}
 
-egreen() {
-	echo -e "\033[32m" $@
-}
-
-ewhite() {
-	echo -e "\033[37m" $@
-}
-
-echo -e "\n\nChecking config file for Halium specific config options.\n\n"
+ewhite "\n\nChecking config file for Halium specific config options...\n\n"
 
 errors=0
 fixes=0
 
 for c in $CONFIGS_ON $CONFIGS_OFF;do
-	cnt=`grep -w -c $c $FILE`
-	if [ $cnt -gt 1 ];then
+	cnt=$(grep -w -c "$c" "$FILE")
+	if [ "$cnt" -gt "1" ];then
 		ered "$c appears more than once in the config file, fix this"
 		errors=$((errors+1))
 	fi
 
-	if [ $cnt -eq 0 ];then
-		if $write ; then
+	if [ "$cnt" -eq "0" ];then
+		if $write; then
 			ewhite "Creating $c"
 			echo "# $c is not set" >> "$FILE"
 			fixes=$((fixes+1))
@@ -77,24 +78,24 @@ for c in $CONFIGS_ON;do
 	fi
 done
 
-for c in $CONFIGS_EQ;do
+for c in $CONFIGS_EQ; do
 	lhs=$(awk -F= '{ print $1 }' <(echo $c))
 	rhs=$(awk -F= '{ print $2 }' <(echo $c))
-	if grep "^$c" "$FILE" >/dev/null;then
+	if grep "^$c" "$FILE" >/dev/null; then
 		egreen "$c is already set correctly."
 		continue
-	elif grep "^$lhs" "$FILE" >/dev/null;then
+	elif grep "^$lhs" "$FILE" >/dev/null; then
 		cur=$(awk -F= '{ print $2 }' <(grep "$lhs" "$FILE"))
 		ered "$lhs is set, but to $cur not $rhs."
-		if $write ; then
+		if $write; then
 			egreen "Setting $c correctly"
 			sed -i 's,^'"$lhs"'.*,# '"$lhs"' was '"$cur"'\n'"$c"',' "$FILE"
 			fixes=$((fixes+1))
 		fi
 	else
-		if $write ; then
+		if $write; then
 			ewhite "Setting $c"
-			echo  "$c" >> "$FILE"
+			echo "$c" >> "$FILE"
 			fixes=$((fixes+1))
 		else
 			ered "$c is not set"
@@ -104,10 +105,10 @@ for c in $CONFIGS_EQ;do
 done
 
 for c in $CONFIGS_OFF;do
-	if grep "$c=y\|$c=m" "$FILE" >/dev/null;then
-		if $write ; then
+	if grep "$c=y\|$c=m" "$FILE" >/dev/null; then
+		if $write; then
 			ewhite "Unsetting $c"
-			sed  -i "s,$c=.*,# $c is not set," $FILE
+			sed -i "s,$c=.*,# $c is not set," "$FILE"
 			fixes=$((fixes+1))
 		else
 			ered "$c is set, unset it"
@@ -128,4 +129,4 @@ if [ $fixes -gt 0 ];then
 	egreen "Made $fixes fixes.\n\n"
 fi
 
-ewhite " "
+ewhite ""

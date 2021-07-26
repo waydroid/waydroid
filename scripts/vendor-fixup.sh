@@ -1,9 +1,9 @@
 #!/bin/bash
 
-mkdir /home/anbox/tmp_vendor
+mkdir -p /home/anbox/tmp_vendor
 mount /home/anbox/anbox_${1}_vendor.img /home/anbox/tmp_vendor
 
-SKU=`getprop ro.boot.product.hardware.sku`
+SKU=$(getprop ro.boot.product.hardware.sku)
 cp -p /vendor/etc/permissions/android.hardware.nfc.* /home/anbox/tmp_vendor/etc/permissions/
 cp -p /vendor/etc/permissions/android.hardware.consumerir.xml /home/anbox/tmp_vendor/etc/permissions/
 cp -p /odm/etc/permissions/android.hardware.nfc.* /home/anbox/tmp_vendor/etc/permissions/
