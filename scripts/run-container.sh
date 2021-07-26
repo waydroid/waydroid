@@ -34,7 +34,7 @@ start cgroup-lite
 umount -l /sys/fs/cgroup/schedtune
 
 # start sensors hal
-anbox-sensord
+anbox-sensord &
 
 # start anbox-net, that sets up lxc bridge
 /home/anbox/anbox-net.sh start
