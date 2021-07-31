@@ -4,34 +4,62 @@ Anbox-halium
 Getting started
 ---------------
 
-To get started with Android/LineageOS, you'll need to get
+To get started with Android/LineageOS/BlissROM, you'll need to get
 familiar with [Repo](https://source.android.com/source/using-repo.html) and [Version Control with Git](https://source.android.com/source/version-control.html).
+
+
 
 To initialize your local repository using the LineageOS trees, use a command like this:
 ```
 repo init -u git://github.com/LineageOS/android.git -b lineage-17.1
 ```
-Add anbox manifest:
+or... to initialize your local repository using the BlissROM trees, use a command like this:
 ```
-wget https://raw.githubusercontent.com/Anbox-halium/anbox-halium/lineage-17.1/anbox.xml -P .repo/local_manifests/
+repo init -u https://github.com/BlissRoms/platform_manifest.git -b q
 ```
-Then to sync up:
+
+And do an initial sync:
+```
+repo sync
+```
+
+Adding Anbox-halium
+-------------------
+
+Clone in anbox vendor:
+```
+git clone https://github.com/Anbox-halium/anbox-patches vendor/anbox
+```
+Then we generate the manifest:
+```
+. build/envsetup.sh
+anbox-generate-manifest
+```
+Then sync again:
 ```
 repo sync
 ```
 Then to apply anbox patches:
 ```
-anbox-patches/apply-patches.sh --mb
+apply-anbox-patches
 ```
 
 How to build
 ---------------
+
 Please see the [LineageOS Wiki](https://wiki.lineageos.org/) for building environment setup.
 
-To build anbox:
+To build anbox for LineageOS:
 ```
 . build/envsetup.sh
 lunch lineage_anbox_arm64-userdebug
+make systemimage -j$(nproc --all)
+make vendorimage -j$(nproc --all)
+```
+To build anbox for BlissROM:
+```
+. build/envsetup.sh
+lunch bliss_anbox_arm64-userdebug
 make systemimage -j$(nproc --all)
 make vendorimage -j$(nproc --all)
 ```
