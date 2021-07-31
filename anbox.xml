@@ -5,30 +5,33 @@
   <remove-project name="platform/system/libhwbinder" />
   <remove-project name="platform/external/libdrm" />
   <remove-project name="platform/external/mesa3d" />
+<!--
   <remove-project name="platform/hardware/intel/common/libva" />
+-->
 
-  <project path="system/libhidl" name="Anbox-halium/android_system_libhidl" />
-  <project path="system/libhwbinder" name="Anbox-halium/android_system_libhwbinder" />
-  <project path="external/libdrm" name="Anbox-halium/android_external_libdrm" />
-  <project path="external/mesa3d" name="Anbox-halium/android_external_mesa3d" />
-  <project path="hardware/intel/common/libva" name="Anbox-halium/android_hardware_intel_common_libva" />
+  <project path="system/libhidl" name="Anbox-halium/android_system_libhidl" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="system/libhwbinder" name="Anbox-halium/android_system_libhwbinder" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="external/libdrm" name="Anbox-halium/android_external_libdrm" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="external/mesa3d" name="Anbox-halium/android_external_mesa3d" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="hardware/intel/common/libva" name="Anbox-halium/android_hardware_intel_common_libva" remote="github" revision="refs/heads/lineage-17.1" />
 
   <!-- Anbox Projects -->
-  <project path="anbox-patches" name="Anbox-halium/anbox-patches" />
-  <project path="device/halium/anbox" name="Anbox-halium/android_device_halium_anbox" />
-  <project path="hardware/anbox/interfaces" name="Anbox-halium/android_hardware_anbox_interfaces" />
+  <project path="vendor/anbox" name="Anbox-halium/anbox-patches" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="vendor/anbox/anbox-halium" name="Anbox-halium/anbox-halium" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="device/halium/anbox" name="Anbox-halium/android_device_halium_anbox" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="hardware/anbox/interfaces" name="Anbox-halium/android_hardware_anbox_interfaces" remote="github" revision="refs/heads/lineage-17.1" />
 
   <!-- Audio -->
-  <project path="external/alsa-lib" name="Anbox-halium/android_external_alsa-lib" />
-  <project path="external/alsa-plugins" name="Anbox-halium/android_external_alsa-plugins" />
-  <project path="external/libsndfile" name="Anbox-halium/android_external_libsndfile" />
-  <project path="external/pulseaudio" name="Anbox-halium/android_external_pulseaudio" />
+  <project path="external/alsa-lib" name="Anbox-halium/android_external_alsa-lib" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="external/alsa-plugins" name="Anbox-halium/android_external_alsa-plugins" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="external/libsndfile" name="Anbox-halium/android_external_libsndfile" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="external/pulseaudio" name="Anbox-halium/android_external_pulseaudio" remote="github" revision="refs/heads/lineage-17.1" />
 
   <!-- Display -->
-  <project path="external/llvm90" name="Anbox-halium/android_external_llvm90" />
+  <project path="external/llvm90" name="Anbox-halium/android_external_llvm90" remote="github" revision="refs/heads/lineage-17.1" />
   
   <!-- Media -->
-  <project path="external/ffmpeg" name="Anbox-halium/android_external_ffmpeg" />
-  <project path="external/stagefright-plugins" name="Anbox-halium/android_external_stagefright-plugins" />
+  <project path="external/ffmpeg" name="Anbox-halium/android_external_ffmpeg" remote="github" revision="refs/heads/lineage-17.1" />
+  <project path="external/stagefright-plugins" name="Anbox-halium/android_external_stagefright-plugins" remote="github" revision="refs/heads/lineage-17.1" />
 
 </manifest>
