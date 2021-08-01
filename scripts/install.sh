@@ -78,6 +78,7 @@ apt install -y lxc1 || apt install -y lxc
 
 if ! [ "\$(apt install -y libgbinder sensorfw-qt5 libsensorfw-qt5-plugins)" ]; then
     rm "anbox-sensors_0.1.0_${ARCH}.deb"
+    wget "${ANBOX_SENSORS_URL}"
     dpkg -i "anbox-sensors_0.1.0_${ARCH}.deb" || touch NO_SENSORS
 fi
 
