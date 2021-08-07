@@ -28,6 +28,16 @@ if [ $UNAME_ARCH == "i686" ]; then
     ARCH="x86"
 fi
 
+X11_CHECK=$(loginctl show-session "$XDG_SESSION_ID" -p Type --value)
+if [ $X11_CHECK == "x11" ]; then
+	printf "\e[1;31mYour system is using Xorg and won't be able to run WayDroid, please switch to a Wayland session\n\e[0m"
+
+	read -p "Continue the installtion anyway[y,N]? : " -n 1 -r
+	if [[ $REPLY != "y" && $REPLY != "Y" ]]; then
+		exit
+	fi
+fi
+
 echo "Generating device properties"
 rm -f generate-props.sh
 wget https://github.com/Anbox-halium/anbox-halium/raw/lineage-17.1/scripts/generate-props.sh

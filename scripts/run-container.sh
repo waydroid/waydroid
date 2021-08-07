@@ -1,4 +1,11 @@
 #!/bin/bash
+
+X11_CHECK=$(loginctl show-session "$XDG_SESSION_ID" -p Type --value)
+if [ $X11_CHECK == "x11" ]; then
+	printf "\e[1;31mERROR: Your system is using Xorg and won't be able to run WayDroid, please switch to a Wayland session\n\e[0m"
+	exit
+fi
+
 cd /home/anbox
 
 if [ ! -e /dev/anbox-hwbinder ] || [ ! -e /dev/ashmem ]; then
