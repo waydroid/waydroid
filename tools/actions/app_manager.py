@@ -101,13 +101,31 @@ def list(args):
         logging.error("WayDroid session is stopped")
 
 def showFullUI(args):
-    platformService = IPlatform.get_service(args)
-    if platformService:
-        platformService.setprop("waydroid.active_apps", "Waydroid")
-        platformService.settingsPutString(2, "policy_control", "null*")
-        #HACK: Refresh display contents
-        statusBarService = IStatusBarService.get_service(args)
-        if statusBarService:
-            statusBarService.expand()
-            time.sleep(0.5)
-            statusBarService.collapse()
+    def justShow():
+        platformService = IPlatform.get_service(args)
+        if platformService:
+            platformService.setprop("waydroid.active_apps", "Waydroid")
+            platformService.settingsPutString(2, "policy_control", "null*")
+            # HACK: Refresh display contents
+            statusBarService = IStatusBarService.get_service(args)
+            if statusBarService:
+                statusBarService.expand()
+                time.sleep(0.5)
+                statusBarService.collapse()
+
+    if os.path.exists(tools.config.session_defaults["config_path"]):
+        session_cfg = tools.config.load_session()
+
+        if session_cfg["session"]["state"] == "RUNNING":
+            justShow()
+        elif session_cfg["session"]["state"] == "FROZEN" or session_cfg["session"]["state"] == "UNFREEZE":
+            session_cfg["session"]["state"] = "UNFREEZE"
+            tools.config.save_session(session_cfg)
+            while session_cfg["session"]["state"] != "RUNNING":
+                session_cfg = tools.config.load_session()
+            justShow()
+        else:
+            logging.error("WayDroid container is {}".format(
+                session_cfg["session"]["state"]))
+    else:
+        logging.error("WayDroid session is stopped")
