@@ -68,7 +68,7 @@ if session_defaults["pulse_runtime_path"] == "None":
 
 channels_defaults = {
     "config_path": "/usr/share/waydroid-extra/channels.cfg",
-    "system_channel": "https://raw.githubusercontent.com/waydroid/OTA/master/systems",
+    "system_channel": "https://raw.githubusercontent.com/waydroid/OTA/master/system",
     "vendor_channel": "https://raw.githubusercontent.com/waydroid/OTA/master/vendor",
     "rom_type": "lineage",
     "system_type": "VANILLA"
