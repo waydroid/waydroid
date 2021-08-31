@@ -41,7 +41,8 @@ defaults = {
     "work": "/home/.waydroid",
     "vendor_type": "MAINLINE",
     "system_datetime": "0",
-    "vendor_datetime": "0"
+    "vendor_datetime": "0",
+    "preinstalled_images_path": "/usr/share/waydroid-extra/images"
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"

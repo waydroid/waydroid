@@ -21,7 +21,6 @@ def arguments_init(subparser):
     ret = subparser.add_parser("init", help="set up waydroid specific"
                                " configs and install images")
     ret.add_argument("-i", "--images_path",
-                        default=tools.config.defaults["images_path"],
                         help="custom path to waeiod images (default in"
                              " /home/.waydroid/images)")
     ret.add_argument("-f", "--force", action="store_true",

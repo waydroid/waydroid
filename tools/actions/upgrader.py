@@ -25,7 +25,8 @@ def upgrade(args):
     helpers.images.umount_rootfs(args)
     helpers.drivers.loadBinderNodes(args)
     if not args.offline:
-        helpers.images.get(args)
+        if args.images_path != tools.config.defaults["preinstalled_images_path"]:
+            helpers.images.get(args)
     helpers.lxc.setup_host_perms(args)
     helpers.lxc.set_lxc_config(args)
     helpers.lxc.make_base_props(args)
