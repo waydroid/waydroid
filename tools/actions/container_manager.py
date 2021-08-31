@@ -198,7 +198,7 @@ def stop(args):
             command = ["pidof", "waydroid-sensord"]
             pid = tools.helpers.run.root(args, command, check=False, output_return=True)
             if pid:
-                command = ["killall", pid]
+                command = ["kill", "-9", pid]
                 tools.helpers.run.root(args, command, check=False)
 
     else:
