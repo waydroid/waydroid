@@ -1,0 +1,20 @@
+Source: waydroid
+Maintainer: Erfan Abdi <erfangplus@gmail.com>
+Section: misc
+Priority: optional
+Build-Depends: debhelper (>= 10),
+               dh-python,
+               python3
+Standards-Version: 4.5.0.3
+Vcs-Browser: https://github.com/waydroid/waydroid
+Vcs-Git: https://github.com/waydroid/waydroid.git
+
+Package: waydroid
+Architecture: all
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         python3-gbinder,
+         python3-gi
+Description: Android™ application support
+ waydroid allows running a separate Android™ environment
+ confined to a LXC container.

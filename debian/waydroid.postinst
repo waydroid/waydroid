@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+configure() {
+	# Update configs
+    waydroid upgrade -o
+}
+
+case "$1" in
+	"configure")
+		configure
+		;;
+esac
+
+#DEBHELPER#
