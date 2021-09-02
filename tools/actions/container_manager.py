@@ -151,6 +151,15 @@ def start(args):
         
         helpers.lxc.start(args)
         session_cfg["session"]["state"] = helpers.lxc.status(args)
+        timeout = 10
+        while session_cfg["session"]["state"] != "RUNNING" and timeout > 0:
+            session_cfg["session"]["state"] = helpers.lxc.status(args)
+            logging.info(
+                "waiting {} seconds for container to start...".format(timeout))
+            timeout = timeout - 1
+            time.sleep(1)
+        if session_cfg["session"]["state"] != "RUNNING":
+            raise OSError("container failed to start")
         tools.config.save_session(session_cfg)
 
         if not hasattr(args, 'hardwareLoop'):
