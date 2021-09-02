@@ -22,7 +22,7 @@ def arguments_init(subparser):
                                " configs and install images")
     ret.add_argument("-i", "--images_path",
                         help="custom path to waydroid images (default in"
-                             " /home/.waydroid/images)")
+                             " /var/lib/waydroid/images)")
     ret.add_argument("-f", "--force", action="store_true",
                      help="re-initialize configs and images")
     ret.add_argument("-c", "--system_channel",

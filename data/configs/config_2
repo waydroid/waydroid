@@ -1,6 +1,6 @@
 # Waydroid LXC Config
 
-lxc.rootfs.path = /home/.waydroid/rootfs
+lxc.rootfs.path = /var/lib/waydroid/rootfs
 lxc.uts.name = waydroid
 lxc.arch = LXCARCH
 lxc.autodev = 0
@@ -20,6 +20,6 @@ lxc.net.0.mtu = 1500
 
 lxc.console.path = none
 
-lxc.include = /home/.waydroid/lxc/waydroid/config_nodes
+lxc.include = /var/lib/waydroid/lxc/waydroid/config_nodes
 
 lxc.hook.post-stop = /dev/null
