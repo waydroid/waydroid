@@ -38,7 +38,7 @@ session_config_keys = ["user_name",
 # overridden on the commandline)
 defaults = {
     "arch": "arm64",
-    "work": "/home/.waydroid",
+    "work": "/var/lib/waydroid",
     "vendor_type": "MAINLINE",
     "system_datetime": "0",
     "vendor_datetime": "0",
