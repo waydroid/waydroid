@@ -213,6 +213,14 @@ def stop(args):
     else:
         logging.error("WayDroid container is {}".format(status))
 
+def restart(args):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        helpers.lxc.stop(args)
+        helpers.lxc.start(args)
+    else:
+        logging.error("WayDroid container is {}".format(status))
+
 def freeze(args):
     status = helpers.lxc.status(args)
     if status == "RUNNING":

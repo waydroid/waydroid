@@ -63,6 +63,8 @@ def main():
                 actions.container_manager.start(args)
             elif args.subaction == "stop":
                 actions.container_manager.stop(args)
+            if args.subaction == "restart":
+                actions.container_manager.restart(args)
             elif args.subaction == "freeze":
                 actions.container_manager.freeze(args)
             elif args.subaction == "unfreeze":

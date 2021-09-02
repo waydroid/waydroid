@@ -66,6 +66,7 @@ def arguments_container(subparser):
     sub = ret.add_subparsers(title="subaction", dest="subaction")
     sub.add_parser("start", help="start container")
     sub.add_parser("stop", help="start container")
+    sub.add_parser("restart", help="restart container")
     sub.add_parser("freeze", help="freeze container")
     sub.add_parser("unfreeze", help="unfreeze container")
     return ret
