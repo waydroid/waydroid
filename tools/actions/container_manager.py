@@ -162,8 +162,7 @@ def start(args):
             raise OSError("container failed to start")
         tools.config.save_session(session_cfg)
 
-        if not hasattr(args, 'hardwareLoop'):
-            services.hardware_manager.start(args)
+        services.hardware_manager.start(args)
 
         signal.signal(signal.SIGINT, signal_handler)
         while os.path.exists(tools.config.session_defaults["config_path"]):
@@ -179,6 +178,7 @@ def start(args):
 
         logging.warning("session manager stopped, stopping container and waiting...")
         stop(args)
+        services.hardware_manager.stop(args)
         start(args)
     else:
         logging.error("WayDroid container is {}".format(status))

@@ -35,7 +35,8 @@ def add_service(args, sendClipboardData, getClipboardData):
             status = serviceManager.add_service_sync(SERVICE_NAME, response)
 
             if status:
-                logging.error("Failed to add service " + SERVICE_NAME)
+                logging.error("Failed to add service {}: {}".format(
+                    SERVICE_NAME, status))
                 args.clipboardLoop.quit()
 
     response = serviceManager.new_local_object(INTERFACE, response_handler)
@@ -44,5 +45,7 @@ def add_service(args, sendClipboardData, getClipboardData):
     status = serviceManager.add_presence_handler(binder_presence)
     if status:
         args.clipboardLoop.run()
+        serviceManager.remove_handler(status)
+        del serviceManager
     else:
         logging.error("Failed to add presence handler: {}".format(status))
