@@ -58,9 +58,9 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/dri", options="bind,create=dir,optional 0 0")
 
     # Binder dev nodes
-    make_entry("/dev/" + args.BINDER_DRIVER, "dev/binder")
-    make_entry("/dev/" + args.VNDBINDER_DRIVER, "dev/vndbinder")
-    make_entry("/dev/" + args.HWBINDER_DRIVER, "dev/hwbinder")
+    make_entry("/dev/" + args.BINDER_DRIVER, "dev/binder", check=False)
+    make_entry("/dev/" + args.VNDBINDER_DRIVER, "dev/vndbinder", check=False)
+    make_entry("/dev/" + args.HWBINDER_DRIVER, "dev/hwbinder", check=False)
 
     if args.vendor_type != "MAINLINE":
         if not make_entry("/dev/hwbinder", "dev/host_hwbinder"):
