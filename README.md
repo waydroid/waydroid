@@ -15,6 +15,18 @@ The Android runtime environment ships with a minimal customized Android system
 image based on the [LineageOS](https://lineageos.org/).
 The used image is currently based on Android 10
 
+## Development
+
+On Ubuntu:
+
+```sh
+sudo apt install gcc libgirepository1.0-dev libcairo-dev python3-venv
+python3 -m venv <path-to-venv>
+<path-to-venv>/bin/activate
+pip install -e .
+```
+
+
 ## Install and Run Android Applications
 
 You can install Android applications from the command line.
