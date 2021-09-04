@@ -1,0 +1,10 @@
+[Unit]
+Description=Waydroid Container
+
+[Service]
+ExecStart=/usr/bin/waydroid container start
+ExecStop=/usr/bin/waydroid container stop
+ExecStopPost=/usr/bin/waydroid session stop
+
+[Install]
+WantedBy=multi-user.target
