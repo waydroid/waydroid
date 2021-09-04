@@ -9,7 +9,7 @@ import tools.config
 from tools import services
 
 
-def start(args):
+def start(args, unlocked_cb=None):
     def signal_handler(sig, frame):
         stop(args)
         sys.exit(0)
@@ -38,8 +38,10 @@ def start(args):
         session_cfg = tools.config.load_session()
         if container_state != session_cfg["session"]["state"]:
             if session_cfg["session"]["state"] == "RUNNING":
-                services.user_manager.start(args)
+                services.user_manager.start(args, unlocked_cb)
                 services.clipboard_manager.start(args)
+                if unlocked_cb:
+                    unlocked_cb = None
             elif session_cfg["session"]["state"] == "STOPPED":
                 services.user_manager.stop(args)
                 services.clipboard_manager.stop(args)
