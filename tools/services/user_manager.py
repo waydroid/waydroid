@@ -33,19 +33,22 @@ def start(args):
             os.chmod(desktop_file_path, 0o755)
             return 0
 
-    def makeWaydroidDesktopFile():
+    def makeWaydroidDesktopFile(hide):
         desktop_file_path = args.host_user + \
             "/.local/share/applications/Waydroid.desktop"
-        if not os.path.exists(desktop_file_path):
-            lines = ["[Desktop Entry]", "Type=Application"]
-            lines.append("Name=Waydroid")
-            lines.append("Exec=waydroid show-full-ui")
-            lines.append("Icon=" + tools.config.tools_src + "/data/AppIcon.png")
-            desktop_file = open(desktop_file_path, "w")
-            for line in lines:
-                desktop_file.write(line + "\n")
-            desktop_file.close()
-            os.chmod(desktop_file_path, 0o755)
+        if os.path.isfile(desktop_file_path):
+            os.remove(desktop_file_path)
+        lines = ["[Desktop Entry]", "Type=Application"]
+        lines.append("Name=Waydroid")
+        lines.append("Exec=waydroid show-full-ui")
+        if hide:
+            lines.append("NoDisplay=true")
+        lines.append("Icon=" + tools.config.tools_src + "/data/AppIcon.png")
+        desktop_file = open(desktop_file_path, "w")
+        for line in lines:
+            desktop_file.write(line + "\n")
+        desktop_file.close()
+        os.chmod(desktop_file_path, 0o755)
 
     def userUnlocked(uid):
         logging.info("Android with user {} is ready".format(uid))
@@ -60,12 +63,9 @@ def start(args):
                 makeDesktopFile(app)
             multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
             if multiwin == "false":
-                makeWaydroidDesktopFile()
+                makeWaydroidDesktopFile(False)
             else:
-                desktop_file_path = args.host_user + \
-                    "/.local/share/applications/Waydroid.desktop"
-                if os.path.isfile(desktop_file_path):
-                    os.remove(desktop_file_path)
+                makeWaydroidDesktopFile(True)
 
     def packageStateChanged(mode, packageName, uid):
         platformService = IPlatform.get_service(args)
