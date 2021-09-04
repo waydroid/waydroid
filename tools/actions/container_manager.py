@@ -70,10 +70,6 @@ def start(args):
                 # Graphics
                 "/dev/dri",
                 "/dev/graphics",
-
-                # Wayland and pulse socket permissions
-                session_cfg["session"]["pulse_runtime_path"],
-                session_cfg["session"]["xdg_runtime_dir"]
             ]
 
             # Framebuffers
