@@ -77,7 +77,8 @@ def launch(args):
             logging.error("WayDroid container is {}".format(
                 session_cfg["session"]["state"]))
     else:
-        logging.error("WayDroid session is stopped")
+        logging.error("Starting waydroid session")
+        tools.actions.session_manager.start(args, launch)
 
 def list(args):
     if os.path.exists(tools.config.session_defaults["config_path"]):
@@ -128,4 +129,5 @@ def showFullUI(args):
             logging.error("WayDroid container is {}".format(
                 session_cfg["session"]["state"]))
     else:
-        logging.error("WayDroid session is stopped")
+        logging.error("Starting waydroid session")
+        tools.actions.session_manager.start(args, showFullUI)

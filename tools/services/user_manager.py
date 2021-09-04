@@ -8,7 +8,7 @@ from tools.interfaces import IUserMonitor
 from tools.interfaces import IPlatform
 
 
-def start(args):
+def start(args, unlocked_cb=None):
     def makeDesktopFile(appInfo):
         showApp = False
         for cat in appInfo["categories"]:
@@ -66,6 +66,8 @@ def start(args):
                 makeWaydroidDesktopFile(False)
             else:
                 makeWaydroidDesktopFile(True)
+        if unlocked_cb:
+            unlocked_cb(args)
 
     def packageStateChanged(mode, packageName, uid):
         platformService = IPlatform.get_service(args)
