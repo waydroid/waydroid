@@ -36,7 +36,8 @@ def main():
                 print('ERROR: WayDroid is not initialized, run "waydroid init"')
                 return 0
             elif os.geteuid() == 0 and args.action == "init":
-                os.mkdir(args.work)
+                if not os.path.exists(args.work):
+                    os.mkdir(args.work)
             else:
                 args.log = "/tmp/tools.log"
 
