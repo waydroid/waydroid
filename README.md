@@ -15,20 +15,9 @@ The Android runtime environment ships with a minimal customized Android system
 image based on the [LineageOS](https://lineageos.org/).
 The used image is currently based on Android 10
 
-## Install and Run Android Applications
+## Documentation
 
-You can install Android applications from the command line.
-
-```sh
-waydroid app install xyz.apk
-```
-
-The apk files you will sometimes find on the internet tend to only have arm
-support, and will therefore not work on x86\_64.
-
-You may want to install [F-Droid](https://f-droid.org/) to get applications
-graphically. Note that the Google Play Store will not work as is, because it
-relies on the proprietary Google Play Services, which are not installed.
+Our documentation site can be found at [docs.waydro.id](https://docs.waydro.id)
 
 ## Reporting bugs
 
