@@ -23,6 +23,16 @@ HWBINDER_DRIVERS = [
     "hwbinder"
 ]
 
+
+def isBinderfsLoaded(args):
+    with open("/proc/filesystems", "r") as handle:
+        for line in handle:
+            words = line.split()
+            if len(words) >= 2 and words[1] == "binder":
+                return True
+
+    return False
+
 def probeBinderDriver(args):
     binder_dev_nodes = []
     has_binder = False
@@ -45,13 +55,15 @@ def probeBinderDriver(args):
         binder_dev_nodes.append(HWBINDER_DRIVERS[0])
 
     if len(binder_dev_nodes) > 0:
-        devices = ','.join(binder_dev_nodes)
-        command = ["modprobe", "binder_linux", "devices=\"{}\"".format(devices)]
-        output = tools.helpers.run.root(args, command, check=False, output_return=True)
-        if output:
-            logging.error("Failed to load binder driver for devices: {}".format(devices))
-            logging.error(output.strip())
-        else:
+        if not isBinderfsLoaded(args):
+            devices = ','.join(binder_dev_nodes)
+            command = ["modprobe", "binder_linux", "devices=\"{}\"".format(devices)]
+            output = tools.helpers.run.root(args, command, check=False, output_return=True)
+            if output:
+                logging.error("Failed to load binder driver for devices: {}".format(devices))
+                logging.error(output.strip())
+
+        if isBinderfsLoaded(args):
             command = ["mkdir", "-p", "/dev/binderfs"]
             tools.helpers.run.root(args, command, check=False)
             command = ["mount", "-t", "binder", "binder", "/dev/binderfs"]
@@ -60,9 +72,7 @@ def probeBinderDriver(args):
             command.extend(glob.glob("/dev/binderfs/*"))
             command.append("/dev/")
             tools.helpers.run.root(args, command, check=False)
-
-    for node in binder_dev_nodes:
-        if not os.path.exists("/dev/" + node):
+        else: 
             return -1
 
     return 0
