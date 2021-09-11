@@ -1,0 +1,18 @@
+#!/bin/bash
+_waydroid()
+{
+    local cur prev
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    case $COMP_CWORD in
+	    1) COMPREPLY=( $(compgen -W "$(waydroid -h |awk '/action/{getline;gsub("{","");gsub("}","");gsub(",","\n");print}')" -- "${cur}") );;
+	    2)  [ "${prev}" != "waydroid" ] && COMPREPLY=( $(compgen -W "$(waydroid ${prev} -h |awk '/subaction/{getline;gsub("{","");gsub("}","");gsub(",","\n");print}')" -- "${cur}") );;
+	    *);;
+    esac
+    case $cur in
+	    -*) COMPREPLY=( $(compgen -W "$(_parse_help waydroid)" -- "${cur}") );;
+    esac
+
+    return 0
+}
+complete -F _waydroid waydroid
