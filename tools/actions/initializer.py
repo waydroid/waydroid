@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
 import os
-import requests
 from tools import helpers
 import tools.config
 
