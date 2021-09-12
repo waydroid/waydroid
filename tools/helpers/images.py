@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
 import zipfile
-import requests
+import json
 import hashlib
 import os
 import tools.config
@@ -22,11 +22,11 @@ def sha256sum(filename):
 def get(args):
     cfg = tools.config.load(args)
     system_ota = cfg["waydroid"]["system_ota"]
-    system_request = requests.get(system_ota)
-    if system_request.status_code != 200:
+    system_request = helpers.http.retrieve(system_ota)
+    if system_request[0] != 200:
         raise ValueError(
-            "Failed to get system OTA channel: {}".format(system_ota))
-    system_responses = system_request.json()["response"]
+            "Failed to get system OTA channel: {}, error: {}".format(args.system_ota, system_request[0]))
+    system_responses = json.loads(system_request[1])["response"]
     if len(system_responses) < 1:
         raise ValueError("No images found on system channel")
 
@@ -47,11 +47,11 @@ def get(args):
             break
 
     vendor_ota = cfg["waydroid"]["vendor_ota"]
-    vendor_request = requests.get(vendor_ota)
-    if vendor_request.status_code != 200:
+    vendor_request = helpers.http.retrieve(vendor_ota)
+    if vendor_request[0] != 200:
         raise ValueError(
-            "Failed to get vendor OTA channel: {}".format(vendor_ota))
-    vendor_responses = vendor_request.json()["response"]
+            "Failed to get vendor OTA channel: {}, error: {}".format(vendor_ota, vendor_request[0]))
+    vendor_responses = json.loads(vendor_request[1])["response"]
     if len(vendor_responses) < 1:
         raise ValueError("No images found on vendor channel")
 

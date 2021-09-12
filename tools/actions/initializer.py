@@ -45,11 +45,11 @@ def setup_config(args):
 
     args.system_ota = args.system_channel + "/" + args.rom_type + \
         "/waydroid_" + args.arch + "/" + args.system_type + ".json"
-    system_request = requests.get(args.system_ota)
-    if system_request.status_code != 200:
+    system_request = helpers.http.retrieve(args.system_ota)
+    if system_request[0] != 200:
         if args.images_path != preinstalled_images:
             raise ValueError(
-                "Failed to get system OTA channel: {}".format(args.system_ota))
+                "Failed to get system OTA channel: {}, error: {}".format(args.system_ota, system_request[0]))
         else:
             args.system_ota = "None"
 
@@ -58,8 +58,8 @@ def setup_config(args):
     for vendor in [device_codename, get_vendor_type(args)]:
         vendor_ota = args.vendor_channel + "/waydroid_" + \
             args.arch + "/" + vendor + ".json"
-        vendor_request = requests.get(vendor_ota)
-        if vendor_request.status_code == 200:
+        vendor_request = helpers.http.retrieve(vendor_ota)
+        if vendor_request[0] == 200:
             args.vendor_type = vendor
             args.vendor_ota = vendor_ota
             break
