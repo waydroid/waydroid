@@ -1,7 +1,6 @@
 # Copyright 2021 Oliver Smith
 # SPDX-License-Identifier: GPL-3.0-or-later
 import hashlib
-import json
 import logging
 import os
 import shutil
@@ -56,14 +55,12 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
     return path
 
 
-def retrieve(url, headers=None, allow_404=False):
+def retrieve(url, headers=None):
     """ Fetch the content of a URL and returns it as string.
 
         :param url: the http(s) address of to the resource to fetch
         :param headers: dict of HTTP headers to use
-        :param allow_404: do not raise an exception when the server responds
-                          with a 404 Not Found error. Only display a warning
-        :returns: str with the content of the response
+        :returns: status and str with the content of the response
     """
     # Download the file
     logging.verbose("Retrieving " + url)
@@ -74,16 +71,7 @@ def retrieve(url, headers=None, allow_404=False):
     req = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(req) as response:
-            return response.read()
+            return 200, response.read()
     # Handle 404
     except urllib.error.HTTPError as e:
-        if e.code == 404 and allow_404:
-            logging.warning("WARNING: failed to retrieve content from: " + url)
-            return None
-        raise
-
-
-def retrieve_json(*args, **kwargs):
-    """ Fetch the contents of a URL, parse it as JSON and return it. See
-        retrieve() for the list of all parameters. """
-    return json.loads(retrieve(*args, **kwargs))
+        return e.code, ""
