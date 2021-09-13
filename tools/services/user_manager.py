@@ -20,7 +20,7 @@ def start(args, unlocked_cb=None):
         packageName = appInfo["packageName"]
 
         desktop_file_path = args.host_user + \
-            "/.local/share/applications/" + packageName + ".desktop"
+            "/.local/share/applications/waydroid." + packageName + ".desktop"
         if not os.path.exists(desktop_file_path):
             lines = ["[Desktop Entry]", "Type=Application"]
             lines.append("Name=" + appInfo["name"])
