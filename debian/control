@@ -14,7 +14,10 @@ Architecture: all
 Depends: ${misc:Depends},
          ${python3:Depends},
          python3-gbinder,
-         python3-gi
+         python3-gi,
+         waydroid-system-image,
+         waydroid-vendor-image,
+         waydroid-sensors
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container.
