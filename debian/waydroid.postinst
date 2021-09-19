@@ -4,6 +4,7 @@ set -e
 configure() {
 	# Update configs
     waydroid upgrade -o
+    waydroid init
 }
 
 case "$1" in
