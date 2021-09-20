@@ -48,7 +48,7 @@ def start(args):
         def chmod(path, mode):
             if os.path.exists(path):
                 command = ["chmod", mode, "-R", path]
-                tools.helpers.run.root(args, command, check=False)
+                tools.helpers.run.user(args, command, check=False)
 
         # Nodes list
         if not perm_list:
@@ -118,10 +118,10 @@ def start(args):
         # Networking
         command = [tools.config.tools_src +
                    "/data/scripts/waydroid-net.sh", "start"]
-        tools.helpers.run.root(args, command, check=False)
+        tools.helpers.run.user(args, command, check=False)
 
         # Sensors
-        tools.helpers.run.root(
+        tools.helpers.run.user(
             args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
 
         # Mount rootfs
@@ -134,13 +134,13 @@ def start(args):
         # Cgroup hacks
         if which("start"):
             command = ["start", "cgroup-lite"]
-            tools.helpers.run.root(args, command, check=False)
+            tools.helpers.run.user(args, command, check=False)
         helpers.mount.umount_all(args, "/sys/fs/cgroup/schedtune")
 
         #TODO: remove NFC hacks
         if which("stop"):
             command = ["stop", "nfcd"]
-            tools.helpers.run.root(args, command, check=False)
+            tools.helpers.run.user(args, command, check=False)
 
         # Set permissions
         set_permissions()
@@ -191,20 +191,20 @@ def stop(args):
         # Networking
         command = [tools.config.tools_src +
                    "/data/scripts/waydroid-net.sh", "stop"]
-        tools.helpers.run.root(args, command, check=False)
+        tools.helpers.run.user(args, command, check=False)
 
         #TODO: remove NFC hacks
         if which("start"):
             command = ["start", "nfcd"]
-            tools.helpers.run.root(args, command, check=False)
+            tools.helpers.run.user(args, command, check=False)
 
         # Sensors
         if which("waydroid-sensord"):
             command = ["pidof", "waydroid-sensord"]
-            pid = tools.helpers.run.root(args, command, check=False, output_return=True)
+            pid = tools.helpers.run.user(args, command, check=False, output_return=True)
             if pid:
                 command = ["kill", "-9", pid]
-                tools.helpers.run.root(args, command, check=False)
+                tools.helpers.run.user(args, command, check=False)
 
     else:
         logging.error("WayDroid container is {}".format(status))
