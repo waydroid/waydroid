@@ -58,20 +58,20 @@ def probeBinderDriver(args):
         if not isBinderfsLoaded(args):
             devices = ','.join(binder_dev_nodes)
             command = ["modprobe", "binder_linux", "devices=\"{}\"".format(devices)]
-            output = tools.helpers.run.root(args, command, check=False, output_return=True)
+            output = tools.helpers.run.user(args, command, check=False, output_return=True)
             if output:
                 logging.error("Failed to load binder driver for devices: {}".format(devices))
                 logging.error(output.strip())
 
         if isBinderfsLoaded(args):
             command = ["mkdir", "-p", "/dev/binderfs"]
-            tools.helpers.run.root(args, command, check=False)
+            tools.helpers.run.user(args, command, check=False)
             command = ["mount", "-t", "binder", "binder", "/dev/binderfs"]
-            tools.helpers.run.root(args, command, check=False)
+            tools.helpers.run.user(args, command, check=False)
             command = ["ln", "-s"]
             command.extend(glob.glob("/dev/binderfs/*"))
             command.append("/dev/")
-            tools.helpers.run.root(args, command, check=False)
+            tools.helpers.run.user(args, command, check=False)
         else: 
             return -1
 
@@ -80,7 +80,7 @@ def probeBinderDriver(args):
 def probeAshmemDriver(args):
     if not os.path.exists("/dev/ashmem"):
         command = ["modprobe", "ashmem_linux"]
-        output = tools.helpers.run.root(args, command, check=False, output_return=True)
+        output = tools.helpers.run.user(args, command, check=False, output_return=True)
         if output:
             logging.error("Failed to load ashmem driver")
             logging.error(output.strip())

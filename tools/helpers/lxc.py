@@ -113,11 +113,11 @@ def set_lxc_config(args):
     config_path = tools.config.tools_src + "/data/configs/" + config_file
 
     command = ["mkdir", "-p", lxc_path]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
     command = ["cp", "-fpr", config_path, lxc_path + "/config"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
     command = ["sed", "-i", "s/LXCARCH/{}/".format(platform.machine()), lxc_path + "/config"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
     nodes = generate_nodes_lxc_config(args)
     config_nodes_tmp_path = args.work + "/config_nodes"
@@ -126,7 +126,7 @@ def set_lxc_config(args):
         config_nodes.write(node + "\n")
     config_nodes.close()
     command = ["mv", config_nodes_tmp_path, lxc_path]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
 
 def make_base_props(args):
@@ -144,7 +144,7 @@ def make_base_props(args):
                 for lib in ["lib", "lib64"]:
                     hal_file = "/vendor/" + lib + "/hw/" + hardware + "." + prop + ".so"
                     command = ["readlink", "-f", hal_file]
-                    hal_file_path = tools.helpers.run.root(args, command, output_return=True).strip()
+                    hal_file_path = tools.helpers.run.user(args, command, output_return=True).strip()
                     if os.path.isfile(hal_file_path):
                         hal_prop = re.sub(".*" + hardware + ".", "", hal_file_path)
                         hal_prop = re.sub(".so", "", hal_prop)
@@ -226,27 +226,27 @@ def setup_host_perms(args):
         shutil.copy(filename, tools.config.defaults["host_perms"])
 
 def status(args):
-    command = ["sudo", "lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
+    command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
     return subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
 
 def start(args):
     command = ["lxc-start", "-P", tools.config.defaults["lxc"],
                "-F", "-n", "waydroid", "--", "/init"]
-    tools.helpers.run.root(args, command, output="background")
+    tools.helpers.run.user(args, command, output="background")
 
 def stop(args):
     command = ["lxc-stop", "-P",
                tools.config.defaults["lxc"], "-n", "waydroid", "-k"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
 def freeze(args):
     command = ["lxc-freeze", "-P", tools.config.defaults["lxc"], "-n", "waydroid"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
 def unfreeze(args):
     command = ["lxc-unfreeze", "-P",
                tools.config.defaults["lxc"], "-n", "waydroid"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
 def shell(args):
     if status(args) != "RUNNING":
