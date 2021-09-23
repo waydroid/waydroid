@@ -55,6 +55,7 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/graphics/fb1")
     make_entry("/dev/fb2")
     make_entry("/dev/graphics/fb2")
+    make_entry("/dev/dxg")
     make_entry("/dev/dri", options="bind,create=dir,optional 0 0")
 
     # Binder dev nodes
@@ -98,6 +99,11 @@ def generate_nodes_lxc_config(args):
     # Media dev nodes (for Qcom)
     make_entry("/dev/video32")
     make_entry("/dev/video33")
+
+    # WSLg
+    make_entry("tmpfs", "mnt_extra", "tmpfs", "nodev 0 0", False)
+    make_entry("/mnt/wslg", "mnt_extra/wslg",
+               options="rbind,create=dir,optional 0 0")
 
     return nodes
 
@@ -155,14 +161,19 @@ def make_base_props(args):
         return ""
 
     props = []
+    egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
+
     gralloc = find_hal("gralloc")
     if gralloc == "":
-        gralloc = "gbm"
-        props.append("ro.hardware.egl=mesa")
+        if os.path.exists("/dev/dri"):
+            gralloc = "gbm"
+            egl = "mesa"
+        else:
+            gralloc = "default"
+            egl = "swiftshader"
         props.append("debug.stagefright.ccodec=0")
     props.append("ro.hardware.gralloc=" + gralloc)
 
-    egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
     if egl != "":
         props.append("ro.hardware.egl=" + egl)
 

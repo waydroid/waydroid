@@ -17,7 +17,8 @@ def start(args):
         def add_prop(key, cfg_key):
             value = session_cfg["session"][cfg_key]
             if value != "None":
-                props.append(key + "=" + session_cfg["session"][cfg_key])
+                value = value.replace("/mnt/", "/mnt_extra/")
+                props.append(key + "=" + value)
 
         if not os.path.isfile(args.work + "/waydroid_base.prop"):
             raise RuntimeError("waydroid_base.prop Not found")
