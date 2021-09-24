@@ -122,8 +122,9 @@ def start(args):
         tools.helpers.run.user(args, command, check=False)
 
         # Sensors
-        tools.helpers.run.user(
-            args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
+        if which("waydroid-sensord"):
+            tools.helpers.run.user(
+                args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
 
         # Mount rootfs
         helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"])
