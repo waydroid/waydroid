@@ -38,6 +38,7 @@ def generate_nodes_lxc_config(args):
     # Necessary dev nodes
     make_entry("tmpfs", "dev", "tmpfs", "nosuid 0 0", False)
     make_entry("/dev/zero")
+    make_entry("/dev/null")
     make_entry("/dev/full")
     make_entry("/dev/ashmem", check=False)
     make_entry("/dev/fuse")
