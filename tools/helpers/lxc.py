@@ -105,6 +105,10 @@ def generate_nodes_lxc_config(args):
     make_entry("/mnt/wslg", "mnt_extra/wslg",
                options="rbind,create=dir,optional 0 0")
 
+    # var
+    make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
+    make_entry("/var/run", options="rbind,create=dir,optional 0 0")
+
     return nodes
 
 
