@@ -208,6 +208,12 @@ def stop(args):
                 command = ["kill", "-9", pid]
                 tools.helpers.run.user(args, command, check=False)
 
+        # Umount rootfs
+        helpers.images.umount_rootfs(args)
+
+        # Umount data
+        helpers.mount.umount_all(args, tools.config.defaults["data"])
+
     else:
         logging.error("WayDroid container is {}".format(status))
 
