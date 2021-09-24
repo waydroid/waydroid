@@ -65,8 +65,6 @@ def start(args):
                 "/dev/MTK_SMI",
                 "/dev/mdp_sync",
                 "/dev/mtk_cmdq",
-                "/dev/video32",
-                "/dev/video33",
 
                 # Graphics
                 "/dev/dri",
@@ -75,6 +73,8 @@ def start(args):
 
             # Framebuffers
             perm_list.extend(glob.glob("/dev/fb*"))
+            # Videos
+            perm_list.extend(glob.glob("/dev/video*"))
 
         for path in perm_list:
             chmod(path, mode)

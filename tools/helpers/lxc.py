@@ -49,14 +49,15 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/mali0")
     make_entry("/dev/pvr_sync")
     make_entry("/dev/pmsg0")
-    make_entry("/dev/fb0")
-    make_entry("/dev/graphics/fb0")
-    make_entry("/dev/fb1")
-    make_entry("/dev/graphics/fb1")
-    make_entry("/dev/fb2")
-    make_entry("/dev/graphics/fb2")
     make_entry("/dev/dxg")
     make_entry("/dev/dri", options="bind,create=dir,optional 0 0")
+
+    for n in glob.glob("/dev/fb*"):
+        make_entry(n)
+    for n in glob.glob("/dev/graphics/fb*"):
+        make_entry(n)
+    for n in glob.glob("/dev/video*"):
+        make_entry(n)
 
     # Binder dev nodes
     make_entry("/dev/" + args.BINDER_DRIVER, "dev/binder", check=False)
@@ -95,10 +96,6 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/MTK_SMI")
     make_entry("/dev/mdp_sync")
     make_entry("/dev/mtk_cmdq")
-
-    # Media dev nodes (for Qcom)
-    make_entry("/dev/video32")
-    make_entry("/dev/video33")
 
     # WSLg
     make_entry("tmpfs", "mnt_extra", "tmpfs", "nodev 0 0", False)
