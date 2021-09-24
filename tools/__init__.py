@@ -13,8 +13,11 @@ from .helpers import logging as tools_logging
 
 
 def main():
+    def isRoot():
+         return os.geteuid() == 0
+
     def actionNeedRoot(action):
-        if os.geteuid() != 0:
+        if not isRoot():
             raise RuntimeError(
                 "Action \"{}\" needs root access".format(action))
 
@@ -30,6 +33,9 @@ def main():
         args.log = args.work + "/waydroid.log"
         args.sudo_timer = True
         args.timeout = 1800
+        # Log to stdout if the user is not root
+        if not isRoot():
+            args.details_to_stdout = True
 
         if not os.path.isfile(args.config):
             if args.action and args.action != "init":
