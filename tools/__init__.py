@@ -108,8 +108,11 @@ def main():
         elif args.action == "log":
             if args.clear_log:
                 helpers.run.user(args, ["truncate", "-s", "0", args.log])
-            helpers.run.user(
-                args, ["tail", "-n", args.lines, "-F", args.log], output="tui")
+            try:
+                helpers.run.user(
+                    args, ["tail", "-n", args.lines, "-F", args.log], output="tui")
+            except KeyboardInterrupt:
+                pass
         else:
             logging.info("Run waydroid -h for usage information.")
 
