@@ -37,13 +37,13 @@ def bind(args, source, destination, create_folders=True, umount=False):
         if os.path.exists(path):
             continue
         if create_folders:
-            tools.helpers.run.root(args, ["mkdir", "-p", path])
+            tools.helpers.run.user(args, ["mkdir", "-p", path])
         else:
             raise RuntimeError("Mount failed, folder does not exist: " +
                                path)
 
     # Actually mount the folder
-    tools.helpers.run.root(args, ["mount", "-o", "bind", source, destination])
+    tools.helpers.run.user(args, ["mount", "-o", "bind", source, destination])
 
     # Verify, that it has worked
     if not ismount(destination):
@@ -64,12 +64,12 @@ def bind_file(args, source, destination, create_folders=False):
         if create_folders:
             dir = os.path.dirname(destination)
             if not os.path.isdir(dir):
-                tools.helpers.run.root(args, ["mkdir", "-p", dir])
+                tools.helpers.run.user(args, ["mkdir", "-p", dir])
 
-        tools.helpers.run.root(args, ["touch", destination])
+        tools.helpers.run.user(args, ["touch", destination])
 
     # Mount
-    tools.helpers.run.root(args, ["mount", "-o", "bind", source,
+    tools.helpers.run.user(args, ["mount", "-o", "bind", source,
                                 destination])
 
 
@@ -103,7 +103,7 @@ def umount_all(args, folder):
     Umount all folders, that are mounted inside a given folder.
     """
     for mountpoint in umount_all_list(folder):
-        tools.helpers.run.root(args, ["umount", mountpoint])
+        tools.helpers.run.user(args, ["umount", mountpoint])
         if ismount(mountpoint):
             raise RuntimeError("Failed to umount: " + mountpoint)
 
@@ -122,15 +122,15 @@ def mount(args, source, destination, create_folders=True, umount=False, readonly
     # Check/create folders
     if not os.path.exists(destination):
         if create_folders:
-            tools.helpers.run.root(args, ["mkdir", "-p", destination])
+            tools.helpers.run.user(args, ["mkdir", "-p", destination])
         else:
             raise RuntimeError("Mount failed, folder does not exist: " +
                             destination)
 
     # Actually mount the folder
-    tools.helpers.run.root(args, ["mount", source, destination])
+    tools.helpers.run.user(args, ["mount", source, destination])
     if readonly:
-        tools.helpers.run.root(args, ["mount", "-o", "remount,ro", source, destination])
+        tools.helpers.run.user(args, ["mount", "-o", "remount,ro", source, destination])
 
     # Verify, that it has worked
     if not ismount(destination):

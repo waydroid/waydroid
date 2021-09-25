@@ -17,7 +17,8 @@ def start(args):
         def add_prop(key, cfg_key):
             value = session_cfg["session"][cfg_key]
             if value != "None":
-                props.append(key + "=" + session_cfg["session"][cfg_key])
+                value = value.replace("/mnt/", "/mnt_extra/")
+                props.append(key + "=" + value)
 
         if not os.path.isfile(args.work + "/waydroid_base.prop"):
             raise RuntimeError("waydroid_base.prop Not found")
@@ -48,7 +49,7 @@ def start(args):
         def chmod(path, mode):
             if os.path.exists(path):
                 command = ["chmod", mode, "-R", path]
-                tools.helpers.run.root(args, command, check=False)
+                tools.helpers.run.user(args, command, check=False)
 
         # Nodes list
         if not perm_list:
@@ -64,8 +65,6 @@ def start(args):
                 "/dev/MTK_SMI",
                 "/dev/mdp_sync",
                 "/dev/mtk_cmdq",
-                "/dev/video32",
-                "/dev/video33",
 
                 # Graphics
                 "/dev/dri",
@@ -74,6 +73,8 @@ def start(args):
 
             # Framebuffers
             perm_list.extend(glob.glob("/dev/fb*"))
+            # Videos
+            perm_list.extend(glob.glob("/dev/video*"))
 
         for path in perm_list:
             chmod(path, mode)
@@ -118,11 +119,12 @@ def start(args):
         # Networking
         command = [tools.config.tools_src +
                    "/data/scripts/waydroid-net.sh", "start"]
-        tools.helpers.run.root(args, command, check=False)
+        tools.helpers.run.user(args, command, check=False)
 
         # Sensors
-        tools.helpers.run.root(
-            args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
+        if which("waydroid-sensord"):
+            tools.helpers.run.user(
+                args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
 
         # Mount rootfs
         helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"])
@@ -134,13 +136,13 @@ def start(args):
         # Cgroup hacks
         if which("start"):
             command = ["start", "cgroup-lite"]
-            tools.helpers.run.root(args, command, check=False)
+            tools.helpers.run.user(args, command, check=False)
         helpers.mount.umount_all(args, "/sys/fs/cgroup/schedtune")
 
         #TODO: remove NFC hacks
         if which("stop"):
             command = ["stop", "nfcd"]
-            tools.helpers.run.root(args, command, check=False)
+            tools.helpers.run.user(args, command, check=False)
 
         # Set permissions
         set_permissions()
@@ -191,20 +193,20 @@ def stop(args):
         # Networking
         command = [tools.config.tools_src +
                    "/data/scripts/waydroid-net.sh", "stop"]
-        tools.helpers.run.root(args, command, check=False)
+        tools.helpers.run.user(args, command, check=False)
 
         #TODO: remove NFC hacks
         if which("start"):
             command = ["start", "nfcd"]
-            tools.helpers.run.root(args, command, check=False)
+            tools.helpers.run.user(args, command, check=False)
 
         # Sensors
         if which("waydroid-sensord"):
             command = ["pidof", "waydroid-sensord"]
-            pid = tools.helpers.run.root(args, command, check=False, output_return=True)
+            pid = tools.helpers.run.user(args, command, check=False, output_return=True)
             if pid:
                 command = ["kill", "-9", pid]
-                tools.helpers.run.root(args, command, check=False)
+                tools.helpers.run.user(args, command, check=False)
 
     else:
         logging.error("WayDroid container is {}".format(status))

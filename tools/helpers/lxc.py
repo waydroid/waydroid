@@ -38,6 +38,7 @@ def generate_nodes_lxc_config(args):
     # Necessary dev nodes
     make_entry("tmpfs", "dev", "tmpfs", "nosuid 0 0", False)
     make_entry("/dev/zero")
+    make_entry("/dev/null")
     make_entry("/dev/full")
     make_entry("/dev/ashmem", check=False)
     make_entry("/dev/fuse")
@@ -49,13 +50,15 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/mali0")
     make_entry("/dev/pvr_sync")
     make_entry("/dev/pmsg0")
-    make_entry("/dev/fb0")
-    make_entry("/dev/graphics/fb0")
-    make_entry("/dev/fb1")
-    make_entry("/dev/graphics/fb1")
-    make_entry("/dev/fb2")
-    make_entry("/dev/graphics/fb2")
+    make_entry("/dev/dxg")
     make_entry("/dev/dri", options="bind,create=dir,optional 0 0")
+
+    for n in glob.glob("/dev/fb*"):
+        make_entry(n)
+    for n in glob.glob("/dev/graphics/fb*"):
+        make_entry(n)
+    for n in glob.glob("/dev/video*"):
+        make_entry(n)
 
     # Binder dev nodes
     make_entry("/dev/" + args.BINDER_DRIVER, "dev/binder", check=False)
@@ -95,9 +98,14 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/mdp_sync")
     make_entry("/dev/mtk_cmdq")
 
-    # Media dev nodes (for Qcom)
-    make_entry("/dev/video32")
-    make_entry("/dev/video33")
+    # WSLg
+    make_entry("tmpfs", "mnt_extra", "tmpfs", "nodev 0 0", False)
+    make_entry("/mnt/wslg", "mnt_extra/wslg",
+               options="rbind,create=dir,optional 0 0")
+
+    # var
+    make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
+    make_entry("/var/run", options="rbind,create=dir,optional 0 0")
 
     return nodes
 
@@ -113,11 +121,11 @@ def set_lxc_config(args):
     config_path = tools.config.tools_src + "/data/configs/" + config_file
 
     command = ["mkdir", "-p", lxc_path]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
     command = ["cp", "-fpr", config_path, lxc_path + "/config"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
     command = ["sed", "-i", "s/LXCARCH/{}/".format(platform.machine()), lxc_path + "/config"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
     nodes = generate_nodes_lxc_config(args)
     config_nodes_tmp_path = args.work + "/config_nodes"
@@ -126,7 +134,7 @@ def set_lxc_config(args):
         config_nodes.write(node + "\n")
     config_nodes.close()
     command = ["mv", config_nodes_tmp_path, lxc_path]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
 
 def make_base_props(args):
@@ -144,7 +152,7 @@ def make_base_props(args):
                 for lib in ["lib", "lib64"]:
                     hal_file = "/vendor/" + lib + "/hw/" + hardware + "." + prop + ".so"
                     command = ["readlink", "-f", hal_file]
-                    hal_file_path = tools.helpers.run.root(args, command, output_return=True).strip()
+                    hal_file_path = tools.helpers.run.user(args, command, output_return=True).strip()
                     if os.path.isfile(hal_file_path):
                         hal_prop = re.sub(".*" + hardware + ".", "", hal_file_path)
                         hal_prop = re.sub(".so", "", hal_prop)
@@ -155,14 +163,19 @@ def make_base_props(args):
         return ""
 
     props = []
+    egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
+
     gralloc = find_hal("gralloc")
     if gralloc == "":
-        gralloc = "gbm"
-        props.append("ro.hardware.egl=mesa")
+        if os.path.exists("/dev/dri"):
+            gralloc = "gbm"
+            egl = "mesa"
+        else:
+            gralloc = "default"
+            egl = "swiftshader"
         props.append("debug.stagefright.ccodec=0")
     props.append("ro.hardware.gralloc=" + gralloc)
 
-    egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
     if egl != "":
         props.append("ro.hardware.egl=" + egl)
 
@@ -195,6 +208,10 @@ def make_base_props(args):
     props.append("waydroid.vendor_ota=" + args.vendor_ota)
     props.append("waydroid.tools_version=" + tools.config.version)
 
+    if args.vendor_type == "MAINLINE":
+        props.append("ro.vndk.lite=true")
+        props.append("ro.hardware.camera=v4l2")
+
     base_props = open(args.work + "/waydroid_base.prop", "w")
     for prop in props:
         base_props.write(prop + "\n")
@@ -226,27 +243,27 @@ def setup_host_perms(args):
         shutil.copy(filename, tools.config.defaults["host_perms"])
 
 def status(args):
-    command = ["sudo", "lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
+    command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
     return subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
 
 def start(args):
     command = ["lxc-start", "-P", tools.config.defaults["lxc"],
                "-F", "-n", "waydroid", "--", "/init"]
-    tools.helpers.run.root(args, command, output="background")
+    tools.helpers.run.user(args, command, output="background")
 
 def stop(args):
     command = ["lxc-stop", "-P",
                tools.config.defaults["lxc"], "-n", "waydroid", "-k"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
 def freeze(args):
     command = ["lxc-freeze", "-P", tools.config.defaults["lxc"], "-n", "waydroid"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
 def unfreeze(args):
     command = ["lxc-unfreeze", "-P",
                tools.config.defaults["lxc"], "-n", "waydroid"]
-    tools.helpers.run.root(args, command)
+    tools.helpers.run.user(args, command)
 
 def shell(args):
     if status(args) != "RUNNING":
