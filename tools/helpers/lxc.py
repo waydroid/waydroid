@@ -107,6 +107,10 @@ def generate_nodes_lxc_config(args):
     make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
     make_entry("/var/run", options="rbind,create=dir,optional 0 0")
 
+    # Camera
+    if args.vendor_type == "MAINLINE":
+        make_entry("/dev/video0")
+
     return nodes
 
 
