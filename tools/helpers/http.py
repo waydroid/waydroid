@@ -4,9 +4,11 @@ import hashlib
 import logging
 import os
 import shutil
+import threading
 import urllib.request
 
 import tools.helpers.run
+import time
 
 
 def download(args, url, prefix, cache=True, loglevel=logging.INFO,
@@ -25,6 +27,14 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
                           with a 404 Not Found error. Only display a warning on
                           stdout (no matter if loglevel is changed).
         :returns: path to the downloaded file in the cache or None on 404 """
+
+    # Show progress while downloading
+    downloadEnded = False
+    def progress(totalSize, destinationPath):
+        while not downloadEnded:
+            print("[Downloading] {}/{}".format(os.path.getsize(destinationPath), totalSize), end='\r')
+            time.sleep(.01)
+
     # Create cache folder
     if not os.path.exists(args.work + "/cache_http"):
         tools.helpers.run.user(args, ["mkdir", "-p", args.work + "/cache_http"])
@@ -43,6 +53,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
     try:
         with urllib.request.urlopen(url) as response:
             with open(path, "wb") as handle:
+                threading.Thread(target=progress, args=(response.headers.get('content-length'), path)).start()
                 shutil.copyfileobj(response, handle)
     # Handle 404
     except urllib.error.HTTPError as e:
@@ -50,6 +61,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
             logging.warning("WARNING: file not found: " + url)
             return None
         raise
+    downloadEnded = True
 
     # Return path in cache
     return path
