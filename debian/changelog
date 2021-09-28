@@ -1,4 +1,41 @@
-waydroid (1.0.0) master; urgency=medium
+waydroid (1.1.0) bullseye; urgency=medium
+
+  * tools: Fully restart services
+  * container: Don’t burn XDG permissions
+  * user: Only hide Waydroid app on multi-win
+  * actions: Start session by lunching apps
+  * data: Install Waydroid launcher by default
+  * debian: Add systemd service
+  * config: Store data in /var/lib/waydroid rather than /home/.waydroid
+  * init: Add check for work dir before mkdir
+  * data: Update app logo
+  * Readme: Add documentation site
+  * drivers: Improve binderfs loading
+  * tools: Fix typo on stop container
+  * tools: Drop requests library dependency
+  * tools: Rename pre-init log file
+  * tools: Remove unused requests import
+  * ci: Add .abstruse.yml
+  * tools: fix shell path env
+  * user: Add “waydroid” prefix to desktop files
+  * tools: Drop need of sudo as much as possible
+  * lxc: Add WSLg support
+  * lxc: Provide /var/run to container
+  * lxc: Provide all fb and video nodes to container
+  * container: Don’t crash on sensord
+  * lxc: Mount /dev/null for container
+  * lxc: Enable vndk lite for mainline devices
+  * lxc: Use v4l2 camera hal on mainline
+  * fix grammar mistakes in the readme
+  * Fix grammar and spelling in README (#104)
+  * log: don't panic on ctrlc
+  * debian: Add LXC as dependency
+  * container: Umount on stop
+  * upgrade: show progress
+
+ -- Erfan Abdi <erfangplus@gmail.com>  Tue, 28 Sep 2021 10:11:40 +0430
+
+waydroid (1.0.0) bullseye; urgency=medium
 
   * Initial release.
 
