@@ -244,7 +244,9 @@ def setup_host_perms(args):
 
 def status(args):
     command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
-    return subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+    out = subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+    os.chmod(args.log, 0o666)
+    return out
 
 def start(args):
     command = ["lxc-start", "-P", tools.config.defaults["lxc"],
