@@ -1,6 +1,6 @@
 # Waydroid
 
-Waydroid is a container-based approach to boot a full Android system on a
+Waydroid uses a container-based approach to boot a full Android system on a
 regular GNU/Linux system like Ubuntu.
 
 ## Overview
@@ -12,8 +12,8 @@ any GNU/Linux-based platform.
 The Android system inside the container has direct access to any needed hardware.
 
 The Android runtime environment ships with a minimal customized Android system
-image based on the [LineageOS](https://lineageos.org/).
-The used image is currently based on Android 10
+image based on [LineageOS](https://lineageos.org/). The image is currently based
+on Android 10.
 
 ## Documentation
 
@@ -26,4 +26,4 @@ If you have found an issue with Waydroid, please [file a bug](https://github.com
 ## Get in Touch
 
 If you want to get in contact with the developers please feel free to join the
-*WayDroid* groups in [Matrix](https://matrix.to/#/#waydroid:connolly.tech) or [Telegram](https://t.me/WayDroid).
+*Waydroid* groups in [Matrix](https://matrix.to/#/#waydroid:connolly.tech) or [Telegram](https://t.me/WayDroid).
