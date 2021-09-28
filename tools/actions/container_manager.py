@@ -149,6 +149,8 @@ def start(args):
         
         helpers.lxc.start(args)
         session_cfg["session"]["state"] = helpers.lxc.status(args)
+        # NOTE: The previous line somehow changes the log permissionto 0o700, so we need to reset it back to 0o666
+        os.chmod(args.log, 0o666)
         timeout = 10
         while session_cfg["session"]["state"] != "RUNNING" and timeout > 0:
             session_cfg["session"]["state"] = helpers.lxc.status(args)
