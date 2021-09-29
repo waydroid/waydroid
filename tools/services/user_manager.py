@@ -58,6 +58,10 @@ def start(args, unlocked_cb=None):
 
         platformService = IPlatform.get_service(args)
         if platformService:
+            apps_dir = "/.local/share/applications"
+            if not os.path.exists(apps_dir):
+                os.mkdir(apps_dir)
+                os.chmod(apps_dir, 0o700)
             appsList = platformService.getAppsInfo()
             for app in appsList:
                 makeDesktopFile(app)
