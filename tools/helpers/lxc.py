@@ -107,6 +107,11 @@ def generate_nodes_lxc_config(args):
     make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
     make_entry("/var/run", options="rbind,create=dir,optional 0 0")
 
+    # tmp
+    make_entry("tmpfs", "tmp", "tmpfs", "nodev 0 0", False)
+    for n in glob.glob("/tmp/run-*"):
+        make_entry(n, options="rbind,create=dir,optional 0 0")
+
     return nodes
 
 
