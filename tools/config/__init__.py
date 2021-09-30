@@ -26,6 +26,7 @@ session_config_keys = ["user_name",
                        "user_id",
                        "group_id",
                        "host_user",
+                       "xdg_data_home",
                        "waydroid_data",
                        "xdg_runtime_dir",
                        "wayland_display",
@@ -55,6 +56,7 @@ session_defaults = {
     "user_id": str(os.getuid()),
     "group_id": str(os.getgid()),
     "host_user": os.path.expanduser("~"),
+    "xdg_data_home": str(os.environ.get('XDG_DATA_HOME', os.path.expanduser("~") + "/.local/share")),
     "xdg_runtime_dir": str(os.environ.get('XDG_RUNTIME_DIR')),
     "wayland_display": str(os.environ.get('WAYLAND_DISPLAY')),
     "pulse_runtime_path": str(os.environ.get('PULSE_RUNTIME_PATH')),
@@ -62,7 +64,7 @@ session_defaults = {
     "lcd_density": "0"
 }
 session_defaults["config_path"] = defaults["work"] + "/session.cfg"
-session_defaults["waydroid_data"] = session_defaults["host_user"] + \
+session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + \
     "/waydroid/data"
 if session_defaults["pulse_runtime_path"] == "None":
     session_defaults["pulse_runtime_path"] = session_defaults["xdg_runtime_dir"] + "/pulse"

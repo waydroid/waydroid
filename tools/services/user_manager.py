@@ -21,6 +21,16 @@ def start(args, unlocked_cb=None):
         packageName = appInfo["packageName"]
 
         desktop_file_path = args.apps_dir + "/waydroid." + packageName + ".desktop"
+        #TODO: Drop me
+        if os.path.exists(desktop_file_path):
+            with open(desktop_file_path) as file:
+                filedata = file.read()
+            filedata = filedata.replace(
+                "Icon=" + args.old_waydroid_data, "Icon=" + args.waydroid_data)
+            with open(desktop_file_path, 'w') as file:
+                file.write(filedata)
+            os.chmod(desktop_file_path, 0o755)
+
         if not os.path.exists(desktop_file_path):
             lines = ["[Desktop Entry]", "Type=Application"]
             lines.append("Name=" + appInfo["name"])
@@ -53,8 +63,11 @@ def start(args, unlocked_cb=None):
         logging.info("Android with user {} is ready".format(uid))
         session_cfg = tools.config.load_session()
         args.waydroid_data = session_cfg["session"]["waydroid_data"]
-        args.host_user = session_cfg["session"]["host_user"]
-        args.apps_dir = args.host_user + "/.local/share/applications/"
+        #TODO: Drop me
+        args.old_waydroid_data = session_cfg["session"]["host_user"] + \
+            "/waydroid/data"
+        args.apps_dir = session_cfg["session"]["xdg_data_home"] + \
+            "/applications/"
 
         platformService = IPlatform.get_service(args)
         if platformService:
