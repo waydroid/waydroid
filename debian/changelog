@@ -1,3 +1,14 @@
+waydroid (1.1.1) bullseye; urgency=medium
+
+  * lxc: Include tmp runtime dirs to container
+  * session: Move waydroid user data to XDG_DATA_HOME
+  * drivers: Allocate binder nodes dynamically
+  * user_manager: Use one variable for apps dir
+  * user: Create apps dir if doesn’t exists
+  * lxc: workaround weird log permission bug
+
+ -- Erfan Abdi <erfangplus@gmail.com>  Thu, 30 Sep 2021 08:07:30 +0430
+
 waydroid (1.1.0) bullseye; urgency=medium
 
   * tools: Fully restart services
