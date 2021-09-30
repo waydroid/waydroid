@@ -58,7 +58,10 @@ def allocBinderNodes(args, binder_dev_nodes):
     for node in binder_dev_nodes:
         node_struct = struct.pack(
             '256sII', bytes(node, 'utf-8'), 0, 0)
-        fcntl.ioctl(binderctrlfd.fileno(), BINDER_CTL_ADD, node_struct)
+        try:
+            fcntl.ioctl(binderctrlfd.fileno(), BINDER_CTL_ADD, node_struct)
+        except FileExistsError:
+            pass
 
 def probeBinderDriver(args):
     binder_dev_nodes = []
