@@ -3,6 +3,8 @@
 import logging
 import os
 import glob
+import fcntl
+import struct
 import tools.config
 import tools.helpers.run
 
@@ -33,6 +35,31 @@ def isBinderfsLoaded(args):
 
     return False
 
+def allocBinderNodes(args, binder_dev_nodes):
+    NRBITS = 8
+    TYPEBITS = 8
+    SIZEBITS = 14
+    NRSHIFT = 0
+    TYPESHIFT = NRSHIFT + NRBITS
+    SIZESHIFT = TYPESHIFT + TYPEBITS
+    DIRSHIFT = SIZESHIFT + SIZEBITS
+    WRITE = 0x1
+    READ = 0x2
+
+    def IOC(direction, _type, nr, size):
+        return (direction << DIRSHIFT) | (_type << TYPESHIFT) | (nr << NRSHIFT) | (size << SIZESHIFT)
+
+    def IOWR(_type, nr, size):
+        return IOC(READ|WRITE, _type, nr, size)
+
+    BINDER_CTL_ADD = IOWR(98, 1, 264)
+    binderctrlfd = open('/dev/binderfs/binder-control','rb')
+
+    for node in binder_dev_nodes:
+        node_struct = struct.pack(
+            '256sII', bytes(node, 'utf-8'), 0, 0)
+        fcntl.ioctl(binderctrlfd.fileno(), BINDER_CTL_ADD, node_struct)
+
 def probeBinderDriver(args):
     binder_dev_nodes = []
     has_binder = False
@@ -56,11 +83,10 @@ def probeBinderDriver(args):
 
     if len(binder_dev_nodes) > 0:
         if not isBinderfsLoaded(args):
-            devices = ','.join(binder_dev_nodes)
-            command = ["modprobe", "binder_linux", "devices=\"{}\"".format(devices)]
+            command = ["modprobe", "binder_linux"]
             output = tools.helpers.run.user(args, command, check=False, output_return=True)
             if output:
-                logging.error("Failed to load binder driver for devices: {}".format(devices))
+                logging.error("Failed to load binder driver")
                 logging.error(output.strip())
 
         if isBinderfsLoaded(args):
@@ -68,12 +94,11 @@ def probeBinderDriver(args):
             tools.helpers.run.user(args, command, check=False)
             command = ["mount", "-t", "binder", "binder", "/dev/binderfs"]
             tools.helpers.run.user(args, command, check=False)
+            allocBinderNodes(args, binder_dev_nodes)
             command = ["ln", "-s"]
             command.extend(glob.glob("/dev/binderfs/*"))
             command.append("/dev/")
             tools.helpers.run.user(args, command, check=False)
-        else: 
-            return -1
 
     return 0
 
