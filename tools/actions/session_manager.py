@@ -27,7 +27,7 @@ def start(args, unlocked_cb=None):
         if not os.path.isdir(waydroid_data):
             shutil.move(old_user_waydroid, cfg["session"]["xdg_data_home"])
         else:
-            os.removedirs(old_user_waydroid)
+            shutil.rmtree(old_user_waydroid, ignore_errors=True)
     if not os.path.isdir(waydroid_data):
         os.makedirs(waydroid_data)
     dpi = tools.helpers.props.host_get(args, "ro.sf.lcd_density")
