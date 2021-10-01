@@ -86,7 +86,9 @@ def probeBinderDriver(args):
 
     if len(binder_dev_nodes) > 0:
         if not isBinderfsLoaded(args):
-            command = ["modprobe", "binder_linux"]
+            devices = ','.join(binder_dev_nodes)
+            command = ["modprobe", "binder_linux",
+                       "devices=\"{}\"".format(devices)]
             output = tools.helpers.run.user(args, command, check=False, output_return=True)
             if output:
                 logging.error("Failed to load binder driver")
