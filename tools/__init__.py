@@ -32,14 +32,19 @@ def main():
         args.timeout = 1800
 
         if not os.path.isfile(args.config):
-            if args.action and args.action != "init":
+            if args.action and (args.action != "init" and args.action != "log"):
                 print('ERROR: WayDroid is not initialized, run "waydroid init"')
                 return 0
             elif os.geteuid() == 0 and args.action == "init":
                 if not os.path.exists(args.work):
                     os.mkdir(args.work)
             else:
-                args.log = "/tmp/tools.log"
+                # This branch is taken if:
+                # - waydroid is not yet initialized
+                # - waydroid is invoked with no command or with log
+                if not os.path.exists(args.log):
+                    # The log could have been already created if init was used and failed, if its not the case we use a temporary one
+                    args.log = "/tmp/tools.log"
 
         tools_logging.init(args)
 
