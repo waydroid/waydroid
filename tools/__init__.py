@@ -13,10 +13,13 @@ from .helpers import logging as tools_logging
 
 
 def main():
-    def actionNeedRoot(action):
-        if os.geteuid() != 0:
+    def actionNeedRoot(action, yes):
+        if yes and os.geteuid() != 0:
             raise RuntimeError(
                 "Action \"{}\" needs root access".format(action))
+        if not yes and os.geteuid() == 0:
+            raise RuntimeError(
+                "Action \"{}\" should not be invoked as root".format(action))
 
     # Wrap everything to display nice error messages
     args = None
@@ -45,12 +48,13 @@ def main():
 
         # Initialize or require config
         if args.action == "init":
-            actionNeedRoot(args.action)
+            actionNeedRoot(args.action, True)
             actions.init(args)
         elif args.action == "upgrade":
-            actionNeedRoot(args.action)
+            actionNeedRoot(args.action, True)
             actions.upgrade(args)
         elif args.action == "session":
+            actionNeedRoot(args.action, False)
             if args.subaction == "start":
                 actions.session_manager.start(args)
             elif args.subaction == "stop":
@@ -59,7 +63,7 @@ def main():
                 logging.info(
                     "Run waydroid {} -h for usage information.".format(args.action))
         elif args.action == "container":
-            actionNeedRoot(args.action)
+            actionNeedRoot(args.action, True)
             if args.subaction == "start":
                 actions.container_manager.start(args)
             elif args.subaction == "stop":
@@ -75,8 +79,10 @@ def main():
                     "Run waydroid {} -h for usage information.".format(args.action))
         elif args.action == "app":
             if args.subaction == "install":
+                actionNeedRoot(args.subaction, True)
                 actions.app_manager.install(args)
             elif args.subaction == "remove":
+                actionNeedRoot(args.subaction, True)
                 actions.app_manager.remove(args)
             elif args.subaction == "launch":
                 actions.app_manager.launch(args)
@@ -96,12 +102,13 @@ def main():
                 logging.info(
                     "Run waydroid {} -h for usage information.".format(args.action))
         elif args.action == "shell":
-            actionNeedRoot(args.action)
+            actionNeedRoot(args.action, True)
             helpers.lxc.shell(args)
         elif args.action == "logcat":
-            actionNeedRoot(args.action)
+            actionNeedRoot(args.action, True)
             helpers.lxc.logcat(args)
         elif args.action == "show-full-ui":
+            actionNeedRoot(args.action, False)
             actions.app_manager.showFullUI(args)
         elif args.action == "status":
             actions.status.print_status(args)
