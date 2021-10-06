@@ -107,6 +107,11 @@ def generate_nodes_lxc_config(args):
     make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
     make_entry("/var/run", options="rbind,create=dir,optional 0 0")
 
+    # tmp
+    make_entry("tmpfs", "tmp", "tmpfs", "nodev 0 0", False)
+    for n in glob.glob("/tmp/run-*"):
+        make_entry(n, options="rbind,create=dir,optional 0 0")
+
     return nodes
 
 
@@ -244,7 +249,9 @@ def setup_host_perms(args):
 
 def status(args):
     command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
-    return subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+    out = subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+    os.chmod(args.log, 0o666)
+    return out
 
 def start(args):
     command = ["lxc-start", "-P", tools.config.defaults["lxc"],

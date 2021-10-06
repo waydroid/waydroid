@@ -9,6 +9,7 @@ from tools.interfaces import IPlatform
 
 
 def start(args, unlocked_cb=None):
+
     def makeDesktopFile(appInfo):
         showApp = False
         for cat in appInfo["categories"]:
@@ -19,8 +20,17 @@ def start(args, unlocked_cb=None):
         
         packageName = appInfo["packageName"]
 
-        desktop_file_path = args.host_user + \
-            "/.local/share/applications/waydroid." + packageName + ".desktop"
+        desktop_file_path = args.apps_dir + "/waydroid." + packageName + ".desktop"
+        #TODO: Drop me
+        if os.path.exists(desktop_file_path):
+            with open(desktop_file_path) as file:
+                filedata = file.read()
+            filedata = filedata.replace(
+                "Icon=" + args.old_waydroid_data, "Icon=" + args.waydroid_data)
+            with open(desktop_file_path, 'w') as file:
+                file.write(filedata)
+            os.chmod(desktop_file_path, 0o755)
+
         if not os.path.exists(desktop_file_path):
             lines = ["[Desktop Entry]", "Type=Application"]
             lines.append("Name=" + appInfo["name"])
@@ -34,8 +44,7 @@ def start(args, unlocked_cb=None):
             return 0
 
     def makeWaydroidDesktopFile(hide):
-        desktop_file_path = args.host_user + \
-            "/.local/share/applications/Waydroid.desktop"
+        desktop_file_path = args.apps_dir + "/Waydroid.desktop"
         if os.path.isfile(desktop_file_path):
             os.remove(desktop_file_path)
         lines = ["[Desktop Entry]", "Type=Application"]
@@ -54,10 +63,17 @@ def start(args, unlocked_cb=None):
         logging.info("Android with user {} is ready".format(uid))
         session_cfg = tools.config.load_session()
         args.waydroid_data = session_cfg["session"]["waydroid_data"]
-        args.host_user = session_cfg["session"]["host_user"]
+        #TODO: Drop me
+        args.old_waydroid_data = session_cfg["session"]["host_user"] + \
+            "/waydroid/data"
+        args.apps_dir = session_cfg["session"]["xdg_data_home"] + \
+            "/applications/"
 
         platformService = IPlatform.get_service(args)
         if platformService:
+            if not os.path.exists(args.apps_dir):
+                os.mkdir(args.apps_dir)
+                os.chmod(args.apps_dir, 0o700)
             appsList = platformService.getAppsInfo()
             for app in appsList:
                 makeDesktopFile(app)
@@ -73,8 +89,7 @@ def start(args, unlocked_cb=None):
         platformService = IPlatform.get_service(args)
         if platformService:
             appInfo = platformService.getAppInfo(packageName)
-            desktop_file_path = args.host_user + \
-                "/.local/share/applications/" + packageName + ".desktop"
+            desktop_file_path = args.apps_dir + "/" + packageName + ".desktop"
             if mode == 0:
                 # Package added
                 makeDesktopFile(appInfo)
