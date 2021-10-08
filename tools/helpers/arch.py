@@ -9,7 +9,8 @@ def host():
         "i686": "x86",
         "x86_64": "x86_64",
         "aarch64": "arm64",
-        "armv7l": "arm"
+        "armv7l": "arm",
+        "armv8l": "arm"
     }
     if machine in mapping:
         return mapping[machine]
