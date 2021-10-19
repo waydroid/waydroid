@@ -21,13 +21,6 @@ def start(args, unlocked_cb=None):
 
     cfg = tools.config.load_session()
     waydroid_data = cfg["session"]["waydroid_data"]
-    #TODO: Drop me
-    old_user_waydroid = cfg["session"]["host_user"] + "/waydroid"
-    if os.path.isdir(old_user_waydroid):
-        if not os.path.isdir(waydroid_data):
-            shutil.move(old_user_waydroid, cfg["session"]["xdg_data_home"])
-        else:
-            shutil.rmtree(old_user_waydroid, ignore_errors=True)
     if not os.path.isdir(waydroid_data):
         os.makedirs(waydroid_data)
     dpi = tools.helpers.props.host_get(args, "ro.sf.lcd_density")
