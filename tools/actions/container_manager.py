@@ -69,6 +69,8 @@ def start(args):
                 # Graphics
                 "/dev/dri",
                 "/dev/graphics",
+                "/dev/pvr_sync",
+                "/dev/ion",
             ]
 
             # Framebuffers
