@@ -12,16 +12,19 @@ import tools.helpers.run
 BINDER_DRIVERS = [
     "anbox-binder",
     "puddlejumper",
+    "bonder",
     "binder"
 ]
 VNDBINDER_DRIVERS = [
     "anbox-vndbinder",
     "vndpuddlejumper",
+    "vndbonder",
     "vndbinder"
 ]
 HWBINDER_DRIVERS = [
     "anbox-hwbinder",
     "hwpuddlejumper",
+    "hwbonder",
     "hwbinder"
 ]
 
