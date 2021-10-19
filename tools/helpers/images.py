@@ -36,6 +36,10 @@ def get(args):
                 args, system_response['url'], system_response['filename'], cache=False)
             logging.info("Validating system image")
             if sha256sum(images_zip) != system_response['id']:
+                try:
+                    os.remove(images_zip)
+                except:
+                    pass
                 raise ValueError("Downloaded system image hash doesn't match, expected: {}".format(
                     system_response['id']))
             logging.info("Extracting to " + args.images_path)
@@ -61,6 +65,10 @@ def get(args):
                 args, vendor_response['url'], vendor_response['filename'], cache=False)
             logging.info("Validating vendor image")
             if sha256sum(images_zip) != vendor_response['id']:
+                try:
+                    os.remove(images_zip)
+                except:
+                    pass
                 raise ValueError("Downloaded vendor image hash doesn't match, expected: {}".format(
                     vendor_response['id']))
             logging.info("Extracting to " + args.images_path)
