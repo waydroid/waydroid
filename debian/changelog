@@ -1,3 +1,27 @@
+waydroid (1.2.0) bullseye; urgency=medium
+
+  * config: Update waydroid ota channel urls
+  * lxc: Get device info props from host
+  * session: Nuke old data dir movement
+  * lxc: Make sure vibrator sys nodes are writable
+  * lxc: Add non-treble camera support
+  * lxc: Skip host_perms on non treble devices
+  * lxc: Add more sphal paths to find_hal
+  * images: Decode http retrieve for older pythons
+  * drivers: Add bonder nodes support
+  * container: Add missing powervr nodes chmod
+  * container: Use umount -l for schedtune
+  * log: More resilient logging
+  * net: Disable NFT by default
+  * arch: detect armv8l as 32bit arm
+  * drivers: Keep devices arg on modprobe
+  * session: don't panic when removing old userdata if its not empty
+  * lxc: do prepend colon to Android PATHs in shell
+  * container: don't panic if binder device already exists
+  * upgrade: log that no we will not upgrade if a preinstalled image exists
+
+ -- Erfan Abdi <erfangplus@gmail.com>  Thu, 19 Oct 2021 11:19:53 +0430
+
 waydroid (1.1.1) bullseye; urgency=medium
 
   * lxc: Include tmp runtime dirs to container
