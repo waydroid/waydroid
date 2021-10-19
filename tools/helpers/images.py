@@ -26,7 +26,7 @@ def get(args):
     if system_request[0] != 200:
         raise ValueError(
             "Failed to get system OTA channel: {}, error: {}".format(args.system_ota, system_request[0]))
-    system_responses = json.loads(system_request[1])["response"]
+    system_responses = json.loads(system_request[1].decode('utf8'))["response"]
     if len(system_responses) < 1:
         raise ValueError("No images found on system channel")
 
@@ -51,7 +51,7 @@ def get(args):
     if vendor_request[0] != 200:
         raise ValueError(
             "Failed to get vendor OTA channel: {}, error: {}".format(vendor_ota, vendor_request[0]))
-    vendor_responses = json.loads(vendor_request[1])["response"]
+    vendor_responses = json.loads(vendor_request[1].decode('utf8'))["response"]
     if len(vendor_responses) < 1:
         raise ValueError("No images found on vendor channel")
 
