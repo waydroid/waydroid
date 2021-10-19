@@ -152,19 +152,11 @@ def make_base_props(args):
             "ro.board.platform"]
         for p in hardware_props:
             prop = tools.helpers.props.host_get(args, p)
-            hal_prop = ""
             if prop != "":
-                for lib in ["lib", "lib64"]:
-                    hal_file = "/vendor/" + lib + "/hw/" + hardware + "." + prop + ".so"
-                    command = ["readlink", "-f", hal_file]
-                    hal_file_path = tools.helpers.run.user(args, command, output_return=True).strip()
-                    if os.path.isfile(hal_file_path):
-                        hal_prop = re.sub(".*" + hardware + ".", "", hal_file_path)
-                        hal_prop = re.sub(".so", "", hal_prop)
-                        if hal_prop != "":
-                            return hal_prop
-            if hal_prop != "":
-                return hal_prop
+                for lib in ["/odm/lib", "/odm/lib64", "/vendor/lib", "/vendor/lib64", "/system/lib", "/system/lib64"]:
+                    hal_file = lib + "/hw/" + hardware + "." + prop + ".so"
+                    if os.path.isfile(hal_file):
+                        return prop
         return ""
 
     props = []
