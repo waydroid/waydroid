@@ -92,6 +92,12 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/sw_sync")
     make_entry("/sys/kernel/debug", options="rbind,create=dir,optional 0 0")
 
+    # Vibrator
+    make_entry("/sys/class/leds/vibrator",
+               options="bind,create=dir,optional 0 0")
+    make_entry("/sys/devices/virtual/timed_output/vibrator",
+               options="bind,create=dir,optional 0 0")
+
     # Media dev nodes (for Mediatek)
     make_entry("/dev/Vcodec")
     make_entry("/dev/MTK_SMI")
