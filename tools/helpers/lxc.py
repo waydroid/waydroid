@@ -223,6 +223,23 @@ def make_base_props(args):
     if args.vendor_type == "MAINLINE":
         props.append("ro.vndk.lite=true")
 
+    for product in ["brand", "device", "manufacturer", "model", "name"]:
+        prop_product = tools.helpers.props.host_get(
+            args, "ro.product.vendor." + product)
+        if prop_product != "":
+            props.append("ro.product.waydroid." + product + "=" + prop_product)
+        else:
+            if os.path.isfile("/proc/device-tree/" + product):
+                with open("/proc/device-tree/" + product) as f:
+                    f_value = f.read().strip()
+                    if f_value != "":
+                        props.append("ro.product.waydroid." +
+                                     product + "=" + f_value)
+
+    prop_fp = tools.helpers.props.host_get(args, "ro.vendor.build.fingerprint")
+    if prop_fp != "":
+        props.append("ro.build.fingerprint=" + prop_fp)
+
     base_props = open(args.work + "/waydroid_base.prop", "w")
     for prop in props:
         base_props.write(prop + "\n")
