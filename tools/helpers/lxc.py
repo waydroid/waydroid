@@ -196,6 +196,15 @@ def make_base_props(args):
     if vulkan != "":
         props.append("ro.hardware.vulkan=" + vulkan)
 
+    treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
+    if treble != "true":
+        camera = find_hal("camera")
+        if camera != "":
+            props.append("ro.hardware.camera=" + camera)
+        else:
+            if args.vendor_type == "MAINLINE":
+                props.append("ro.hardware.camera=v4l2")
+
     opengles = tools.helpers.props.host_get(args, "ro.opengles.version")
     if opengles == "":
         opengles = "196608"
@@ -207,7 +216,6 @@ def make_base_props(args):
 
     if args.vendor_type == "MAINLINE":
         props.append("ro.vndk.lite=true")
-        props.append("ro.hardware.camera=v4l2")
 
     base_props = open(args.work + "/waydroid_base.prop", "w")
     for prop in props:
