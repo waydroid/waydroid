@@ -81,7 +81,7 @@ def setup_config(args):
     tools.config.save(args, cfg)
 
 def init(args):
-    if not os.path.isfile(args.config) or args.force:
+    if not os.path.isfile(args.config) or not os.path.isdir(tools.config.defaults["rootfs"]) or args.force:
         setup_config(args)
         status = "STOPPED"
         if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
