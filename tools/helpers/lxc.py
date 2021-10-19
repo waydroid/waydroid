@@ -216,6 +216,13 @@ def make_base_props(args):
 
 
 def setup_host_perms(args):
+    if not os.path.exists(tools.config.defaults["host_perms"]):
+        os.mkdir(tools.config.defaults["host_perms"])
+
+    treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
+    if treble != "true":
+        return
+
     sku = tools.helpers.props.host_get(args, "ro.boot.product.hardware.sku")
     copy_list = []
     copy_list.extend(
@@ -232,9 +239,6 @@ def setup_host_perms(args):
         if os.path.exists("/odm/etc/permissions/sku_{}/android.hardware.consumerir.xml".format(sku)):
             copy_list.append(
                 "/odm/etc/permissions/sku_{}/android.hardware.consumerir.xml".format(sku))
-
-    if not os.path.exists(tools.config.defaults["host_perms"]):
-        os.mkdir(tools.config.defaults["host_perms"])
 
     for filename in copy_list:
         shutil.copy(filename, tools.config.defaults["host_perms"])
