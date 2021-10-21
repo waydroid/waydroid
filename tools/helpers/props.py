@@ -1,6 +1,7 @@
 # Copyright 2021 Oliver Smith
 # SPDX-License-Identifier: GPL-3.0-or-later
 from shutil import which
+import subprocess
 import logging
 import os
 import tools.helpers.run
@@ -10,7 +11,7 @@ from tools.interfaces import IPlatform
 def host_get(args, prop):
     if which("getprop") is not None:
         command = ["getprop", prop]
-        return tools.helpers.run.user(args, command, output_return=True).strip()
+        return subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
     else:
         return ""
 
