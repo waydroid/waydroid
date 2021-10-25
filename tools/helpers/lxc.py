@@ -231,7 +231,7 @@ def make_base_props(args):
         else:
             if os.path.isfile("/proc/device-tree/" + product):
                 with open("/proc/device-tree/" + product) as f:
-                    f_value = f.read().strip()
+                    f_value = f.read().strip().rstrip('\x00')
                     if f_value != "":
                         props.append("ro.product.waydroid." +
                                      product + "=" + f_value)
