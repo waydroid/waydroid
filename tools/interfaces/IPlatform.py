@@ -283,7 +283,7 @@ def get_service(args):
     while(not remote):
         if tries > 0:
             logging.warning(
-                "Failed to get service {}, trying again (try #{})...".format(SERVICE_NAME, timestoattempt - tries + 1))
+                "Failed to get service {}, trying again (try #{}/{})...".format(SERVICE_NAME, timestoattempt - tries + 1, timestoattempt))
             try:
                 time.sleep(1)
             except KeyboardInterrupt:
