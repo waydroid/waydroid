@@ -206,7 +206,7 @@ def stop(args):
         # Sensors
         if which("waydroid-sensord"):
             command = ["pidof", "waydroid-sensord"]
-            pid = tools.helpers.run.user(args, command, check=False, output_return=True)
+            pid = tools.helpers.run.user(args, command, check=False, output_return=True).strip()
             if pid:
                 command = ["kill", "-9", pid]
                 tools.helpers.run.user(args, command, check=False)
