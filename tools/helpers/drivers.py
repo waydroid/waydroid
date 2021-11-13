@@ -12,16 +12,19 @@ import tools.helpers.run
 BINDER_DRIVERS = [
     "anbox-binder",
     "puddlejumper",
+    "bonder",
     "binder"
 ]
 VNDBINDER_DRIVERS = [
     "anbox-vndbinder",
     "vndpuddlejumper",
+    "vndbonder",
     "vndbinder"
 ]
 HWBINDER_DRIVERS = [
     "anbox-hwbinder",
     "hwpuddlejumper",
+    "hwbonder",
     "hwbinder"
 ]
 
@@ -58,7 +61,10 @@ def allocBinderNodes(args, binder_dev_nodes):
     for node in binder_dev_nodes:
         node_struct = struct.pack(
             '256sII', bytes(node, 'utf-8'), 0, 0)
-        fcntl.ioctl(binderctrlfd.fileno(), BINDER_CTL_ADD, node_struct)
+        try:
+            fcntl.ioctl(binderctrlfd.fileno(), BINDER_CTL_ADD, node_struct)
+        except FileExistsError:
+            pass
 
 def probeBinderDriver(args):
     binder_dev_nodes = []
@@ -83,7 +89,9 @@ def probeBinderDriver(args):
 
     if len(binder_dev_nodes) > 0:
         if not isBinderfsLoaded(args):
-            command = ["modprobe", "binder_linux"]
+            devices = ','.join(binder_dev_nodes)
+            command = ["modprobe", "binder_linux",
+                       "devices=\"{}\"".format(devices)]
             output = tools.helpers.run.user(args, command, check=False, output_return=True)
             if output:
                 logging.error("Failed to load binder driver")

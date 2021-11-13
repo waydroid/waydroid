@@ -92,6 +92,12 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/sw_sync")
     make_entry("/sys/kernel/debug", options="rbind,create=dir,optional 0 0")
 
+    # Vibrator
+    make_entry("/sys/class/leds/vibrator",
+               options="bind,create=dir,optional 0 0")
+    make_entry("/sys/devices/virtual/timed_output/vibrator",
+               options="bind,create=dir,optional 0 0")
+
     # Media dev nodes (for Mediatek)
     make_entry("/dev/Vcodec")
     make_entry("/dev/MTK_SMI")
@@ -152,19 +158,11 @@ def make_base_props(args):
             "ro.board.platform"]
         for p in hardware_props:
             prop = tools.helpers.props.host_get(args, p)
-            hal_prop = ""
             if prop != "":
-                for lib in ["lib", "lib64"]:
-                    hal_file = "/vendor/" + lib + "/hw/" + hardware + "." + prop + ".so"
-                    command = ["readlink", "-f", hal_file]
-                    hal_file_path = tools.helpers.run.user(args, command, output_return=True).strip()
-                    if os.path.isfile(hal_file_path):
-                        hal_prop = re.sub(".*" + hardware + ".", "", hal_file_path)
-                        hal_prop = re.sub(".so", "", hal_prop)
-                        if hal_prop != "":
-                            return hal_prop
-            if hal_prop != "":
-                return hal_prop
+                for lib in ["/odm/lib", "/odm/lib64", "/vendor/lib", "/vendor/lib64", "/system/lib", "/system/lib64"]:
+                    hal_file = lib + "/hw/" + hardware + "." + prop + ".so"
+                    if os.path.isfile(hal_file):
+                        return prop
         return ""
 
     props = []
@@ -204,6 +202,15 @@ def make_base_props(args):
     if vulkan != "":
         props.append("ro.hardware.vulkan=" + vulkan)
 
+    treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
+    if treble != "true":
+        camera = find_hal("camera")
+        if camera != "":
+            props.append("ro.hardware.camera=" + camera)
+        else:
+            if args.vendor_type == "MAINLINE":
+                props.append("ro.hardware.camera=v4l2")
+
     opengles = tools.helpers.props.host_get(args, "ro.opengles.version")
     if opengles == "":
         opengles = "196608"
@@ -215,7 +222,23 @@ def make_base_props(args):
 
     if args.vendor_type == "MAINLINE":
         props.append("ro.vndk.lite=true")
-        props.append("ro.hardware.camera=v4l2")
+
+    for product in ["brand", "device", "manufacturer", "model", "name"]:
+        prop_product = tools.helpers.props.host_get(
+            args, "ro.product.vendor." + product)
+        if prop_product != "":
+            props.append("ro.product.waydroid." + product + "=" + prop_product)
+        else:
+            if os.path.isfile("/proc/device-tree/" + product):
+                with open("/proc/device-tree/" + product) as f:
+                    f_value = f.read().strip().rstrip('\x00')
+                    if f_value != "":
+                        props.append("ro.product.waydroid." +
+                                     product + "=" + f_value)
+
+    prop_fp = tools.helpers.props.host_get(args, "ro.vendor.build.fingerprint")
+    if prop_fp != "":
+        props.append("ro.build.fingerprint=" + prop_fp)
 
     base_props = open(args.work + "/waydroid_base.prop", "w")
     for prop in props:
@@ -224,6 +247,13 @@ def make_base_props(args):
 
 
 def setup_host_perms(args):
+    if not os.path.exists(tools.config.defaults["host_perms"]):
+        os.mkdir(tools.config.defaults["host_perms"])
+
+    treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
+    if treble != "true":
+        return
+
     sku = tools.helpers.props.host_get(args, "ro.boot.product.hardware.sku")
     copy_list = []
     copy_list.extend(
@@ -240,9 +270,6 @@ def setup_host_perms(args):
         if os.path.exists("/odm/etc/permissions/sku_{}/android.hardware.consumerir.xml".format(sku)):
             copy_list.append(
                 "/odm/etc/permissions/sku_{}/android.hardware.consumerir.xml".format(sku))
-
-    if not os.path.exists(tools.config.defaults["host_perms"]):
-        os.mkdir(tools.config.defaults["host_perms"])
 
     for filename in copy_list:
         shutil.copy(filename, tools.config.defaults["host_perms"])
@@ -282,7 +309,7 @@ def shell(args):
         command.append(args.COMMAND)
     else:
         command.append("/system/bin/sh")
-    subprocess.run(command, env={"PATH": os.environ['PATH'] + "/system/bin:/vendor/bin"})
+    subprocess.run(command, env={"PATH": os.environ['PATH'] + ":/system/bin:/vendor/bin"})
 
 def logcat(args):
     if status(args) != "RUNNING":

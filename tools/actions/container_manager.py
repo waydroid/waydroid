@@ -69,6 +69,8 @@ def start(args):
                 # Graphics
                 "/dev/dri",
                 "/dev/graphics",
+                "/dev/pvr_sync",
+                "/dev/ion",
             ]
 
             # Framebuffers
@@ -137,7 +139,8 @@ def start(args):
         if which("start"):
             command = ["start", "cgroup-lite"]
             tools.helpers.run.user(args, command, check=False)
-        helpers.mount.umount_all(args, "/sys/fs/cgroup/schedtune")
+        command = ["umount", "-l", "/sys/fs/cgroup/schedtune"]
+        tools.helpers.run.user(args, command, check=False)
 
         #TODO: remove NFC hacks
         if which("stop"):
@@ -203,7 +206,7 @@ def stop(args):
         # Sensors
         if which("waydroid-sensord"):
             command = ["pidof", "waydroid-sensord"]
-            pid = tools.helpers.run.user(args, command, check=False, output_return=True)
+            pid = tools.helpers.run.user(args, command, check=False, output_return=True).strip()
             if pid:
                 command = ["kill", "-9", pid]
                 tools.helpers.run.user(args, command, check=False)
