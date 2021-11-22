@@ -48,6 +48,10 @@ def main():
 
         tools_logging.init(args)
 
+        if os.environ.get("XDG_SESSION_TYPE")!="wayland":
+            logging.error("Wayland session not detected. Only Wayland session manager is supported.")
+            return 1
+
         # Initialize or require config
         if args.action == "init":
             actionNeedRoot(args.action)
