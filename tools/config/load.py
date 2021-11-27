@@ -26,6 +26,10 @@ def load(args):
                           " default value from config: {}".format(cfg['waydroid'][key]))
             del cfg["waydroid"][key]
 
+    if "properties" not in cfg:
+        cfg["properties"] = {}
+    # no default values for property override
+
     return cfg
 
 def load_session():
