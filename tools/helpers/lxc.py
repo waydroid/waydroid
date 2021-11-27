@@ -9,6 +9,7 @@ import shutil
 import platform
 import tools.config
 import tools.helpers.run
+from py_vmdetect import VMDetect
 
 
 def get_lxc_version(args):
@@ -168,11 +169,15 @@ def make_base_props(args):
     props = []
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
 
+    vmd = VMDetect()
     gralloc = find_hal("gralloc")
     if gralloc == "":
         if os.path.exists("/dev/dri"):
-            gralloc = "gbm"
             egl = "mesa"
+            if vmd.is_vm():
+                gralloc = "default"
+            else:
+                gralloc = "gbm"
         else:
             gralloc = "default"
             egl = "swiftshader"
