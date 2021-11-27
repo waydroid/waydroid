@@ -240,6 +240,14 @@ def make_base_props(args):
     if prop_fp != "":
         props.append("ro.build.fingerprint=" + prop_fp)
 
+    # now append/override with values in [properties] section of waydroid.cfg
+    cfg = tools.config.load(args)
+    for k, v in cfg["properties"].items():
+        for idx, elem in enumerate(props):
+            if (k+"=") in elem:
+                props.pop(idx)
+        props.append(k+"="+v)
+
     base_props = open(args.work + "/waydroid_base.prop", "w")
     for prop in props:
         base_props.write(prop + "\n")
