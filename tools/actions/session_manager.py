@@ -15,6 +15,15 @@ def start(args, unlocked_cb=None):
         stop(args)
         sys.exit(0)
 
+    home = os.getenv("HOME")
+    # the user might accidently end up doing session start from a sudo shell
+    if home != "/root" and os.getuid() == 0:
+        # prevent it, otherwise we end up with our files being owned by root and the application working not so well
+        logging.error("You're running session start as root but home is not /root")
+        logging.error("session start should only be run as a regular user")
+        logging.error("If you insist on running it as root, ensure HOME is set to /root")
+        return 1
+
     xdg_session = os.getenv("XDG_SESSION_TYPE")
     if xdg_session != "wayland":
         logging.warning('XDG Session is not "wayland"')
