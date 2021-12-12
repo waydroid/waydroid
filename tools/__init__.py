@@ -48,7 +48,7 @@ def main():
 
         tools_logging.init(args)
 
-        if os.environ.get("XDG_SESSION_TYPE")!="wayland":
+        if not os.environ.get("WAYLAND_DISPLAY"):
             logging.error("Wayland session not detected. Only Wayland session manager is supported.")
             return 1
 
