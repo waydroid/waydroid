@@ -27,12 +27,68 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
                           with a 404 Not Found error. Only display a warning on
                           stdout (no matter if loglevel is changed).
         :returns: path to the downloaded file in the cache or None on 404 """
+    
+    # helper functions for progress
+    def fromBytesToMB(numBytes, decimalPlaces=2):
+        return round(int(numBytes)/1000000, decimalPlaces)
+    
+    def getDownloadSpeed(lastSize, currentSize, timeTaken, decimalPlaces=2):
+        # sizes are in mb and timeTaken in seconds
+        speedUnit = "mbps"
+        sizeDifference = currentSize-lastSize
+
+        if sizeDifference < 1:
+            # sizeDifference is less than 1 mb
+            # convert sizeDifference to kb and speedUnit to kbps,
+            # for better readability
+            sizeDifference*=1000
+            speedUnit = "kbps"
+        
+        # sizeDifference mb(or kb) was downloaded in timeTaken seconds
+        # so downloadSpeed = sizeDifference/timeTaken mbps(or kbps)
+        return (round(sizeDifference/timeTaken, decimalPlaces), speedUnit)
 
     # Show progress while downloading
     downloadEnded = False
     def progress(totalSize, destinationPath):
+        # convert totalSize to mb before hand,
+        # it's value won't change inside while loop and
+        # will be unnecessarily calculated every .01 seconds 
+        totalSize = fromBytesToMB(totalSize)
+
+        # this value will be used to figure out maximum chars
+        # required to denote downloaded size later on
+        totalSizeStrLen = len(str(totalSize))
+
+        # lastSize and lastSizeChangeAt is used to calculate speed
+        lastSize = 0
+        lastSizeChangeAt = time.time()
+
+        downloadSpeed = 0, "mbps"
+
         while not downloadEnded:
-            print("[Downloading] {}/{}".format(os.path.getsize(destinationPath), totalSize), end='\r')
+            currentSize = fromBytesToMB(os.path.getsize(destinationPath))
+            
+            if currentSize != lastSize:
+                sizeChangeAt = time.time()
+                downloadSpeed = getDownloadSpeed(
+                    lastSize, currentSize,
+                    timeTaken=sizeChangeAt-lastSizeChangeAt
+                )
+
+                lastSize = currentSize
+                lastSizeChangeAt = sizeChangeAt
+
+                # make currentSize and downloadSpeed of a fix max len,
+                # to avoid previously printed chars to appear while \
+                # printing recursively
+                # currentSize is not going to exceed totalSize
+                currentSize = str(currentSize).rjust(totalSizeStrLen)
+                # assuming max downloadSpeed to be 9999.99 mbps
+                downloadSpeed = f"{str(downloadSpeed[0]).rjust(7)} {downloadSpeed[1]}"
+                
+                # print progress bar
+                print(f"\r[Downloading] {currentSize} MB/{totalSize} MB    {downloadSpeed}(approx.)", end=" ")
             time.sleep(.01)
 
     # Create cache folder
@@ -53,7 +109,9 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
     try:
         with urllib.request.urlopen(url) as response:
             with open(path, "wb") as handle:
-                threading.Thread(target=progress, args=(response.headers.get('content-length'), path)).start()
+                # adding daemon=True will kill this thread if main thread is killed
+                # else progress_bar will continue to show even if user cancels download by ctrl+c
+                threading.Thread(target=progress, args=(response.headers.get('content-length'), path), daemon=True).start()
                 shutil.copyfileobj(response, handle)
     # Handle 404
     except urllib.error.HTTPError as e:
