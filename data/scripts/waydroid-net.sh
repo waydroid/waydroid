@@ -2,9 +2,18 @@
 
 varrun="/run/waydroid-lxc"
 varlib="/var/lib"
+varvnic="waydroid0"
+vnicpath="/sys/class/net/${varvnic}"
+
+if [ -d "/sys/class/net/${varvnic}" ]; then
+	echo 'file exists' 
+	exit 0
+else 
+	echo "file doesn't exist"
+fi
 
 USE_LXC_BRIDGE="true"
-LXC_BRIDGE="waydroid0"
+LXC_BRIDGE="${varvnic}"
 LXC_BRIDGE_MAC="00:16:3e:00:00:01"
 LXC_ADDR="192.168.250.1"
 LXC_NETMASK="255.255.255.0"
