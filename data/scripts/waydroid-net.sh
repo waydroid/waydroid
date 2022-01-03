@@ -3,7 +3,6 @@
 varrun="/run/waydroid-lxc"
 varlib="/var/lib"
 varvnic="waydroid0"
-vnicpath="/sys/class/net/${varvnic}"
 
 if [ -d "/sys/class/net/${varvnic}" ]; then
 	echo 'file exists' 
