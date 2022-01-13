@@ -5,11 +5,11 @@ varlib="/var/lib"
 varvnic="waydroid0"
 vnicpath="/sys/class/net/${varvnic}"
 
-if [ -d "/sys/class/net/${varvnic}" ]; then
-	echo 'file exists' 
+if [ "$varvnic" != "waydroid0" ]; then
+	echo 'varvnic is not waydroid' 
 	exit 0
 else 
-	echo "file doesn't exist"
+	echo "varvnic is waydroid0"
 fi
 
 USE_LXC_BRIDGE="true"
