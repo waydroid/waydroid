@@ -71,8 +71,8 @@ if session_defaults["pulse_runtime_path"] == "None":
 
 channels_defaults = {
     "config_path": "/usr/share/waydroid-extra/channels.cfg",
-    "system_channel": "http://ota.waydro.id/system",
-    "vendor_channel": "http://ota.waydro.id/vendor",
+    "system_channel": "https://ota.waydro.id/system",
+    "vendor_channel": "https://ota.waydro.id/vendor",
     "rom_type": "lineage",
     "system_type": "VANILLA"
 }
