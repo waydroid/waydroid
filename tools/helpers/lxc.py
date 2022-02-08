@@ -166,6 +166,10 @@ def make_base_props(args):
         return ""
 
     props = []
+
+    if not os.path.exists("/dev/ashmem"):
+        props.append("sys.use_memfd=true")
+
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
 
     gralloc = find_hal("gralloc")
