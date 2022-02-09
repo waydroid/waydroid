@@ -13,7 +13,7 @@ Package: waydroid
 Architecture: all
 Depends: ${misc:Depends},
          ${python3:Depends},
-         lxc,
+         lxc (>= 1:4.0.10),
          python3-gbinder,
          python3-gi
 Description: Android™ application support
