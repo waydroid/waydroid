@@ -22,6 +22,7 @@ If applicable, add screenshots to help explain your problem.
  - GPU: [e.g. AMD Radeon™ RX 5700]
  - Kernel version: [e.g. Generic 5.4.x]
  - Host mesa version: [e.g. mesa 2.2]
+ - Desktop: [e.g. Gnome 40.x.x]
 
 **Smartphone (please complete the following information):**
  - Device: [e.g. Pixel 3a]
