@@ -34,5 +34,6 @@ If applicable, add screenshots to help explain your problem.
 Add any other context about the problem here.
 
 **Logs (please upload as file)**
+ - Prop file, located on `/var/lib/waydroid/waydroid_base.prop`
  - Output of `waydroid log`
  - *Full* (not partially) Output of `waydroid logcat` from the beginning of starting waydroid services
