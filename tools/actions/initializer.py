@@ -56,7 +56,7 @@ def setup_config(args):
     args.vendor_type = None
     for vendor in [device_codename, get_vendor_type(args)]:
         vendor_ota = args.vendor_channel + "/waydroid_" + \
-            args.arch + "/" + vendor + ".json"
+            args.arch + "/" + vendor.replace(" ", "_") + ".json"
         vendor_request = helpers.http.retrieve(vendor_ota)
         if vendor_request[0] == 200:
             args.vendor_type = vendor
