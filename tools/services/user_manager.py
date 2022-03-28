@@ -45,7 +45,7 @@ def start(args, session, unlocked_cb=None):
         lines.append("X-Purism-FormFactor=Workstation;Mobile;")
         if hide:
             lines.append("NoDisplay=true")
-        lines.append("Icon=" + tools.config.tools_src + "/data/AppIcon.png")
+        lines.append("Icon=waydroid")
         desktop_file = open(desktop_file_path, "w")
         for line in lines:
             desktop_file.write(line + "\n")
