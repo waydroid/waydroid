@@ -9,6 +9,19 @@ from tools.interfaces import IPlatform
 
 
 def start(args, unlocked_cb=None):
+    system_apps = [
+        "com.android.calculator2",
+        "com.android.documentsui",
+        "com.android.settings",
+        "org.lineageos.jelly",
+        "com.android.contacts",
+        "com.android.email",
+        "org.lineageos.eleven",
+        "org.lineageos.recorder",
+        "com.android.deskclock",
+        "com.android.gallery3d",
+        "org.lineageos.etar"
+    ]
 
     def makeDesktopFile(appInfo):
         showApp = False
@@ -21,7 +34,7 @@ def start(args, unlocked_cb=None):
         packageName = appInfo["packageName"]
 
         desktop_file_path = args.apps_dir + "/waydroid." + packageName + ".desktop"
-        if not os.path.exists(desktop_file_path):
+        if not os.path.exists(desktop_file_path) and not packageName in system_apps:
             lines = ["[Desktop Entry]", "Type=Application"]
             lines.append("Name=" + appInfo["name"])
             lines.append("Exec=waydroid app launch " + packageName)
