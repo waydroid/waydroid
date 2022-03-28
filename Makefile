@@ -8,6 +8,7 @@ WAYDROID_DIR := $(PREFIX)/lib/waydroid
 BIN_DIR := $(PREFIX)/bin
 APPS_DIR := $(PREFIX)/share/applications
 METAINFO_DIR := $(PREFIX)/share/metainfo
+ICONS_DIR := $(PREFIX)/share/icons
 SYSD_DIR := $(PREFIX)/lib/systemd/system
 DBUS_DIR := $(PREFIX)/share/dbus-1
 POLKIT_DIR := $(PREFIX)/share/polkit-1
@@ -17,6 +18,7 @@ INSTALL_WAYDROID_DIR := $(DESTDIR)$(WAYDROID_DIR)
 INSTALL_BIN_DIR := $(DESTDIR)$(BIN_DIR)
 INSTALL_APPS_DIR := $(DESTDIR)$(APPS_DIR)
 INSTALL_METAINFO_DIR := $(DESTDIR)$(METAINFO_DIR)
+INSTALL_ICONS_DIR := $(DESTDIR)$(ICONS_DIR)
 INSTALL_SYSD_DIR := $(DESTDIR)$(SYSD_DIR)
 INSTALL_DBUS_DIR := $(DESTDIR)$(DBUS_DIR)
 INSTALL_POLKIT_DIR := $(DESTDIR)$(POLKIT_DIR)
@@ -26,9 +28,11 @@ build:
 	@echo "Nothing to build, run 'make install' to copy the files!"
 
 install:
-	install -d $(INSTALL_WAYDROID_DIR) $(INSTALL_BIN_DIR) $(INSTALL_APPS_DIR) $(INSTALL_METAINFO_DIR) $(INSTALL_DBUS_DIR)/system.d $(INSTALL_POLKIT_DIR)/actions
+	install -d $(INSTALL_WAYDROID_DIR) $(INSTALL_BIN_DIR) $(INSTALL_DBUS_DIR)/system.d $(INSTALL_POLKIT_DIR)/actions
+	install -d $(INSTALL_APPS_DIR) $(INSTALL_METAINFO_DIR) $(INSTALL_ICONS_DIR)/hicolor/512x512/apps
 	cp -a data tools waydroid.py $(INSTALL_WAYDROID_DIR)
 	ln -sf $(WAYDROID_DIR)/waydroid.py $(INSTALL_BIN_DIR)/waydroid
+	ln -sf $(WAYDROID_DIR)/data/AppIcon.png $(INSTALL_ICONS_DIR)/hicolor/512x512/apps/waydroid.png
 	mv $(INSTALL_WAYDROID_DIR)/data/*.desktop $(INSTALL_APPS_DIR)
 	mv $(INSTALL_WAYDROID_DIR)/data/*.metainfo.xml $(INSTALL_METAINFO_DIR)
 	cp dbus/id.waydro.Container.conf $(INSTALL_DBUS_DIR)/system.d/
