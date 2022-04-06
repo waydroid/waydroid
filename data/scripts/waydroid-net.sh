@@ -2,10 +2,10 @@
 
 varrun="/run/waydroid-lxc"
 varlib="/var/lib"
-varvnic="waydroid0"
+varvnic=$(awk '$1 == "lxc.net.0.link" {print $3}' /var/lib/waydroid/lxc/waydroid/config)
 
 if [ "$varvnic" != "waydroid0" ]; then
-	echo 'varvnic is not waydroid' 
+        echo "varnic is $varvnic"	
 	exit 0
 else 
 	echo "varvnic is waydroid0"
