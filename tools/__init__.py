@@ -31,10 +31,16 @@ def main():
         args.sudo_timer = True
         args.timeout = 1800
 
-        if not os.path.isfile(args.config):
+        if not actions.initializer.is_initialized(args):
             if args.action and (args.action != "init" and args.action != "log"):
-                print('ERROR: WayDroid is not initialized, run "waydroid init"')
-                return 0
+                if not args.wait_for_init:
+                    print('ERROR: WayDroid is not initialized, run "waydroid init"')
+                    return 0
+
+                print('WayDroid waiting for initialization...')
+                while helpers.ipc.listen(channel="init") != "done":
+                    pass
+
             elif os.geteuid() == 0 and args.action == "init":
                 if not os.path.exists(args.work):
                     os.mkdir(args.work)

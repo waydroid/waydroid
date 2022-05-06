@@ -5,6 +5,8 @@ import os
 from tools import helpers
 import tools.config
 
+def is_initialized(args):
+    return os.path.isfile(args.config) and os.path.isdir(tools.config.defaults["rootfs"])
 
 def get_vendor_type(args):
     vndk_str = helpers.props.host_get(args, "ro.vndk.version")
@@ -81,7 +83,7 @@ def setup_config(args):
     tools.config.save(args, cfg)
 
 def init(args):
-    if not os.path.isfile(args.config) or not os.path.isdir(tools.config.defaults["rootfs"]) or args.force:
+    if not is_initialized(args) or args.force:
         setup_config(args)
         status = "STOPPED"
         if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
@@ -101,5 +103,7 @@ def init(args):
             logging.info("Starting container")
             helpers.images.mount_rootfs(args, args.images_path)
             helpers.lxc.start(args)
+
+        helpers.ipc.notify(channel="init", msg="done")
     else:
         logging.info("Already initialized")
