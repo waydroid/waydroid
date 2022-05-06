@@ -129,6 +129,8 @@ def arguments():
                         " logfiles (this may reduce performance)")
     parser.add_argument("-q", "--quiet", dest="quiet", action="store_true",
                         help="do not output any log messages")
+    parser.add_argument("-w", "--wait", dest="wait_for_init", action="store_true",
+                        help="wait for init before running")
 
     # Actions
     sub = parser.add_subparsers(title="action", dest="action")
