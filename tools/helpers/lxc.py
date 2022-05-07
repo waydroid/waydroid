@@ -121,6 +121,9 @@ def generate_nodes_lxc_config(args):
     for n in glob.glob("/tmp/run-*"):
         make_entry(n, options="rbind,create=dir,optional 0 0")
 
+    # NFC config
+    make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
+
     return nodes
 
 
