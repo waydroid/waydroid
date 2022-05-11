@@ -74,6 +74,9 @@ def generate_nodes_lxc_config(args):
     make_entry("none", "dev/pts", "devpts", "defaults,mode=644,ptmxmode=666,create=dir 0 0", False)
     make_entry("/dev/uhid")
 
+    # TUN/TAP device node for VPN
+    make_entry("/dev/net/tun", "dev/tun")
+
     # Low memory killer sys node
     make_entry("/sys/module/lowmemorykiller", options="bind,create=dir,optional 0 0")
 
