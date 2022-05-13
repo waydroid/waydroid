@@ -1,3 +1,18 @@
+waydroid (1.2.1) bullseye; urgency=medium
+
+  * Set sys.use_memfd=true if ashmem is not present
+  * config: Switch to https for OTA channels
+  * add size units and speed in download progress bar
+  * Add an optional [properties] in waydroid.cfg
+  * scripts: make sure misc subfolder exists
+  * container: strip possible trailing newline from pid
+  * lxc: Fix bad eol of proc dt values
+  * Resume initialization if not complete
+  * Remove downloaded system images which failed checksum verification
+  * props: Use subprocess for host getprop
+
+ -- Erfan Abdi <erfangplus@gmail.com>  Sun, 17 Apr 2022 21:33:26 +0430
+
 waydroid (1.2.0) bullseye; urgency=medium
 
   * config: Update waydroid ota channel urls
