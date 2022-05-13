@@ -7,6 +7,13 @@ assignees: ''
 
 ---
 
+**Please check steps before reporting a bug**
+Put an `x` in all that apply like this `[x]`
+
+- [ ] I have verified I am running wayland
+- [ ] I have read the docs before creating this issue at https://docs.waydro.id/
+- [ ] My issue is unique enough for it's own bug report even if duplicates seem to exist
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
