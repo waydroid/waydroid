@@ -7,6 +7,7 @@ import time
 import glob
 import signal
 import sys
+import uuid
 import tools.config
 from tools import helpers
 from tools import services
@@ -81,10 +82,42 @@ def start(args):
         for path in perm_list:
             chmod(path, mode)
 
+    def set_aidl_version():
+        cfg = tools.config.load(args)
+        android_api = 0
+        try:
+            mnt = "/tmp/waydroid-" + str(uuid.uuid1())
+            helpers.mount.mount(args, cfg["waydroid"]["images_path"] + "/system.img", mnt)
+            android_api = int(helpers.props.file_get(args, mnt + "/system/build.prop",
+                    "ro.build.version.sdk"))
+        except:
+            logging.error("Failed to parse android version from system.img")
+        finally:
+            helpers.mount.umount_all(args, mnt);
+
+        if android_api < 28:
+            binder_protocol = "aidl"
+            sm_protocol =     "aidl"
+        elif android_api < 30:
+            binder_protocol = "aidl2"
+            sm_protocol =     "aidl2"
+        elif android_api < 31:
+            binder_protocol = "aidl3"
+            sm_protocol =     "aidl3"
+        else:
+            binder_protocol = "aidl3"
+            sm_protocol =     "aidl4"
+
+        cfg["waydroid"]["binder_protocol"] = binder_protocol
+        cfg["waydroid"]["service_manager_protocol"] = sm_protocol
+        tools.config.save(args, cfg)
+
     def signal_handler(sig, frame):
         services.hardware_manager.stop(args)
         stop(args)
         sys.exit(0)
+
+    set_aidl_version()
 
     status = helpers.lxc.status(args)
     if status == "STOPPED":

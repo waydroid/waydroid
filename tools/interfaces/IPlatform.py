@@ -275,7 +275,10 @@ class IPlatform:
 
 def get_service(args):
     helpers.drivers.loadBinderNodes(args)
-    serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER)
+    try:
+        serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER, args.SERVICE_MANAGER_PROTOCOL, args.BINDER_PROTOCOL)
+    except TypeError:
+        serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER)
     tries = 1000
 
     remote, status = serviceManager.get_service_sync(SERVICE_NAME)
