@@ -61,6 +61,14 @@ def launch(args):
                     2, "policy_control", "immersive.full=*")
         else:
             logging.error("Failed to access IPlatform service")
+        attempts = 0
+        max_attempts = 10
+        while platformService.getprop("waydroid.open_window.waydroid." + args.PACKAGE, "0") == "0":
+            time.sleep(1)
+            attempts += 1
+            if attempts > max_attempts:
+                logging.error("Window " + apps.PACKAGE + " doesn't seem to have spawned, exiting.")
+                exit(1)
 
     if os.path.exists(tools.config.session_defaults["config_path"]):
         session_cfg = tools.config.load_session()
