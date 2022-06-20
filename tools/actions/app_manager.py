@@ -50,6 +50,7 @@ def launch(args):
         platformService = IPlatform.get_service(args)
         if platformService:
             platformService.setprop("waydroid.active_apps", args.PACKAGE)
+            platformService.setprop("waydroid.open_window.waydroid." + args.PACKAGE, "0")
             ret = platformService.launchApp(args.PACKAGE)
             multiwin = platformService.getprop(
                 "persist.waydroid.multi_windows", "false")
@@ -61,6 +62,15 @@ def launch(args):
                     2, "policy_control", "immersive.full=*")
         else:
             logging.error("Failed to access IPlatform service")
+        attempts = 0
+        max_attempts = 10
+        while platformService.getprop("waydroid.open_window.waydroid." + args.PACKAGE, "0") == "0":
+            time.sleep(1)
+            attempts += 1
+            if attempts > max_attempts:
+                break
+        while int(platformService.getprop("waydroid.open_window.waydroid." + args.PACKAGE, "1")) > 0:
+            time.sleep(1)
 
     if os.path.exists(tools.config.session_defaults["config_path"]):
         session_cfg = tools.config.load_session()
