@@ -50,6 +50,7 @@ def launch(args):
         platformService = IPlatform.get_service(args)
         if platformService:
             platformService.setprop("waydroid.active_apps", args.PACKAGE)
+            platformService.setprop("waydroid.open_window.waydroid." + args.PACKAGE, "0")
             ret = platformService.launchApp(args.PACKAGE)
             multiwin = platformService.getprop(
                 "persist.waydroid.multi_windows", "false")
@@ -67,8 +68,9 @@ def launch(args):
             time.sleep(1)
             attempts += 1
             if attempts > max_attempts:
-                logging.error("Window " + apps.PACKAGE + " doesn't seem to have spawned, exiting.")
-                exit(1)
+                break
+        while int(platformService.getprop("waydroid.open_window.waydroid." + args.PACKAGE, "1")) > 0:
+            time.sleep(1)
 
     if os.path.exists(tools.config.session_defaults["config_path"]):
         session_cfg = tools.config.load_session()
