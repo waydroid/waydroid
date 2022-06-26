@@ -166,6 +166,10 @@ def make_base_props(args):
         return ""
 
     props = []
+
+    if not os.path.exists("/dev/ashmem"):
+        props.append("sys.use_memfd=true")
+
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
 
     gralloc = find_hal("gralloc")
@@ -239,6 +243,14 @@ def make_base_props(args):
     prop_fp = tools.helpers.props.host_get(args, "ro.vendor.build.fingerprint")
     if prop_fp != "":
         props.append("ro.build.fingerprint=" + prop_fp)
+
+    # now append/override with values in [properties] section of waydroid.cfg
+    cfg = tools.config.load(args)
+    for k, v in cfg["properties"].items():
+        for idx, elem in enumerate(props):
+            if (k+"=") in elem:
+                props.pop(idx)
+        props.append(k+"="+v)
 
     base_props = open(args.work + "/waydroid_base.prop", "w")
     for prop in props:

@@ -182,6 +182,10 @@ start() {
         LXC_DHCP_PING_ARG="--no-ping"
     fi
 
+    if [ ! -d "${varlib}"/misc ]; then
+        mkdir "${varlib}"/misc
+    fi
+
     dnsmasq $LXC_DHCP_CONFILE_ARG $LXC_DOMAIN_ARG $LXC_DHCP_PING_ARG -u ${DNSMASQ_USER} \
             --strict-order --bind-interfaces --pid-file="${varrun}"/dnsmasq.pid \
             --listen-address ${LXC_ADDR} --dhcp-range ${LXC_DHCP_RANGE} \
