@@ -52,6 +52,10 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/pmsg0")
     make_entry("/dev/dxg")
     make_entry("/dev/dri", options="bind,create=dir,optional 0 0")
+    # Griggorii test https://github.com/Quackdoc/waydroid-scripts/blob/main/waydroid-choose-gpu.sh
+    # Logic edited test replace and add text edited Griggorii@gmail.com beta idea /dev/dri/renderD129
+    make_entry("/dev/dri/card0", options="bind,create=dir,optional 0 0")
+    make_entry("/dev/dri/renderD128", options="bind,create=dir,optional 0 0")
 
     for n in glob.glob("/dev/fb*"):
         make_entry(n)
@@ -74,9 +78,6 @@ def generate_nodes_lxc_config(args):
     make_entry("none", "dev/pts", "devpts", "defaults,mode=644,ptmxmode=666,create=dir 0 0", False)
     make_entry("/dev/uhid")
 
-    # TUN/TAP device node for VPN
-    make_entry("/dev/net/tun", "dev/tun")
-
     # Low memory killer sys node
     make_entry("/sys/module/lowmemorykiller", options="bind,create=dir,optional 0 0")
 
@@ -95,12 +96,6 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/sw_sync")
     make_entry("/sys/kernel/debug", options="rbind,create=dir,optional 0 0")
 
-    # Vibrator
-    make_entry("/sys/class/leds/vibrator",
-               options="bind,create=dir,optional 0 0")
-    make_entry("/sys/devices/virtual/timed_output/vibrator",
-               options="bind,create=dir,optional 0 0")
-
     # Media dev nodes (for Mediatek)
     make_entry("/dev/Vcodec")
     make_entry("/dev/MTK_SMI")
@@ -115,11 +110,6 @@ def generate_nodes_lxc_config(args):
     # var
     make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
     make_entry("/var/run", options="rbind,create=dir,optional 0 0")
-
-    # tmp
-    make_entry("tmpfs", "tmp", "tmpfs", "nodev 0 0", False)
-    for n in glob.glob("/tmp/run-*"):
-        make_entry(n, options="rbind,create=dir,optional 0 0")
 
     return nodes
 
@@ -161,18 +151,22 @@ def make_base_props(args):
             "ro.board.platform"]
         for p in hardware_props:
             prop = tools.helpers.props.host_get(args, p)
+            hal_prop = ""
             if prop != "":
-                for lib in ["/odm/lib", "/odm/lib64", "/vendor/lib", "/vendor/lib64", "/system/lib", "/system/lib64"]:
-                    hal_file = lib + "/hw/" + hardware + "." + prop + ".so"
-                    if os.path.isfile(hal_file):
-                        return prop
+                for lib in ["lib", "lib64"]:
+                    hal_file = "/vendor/" + lib + "/hw/" + hardware + "." + prop + ".so"
+                    command = ["readlink", "-f", hal_file]
+                    hal_file_path = tools.helpers.run.user(args, command, output_return=True).strip()
+                    if os.path.isfile(hal_file_path):
+                        hal_prop = re.sub(".*" + hardware + ".", "", hal_file_path)
+                        hal_prop = re.sub(".so", "", hal_prop)
+                        if hal_prop != "":
+                            return hal_prop
+            if hal_prop != "":
+                return hal_prop
         return ""
 
     props = []
-
-    if not os.path.exists("/dev/ashmem"):
-        props.append("sys.use_memfd=true")
-
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
 
     gralloc = find_hal("gralloc")
@@ -209,15 +203,6 @@ def make_base_props(args):
     if vulkan != "":
         props.append("ro.hardware.vulkan=" + vulkan)
 
-    treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
-    if treble != "true":
-        camera = find_hal("camera")
-        if camera != "":
-            props.append("ro.hardware.camera=" + camera)
-        else:
-            if args.vendor_type == "MAINLINE":
-                props.append("ro.hardware.camera=v4l2")
-
     opengles = tools.helpers.props.host_get(args, "ro.opengles.version")
     if opengles == "":
         opengles = "196608"
@@ -229,31 +214,7 @@ def make_base_props(args):
 
     if args.vendor_type == "MAINLINE":
         props.append("ro.vndk.lite=true")
-
-    for product in ["brand", "device", "manufacturer", "model", "name"]:
-        prop_product = tools.helpers.props.host_get(
-            args, "ro.product.vendor." + product)
-        if prop_product != "":
-            props.append("ro.product.waydroid." + product + "=" + prop_product)
-        else:
-            if os.path.isfile("/proc/device-tree/" + product):
-                with open("/proc/device-tree/" + product) as f:
-                    f_value = f.read().strip().rstrip('\x00')
-                    if f_value != "":
-                        props.append("ro.product.waydroid." +
-                                     product + "=" + f_value)
-
-    prop_fp = tools.helpers.props.host_get(args, "ro.vendor.build.fingerprint")
-    if prop_fp != "":
-        props.append("ro.build.fingerprint=" + prop_fp)
-
-    # now append/override with values in [properties] section of waydroid.cfg
-    cfg = tools.config.load(args)
-    for k, v in cfg["properties"].items():
-        for idx, elem in enumerate(props):
-            if (k+"=") in elem:
-                props.pop(idx)
-        props.append(k+"="+v)
+        props.append("ro.hardware.camera=v4l2")
 
     base_props = open(args.work + "/waydroid_base.prop", "w")
     for prop in props:
@@ -262,13 +223,6 @@ def make_base_props(args):
 
 
 def setup_host_perms(args):
-    if not os.path.exists(tools.config.defaults["host_perms"]):
-        os.mkdir(tools.config.defaults["host_perms"])
-
-    treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
-    if treble != "true":
-        return
-
     sku = tools.helpers.props.host_get(args, "ro.boot.product.hardware.sku")
     copy_list = []
     copy_list.extend(
@@ -285,6 +239,9 @@ def setup_host_perms(args):
         if os.path.exists("/odm/etc/permissions/sku_{}/android.hardware.consumerir.xml".format(sku)):
             copy_list.append(
                 "/odm/etc/permissions/sku_{}/android.hardware.consumerir.xml".format(sku))
+
+    if not os.path.exists(tools.config.defaults["host_perms"]):
+        os.mkdir(tools.config.defaults["host_perms"])
 
     for filename in copy_list:
         shutil.copy(filename, tools.config.defaults["host_perms"])
@@ -324,7 +281,7 @@ def shell(args):
         command.append(args.COMMAND)
     else:
         command.append("/system/bin/sh")
-    subprocess.run(command, env={"PATH": os.environ['PATH'] + ":/system/bin:/vendor/bin"})
+    subprocess.run(command, env={"PATH": os.environ['PATH'] + "/system/bin:/vendor/bin"})
 
 def logcat(args):
     if status(args) != "RUNNING":
