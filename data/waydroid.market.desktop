@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Waydroid - Android Market Protocol Handler
+Exec=echo "am start -a android.intent.action.VIEW -d %u" | pkexec waydroid shell
+Icon=/usr/lib/waydroid/data/AppIcon.png
+Type=Application
+Terminal=false
+NoDisplay=true
+Categories=Utility;
+MimeType=x-scheme-handler/market;
