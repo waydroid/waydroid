@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Waydroid Market
 Comment=Android Market Protocol Handler
-Exec=echo "am start -a android.intent.action.VIEW -d %u" | pkexec waydroid shell
+Exec=waydroid app intent android.intent.action.VIEW -d %u
 Icon=/usr/lib/waydroid/data/AppIcon.png
 Type=Application
 Encoding=UTF-8
