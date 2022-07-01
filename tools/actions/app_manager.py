@@ -45,6 +45,25 @@ def remove(args):
     else:
         logging.error("WayDroid session is stopped")
 
+def maybeLaunchLater(args, retry, launchNow):
+    if os.path.exists(tools.config.session_defaults["config_path"]):
+        session_cfg = tools.config.load_session()
+
+        if session_cfg["session"]["state"] == "RUNNING":
+            launchNow()
+        elif session_cfg["session"]["state"] == "FROZEN" or session_cfg["session"]["state"] == "UNFREEZE":
+            session_cfg["session"]["state"] = "UNFREEZE"
+            tools.config.save_session(session_cfg)
+            while session_cfg["session"]["state"] != "RUNNING":
+                session_cfg = tools.config.load_session()
+            launchNow()
+        else:
+            logging.error("WayDroid container is {}".format(
+                session_cfg["session"]["state"]))
+    else:
+        logging.error("Starting waydroid session")
+        tools.actions.session_manager.start(args, retry)
+
 def launch(args):
     def justLaunch():
         platformService = IPlatform.get_service(args)
@@ -61,24 +80,7 @@ def launch(args):
                     2, "policy_control", "immersive.full=*")
         else:
             logging.error("Failed to access IPlatform service")
-
-    if os.path.exists(tools.config.session_defaults["config_path"]):
-        session_cfg = tools.config.load_session()
-
-        if session_cfg["session"]["state"] == "RUNNING":
-            justLaunch()
-        elif session_cfg["session"]["state"] == "FROZEN" or session_cfg["session"]["state"] == "UNFREEZE":
-            session_cfg["session"]["state"] = "UNFREEZE"
-            tools.config.save_session(session_cfg)
-            while session_cfg["session"]["state"] != "RUNNING":
-                session_cfg = tools.config.load_session()
-            justLaunch()
-        else:
-            logging.error("WayDroid container is {}".format(
-                session_cfg["session"]["state"]))
-    else:
-        logging.error("Starting waydroid session")
-        tools.actions.session_manager.start(args, launch)
+    maybeLaunchLater(args, launch, justLaunch)
 
 def list(args):
     if os.path.exists(tools.config.session_defaults["config_path"]):
@@ -113,21 +115,4 @@ def showFullUI(args):
                 statusBarService.expand()
                 time.sleep(0.5)
                 statusBarService.collapse()
-
-    if os.path.exists(tools.config.session_defaults["config_path"]):
-        session_cfg = tools.config.load_session()
-
-        if session_cfg["session"]["state"] == "RUNNING":
-            justShow()
-        elif session_cfg["session"]["state"] == "FROZEN" or session_cfg["session"]["state"] == "UNFREEZE":
-            session_cfg["session"]["state"] = "UNFREEZE"
-            tools.config.save_session(session_cfg)
-            while session_cfg["session"]["state"] != "RUNNING":
-                session_cfg = tools.config.load_session()
-            justShow()
-        else:
-            logging.error("WayDroid container is {}".format(
-                session_cfg["session"]["state"]))
-    else:
-        logging.error("Starting waydroid session")
-        tools.actions.session_manager.start(args, showFullUI)
+    maybeLaunchLater(args, showFullUI, justShow)
