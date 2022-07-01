@@ -91,6 +91,8 @@ def main():
                 actions.app_manager.remove(args)
             elif args.subaction == "launch":
                 actions.app_manager.launch(args)
+            elif args.subaction == "intent":
+                actions.app_manager.intent(args)
             elif args.subaction == "list":
                 actions.app_manager.list(args)
             else:

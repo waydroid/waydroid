@@ -18,7 +18,8 @@ TRANSACTION_getAppName = 8
 TRANSACTION_settingsPutString = 9
 TRANSACTION_settingsGetString = 10
 TRANSACTION_settingsPutInt = 11
-TRANSACTION_getAppName = 12
+TRANSACTION_settingsGetInt = 12
+TRANSACTION_launchIntent = 13
 
 class IPlatform:
     def __init__(self, remote):
@@ -181,6 +182,25 @@ class IPlatform:
             status, exception = reader.read_int32()
             if exception != 0:
                 logging.error("Failed with code: {}".format(exception))
+
+    def launchIntent(self, arg1, arg2):
+        request = self.client.new_request()
+        request.append_string16(arg1)
+        request.append_string16(arg2)
+        reply, status = self.client.transact_sync_reply(
+            TRANSACTION_launchIntent, request)
+
+        if status:
+            logging.error("Sending reply failed")
+        else:
+            reader = reply.init_reader()
+            status, exception = reader.read_int32()
+            if exception == 0:
+                rep1 = reader.read_string16()
+                return rep1
+            else:
+                logging.error("Failed with code: {}".format(exception))
+        return None
 
     def getAppName(self, arg1):
         request = self.client.new_request()

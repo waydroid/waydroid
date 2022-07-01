@@ -82,6 +82,9 @@ def arguments_app(subparser):
     remove.add_argument('PACKAGE', help="package name of app to remove")
     launch = sub.add_parser("launch", help="start single application")
     launch.add_argument('PACKAGE', help="package name of app to launch")
+    intent = sub.add_parser("intent", help="start single application")
+    intent.add_argument('ACTION', help="action name")
+    intent.add_argument('URI', help="data uri")
     sub.add_parser("list", help="list installed applications")
     return ret
 

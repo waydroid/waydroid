@@ -116,3 +116,24 @@ def showFullUI(args):
                 time.sleep(0.5)
                 statusBarService.collapse()
     maybeLaunchLater(args, showFullUI, justShow)
+
+def intent(args):
+    def justLaunch():
+        platformService = IPlatform.get_service(args)
+        if platformService:
+            ret = platformService.launchIntent(args.ACTION, args.URI)
+            if ret == "":
+                return
+            pkg = ret if ret != "android" else "Waydroid"
+            platformService.setprop("waydroid.active_apps", pkg)
+            multiwin = platformService.getprop(
+                "persist.waydroid.multi_windows", "false")
+            if multiwin == "false":
+                platformService.settingsPutString(
+                    2, "policy_control", "immersive.status=*")
+            else:
+                platformService.settingsPutString(
+                    2, "policy_control", "immersive.full=*")
+        else:
+            logging.error("Failed to access IPlatform service")
+    maybeLaunchLater(args, intent, justLaunch)
