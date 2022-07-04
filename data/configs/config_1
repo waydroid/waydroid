@@ -21,5 +21,3 @@ lxc.network.mtu = 1500
 lxc.console.path = none
 
 lxc.include = /var/lib/waydroid/lxc/waydroid/config_nodes
-
-lxc.hook.post-stop = /dev/null
