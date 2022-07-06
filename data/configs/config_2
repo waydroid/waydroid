@@ -19,6 +19,7 @@ lxc.net.0.hwaddr = 00:16:3e:f9:d3:03
 lxc.net.0.mtu = 1500
 
 lxc.console.path = none
+lxc.pty.max = 10
 
 lxc.include = /var/lib/waydroid/lxc/waydroid/config_nodes
 
