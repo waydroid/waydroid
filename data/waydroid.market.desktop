@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Waydroid Market
 Comment=Android Market Protocol Handler
-Exec=waydroid app intent android.intent.action.VIEW -d %u
+Exec=waydroid app intent android.intent.action.VIEW %u
 Icon=/usr/lib/waydroid/data/AppIcon.png
 Type=Application
 Encoding=UTF-8
