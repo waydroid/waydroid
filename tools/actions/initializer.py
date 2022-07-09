@@ -73,6 +73,11 @@ def setup_config(args):
             args.vendor_ota = "None"
             args.vendor_type = get_vendor_type(args)
 
+    if args.system_ota != cfg["waydroid"].get("system_ota"):
+        cfg["waydroid"]["system_datetime"] = tools.config.defaults["system_datetime"]
+    if args.vendor_ota != cfg["waydroid"].get("vendor_ota"):
+        cfg["waydroid"]["vendor_datetime"] = tools.config.defaults["vendor_datetime"]
+
     cfg["waydroid"]["vendor_type"] = args.vendor_type
     cfg["waydroid"]["system_ota"] = args.system_ota
     cfg["waydroid"]["vendor_ota"] = args.vendor_ota
