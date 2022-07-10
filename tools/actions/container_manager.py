@@ -169,8 +169,9 @@ def start(args):
         if which("start"):
             command = ["start", "cgroup-lite"]
             tools.helpers.run.user(args, command, check=False)
-        command = ["umount", "-l", "/sys/fs/cgroup/schedtune"]
-        tools.helpers.run.user(args, command, check=False)
+        if os.path.ismount("/sys/fs/cgroup/schedtune"):
+            command = ["umount", "-l", "/sys/fs/cgroup/schedtune"]
+            tools.helpers.run.user(args, command, check=False)
 
         #TODO: remove NFC hacks
         if which("stop"):
