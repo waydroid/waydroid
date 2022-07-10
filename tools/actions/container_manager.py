@@ -86,14 +86,11 @@ def start(args):
         cfg = tools.config.load(args)
         android_api = 0
         try:
-            mnt = "/tmp/waydroid-" + str(uuid.uuid1())
-            helpers.mount.mount(args, cfg["waydroid"]["images_path"] + "/system.img", mnt)
-            android_api = int(helpers.props.file_get(args, mnt + "/system/build.prop",
+            android_api = int(helpers.props.file_get(args,
+                    tools.config.defaults["rootfs"] + "/system/build.prop",
                     "ro.build.version.sdk"))
         except:
             logging.error("Failed to parse android version from system.img")
-        finally:
-            helpers.mount.umount_all(args, mnt);
 
         if android_api < 28:
             binder_protocol = "aidl"
@@ -116,8 +113,6 @@ def start(args):
         services.hardware_manager.stop(args)
         stop(args)
         sys.exit(0)
-
-    set_aidl_version()
 
     status = helpers.lxc.status(args)
     if status == "STOPPED":
@@ -163,6 +158,8 @@ def start(args):
 
         # Mount rootfs
         helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"])
+
+        set_aidl_version()
 
         # Mount data
         helpers.mount.bind(args, session_cfg["session"]["waydroid_data"],
