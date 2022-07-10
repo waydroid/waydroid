@@ -20,7 +20,9 @@ config_keys = ["arch",
                "images_path",
                "vendor_type",
                "system_datetime",
-               "vendor_datetime"]
+               "vendor_datetime",
+               "binder_protocol",
+               "service_manager_protocol"]
 
 session_config_keys = ["user_name",
                        "user_id",
@@ -43,7 +45,9 @@ defaults = {
     "vendor_type": "MAINLINE",
     "system_datetime": "0",
     "vendor_datetime": "0",
-    "preinstalled_images_path": "/usr/share/waydroid-extra/images"
+    "preinstalled_images_path": "/usr/share/waydroid-extra/images",
+    "binder_protocol": "aidl2",
+    "service_manager_protocol": "aidl2"
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"
