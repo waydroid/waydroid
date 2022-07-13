@@ -8,6 +8,8 @@ matrix:
    image: mrcyjanek/waydroid:debian.12
  - env: DISTRO=hirsute
    image: mrcyjanek/waydroid:ubuntu.21-04
+ - env: DISTRO=jammy
+   image: mrcyjanek/waydroid:ubuntu.22-04
 script:
  - apt update
  - build_changelog
