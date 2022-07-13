@@ -51,7 +51,7 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/pvr_sync")
     make_entry("/dev/pmsg0")
     make_entry("/dev/dxg")
-    make_entry("/dev/dri", options="bind,create=dir,optional 0 0")
+    make_entry(tools.helpers.gpu.getDriNode(args), "dev/dri/renderD128")
 
     for n in glob.glob("/dev/fb*"):
         make_entry(n)
@@ -180,7 +180,7 @@ def make_base_props(args):
 
     gralloc = find_hal("gralloc")
     if gralloc == "":
-        if os.path.exists("/dev/dri"):
+        if tools.helpers.gpu.getDriNode(args):
             gralloc = "gbm"
             egl = "mesa"
         else:
