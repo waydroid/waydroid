@@ -1,4 +1,5 @@
 waydroid.py /usr/lib/waydroid
 tools /usr/lib/waydroid
 data /usr/lib/waydroid
+data/icons/512x512/waydroid.png /usr/share/icons/hicolor/512x512/apps
 gbinder/anbox.conf /etc/gbinder.d

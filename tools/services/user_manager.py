@@ -42,7 +42,7 @@ def start(args, unlocked_cb=None):
         lines.append("Exec=waydroid show-full-ui")
         if hide:
             lines.append("NoDisplay=true")
-        lines.append("Icon=" + tools.config.tools_src + "/data/AppIcon.png")
+        lines.append("Icon=" + tools.config.tools_src + "/data/icons/512x512/waydroid.png")
         desktop_file = open(desktop_file_path, "w")
         for line in lines:
             desktop_file.write(line + "\n")
