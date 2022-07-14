@@ -2,17 +2,17 @@
 
 varrun="/run/waydroid-lxc"
 varlib="/var/lib"
-varvnic=$(awk '$1 == "lxc.net.0.link" {print $3}' /var/lib/waydroid/lxc/waydroid/config)
+vnic=$(awk '$1 == "lxc.net.0.link" {print $3}' /var/lib/waydroid/lxc/waydroid/config || echo "waydroid0")
 
-if [ "$varvnic" != "waydroid0" ]; then
-        echo "varnic is $varvnic"	
-	exit 0
+if [ "$vnic" != "waydroid0" ]; then
+    echo "vnic is $vnic, bailing out"
+    exit 0
 else 
-	echo "varvnic is waydroid0"
+    echo "vnic is waydroid0"
 fi
 
 USE_LXC_BRIDGE="true"
-LXC_BRIDGE="${varvnic}"
+LXC_BRIDGE="${vnic}"
 LXC_BRIDGE_MAC="00:16:3e:00:00:01"
 LXC_ADDR="192.168.240.1"
 LXC_NETMASK="255.255.255.0"
