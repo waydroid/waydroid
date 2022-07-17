@@ -226,8 +226,12 @@ def make_base_props(args):
         opengles = "196608"
     props.append("ro.opengles.version=" + opengles)
 
-    props.append("waydroid.system_ota=" + args.system_ota)
-    props.append("waydroid.vendor_ota=" + args.vendor_ota)
+    if args.images_path != tools.config.defaults["preinstalled_images_path"]:
+        props.append("waydroid.system_ota=" + args.system_ota)
+        props.append("waydroid.vendor_ota=" + args.vendor_ota)
+    else:
+        props.append("waydroid.updater.disabled=true")
+
     props.append("waydroid.tools_version=" + tools.config.version)
 
     if args.vendor_type == "MAINLINE":
