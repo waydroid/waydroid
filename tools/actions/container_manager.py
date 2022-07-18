@@ -82,33 +82,6 @@ def start(args):
         for path in perm_list:
             chmod(path, mode)
 
-    def set_aidl_version():
-        cfg = tools.config.load(args)
-        android_api = 0
-        try:
-            android_api = int(helpers.props.file_get(args,
-                    tools.config.defaults["rootfs"] + "/system/build.prop",
-                    "ro.build.version.sdk"))
-        except:
-            logging.error("Failed to parse android version from system.img")
-
-        if android_api < 28:
-            binder_protocol = "aidl"
-            sm_protocol =     "aidl"
-        elif android_api < 30:
-            binder_protocol = "aidl2"
-            sm_protocol =     "aidl2"
-        elif android_api < 31:
-            binder_protocol = "aidl3"
-            sm_protocol =     "aidl3"
-        else:
-            binder_protocol = "aidl3"
-            sm_protocol =     "aidl4"
-
-        cfg["waydroid"]["binder_protocol"] = binder_protocol
-        cfg["waydroid"]["service_manager_protocol"] = sm_protocol
-        tools.config.save(args, cfg)
-
     def signal_handler(sig, frame):
         services.hardware_manager.stop(args)
         stop(args)
@@ -159,7 +132,7 @@ def start(args):
         # Mount rootfs
         helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"])
 
-        set_aidl_version()
+        helpers.protocol.set_aidl_version(args)
 
         # Mount data
         helpers.mount.bind(args, session_cfg["session"]["waydroid_data"],

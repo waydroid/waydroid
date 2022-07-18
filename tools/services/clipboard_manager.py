@@ -11,6 +11,8 @@ except Exception as e:
     logging.debug(str(e))
     canClip = False
 
+stopping = False
+
 def start(args):
     def sendClipboardData(value):
         try:
@@ -25,15 +27,20 @@ def start(args):
             logging.debug(str(e))
 
     def service_thread():
-        IClipboard.add_service(args, sendClipboardData, getClipboardData)
+        while not stopping:
+            IClipboard.add_service(args, sendClipboardData, getClipboardData)
 
     if canClip:
+        global stopping
+        stopping = False
         args.clipboard_manager = threading.Thread(target=service_thread)
         args.clipboard_manager.start()
     else:
         logging.warning("Failed to start Clipboard manager service, check logs")
 
 def stop(args):
+    global stopping
+    stopping = True
     try:
         if args.clipboardLoop:
             args.clipboardLoop.quit()
