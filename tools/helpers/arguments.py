@@ -104,6 +104,10 @@ def arguments_fullUI(subparser):
     ret = subparser.add_parser("show-full-ui", help="show android full screen in window")
     return ret
 
+def arguments_firstLaunch(subparser):
+    ret = subparser.add_parser("first-launch", help="initialize waydroid and start it")
+    return ret
+
 def arguments_shell(subparser):
     ret = subparser.add_parser("shell", help="run remote shell command")
     ret.add_argument('COMMAND', nargs='?', help="command to run")
@@ -147,6 +151,7 @@ def arguments():
     arguments_app(sub)
     arguments_prop(sub)
     arguments_fullUI(sub)
+    arguments_firstLaunch(sub)
     arguments_shell(sub)
     arguments_logcat(sub)
 
