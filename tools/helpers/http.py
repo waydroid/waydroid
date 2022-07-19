@@ -105,7 +105,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
         tools.helpers.run.user(args, ["rm", path])
 
     # Download the file
-    logging.log(loglevel, "Download " + url)
+    logging.log(loglevel, "Downloading " + url)
     try:
         with urllib.request.urlopen(url) as response:
             with open(path, "wb") as handle:
