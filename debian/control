@@ -15,8 +15,7 @@ Depends: ${misc:Depends},
          ${python3:Depends},
          lxc,
          python3-gbinder,
-         python3-gi,
-         python3-tk
+         python3-gi
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container.

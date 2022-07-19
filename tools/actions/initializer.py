@@ -5,16 +5,6 @@ import os
 from tools import helpers
 import tools.config
 
-from tkinter import *
-from tkinter import ttk
-
-import sys
-import threading
-class Daemon(threading.Thread):
-    def __init__(self):
-        super().__init__()
-        self.daemon = True
-
 def is_initialized(args):
     return os.path.isfile(args.config) and os.path.isdir(tools.config.defaults["rootfs"])
 
@@ -97,7 +87,7 @@ def setup_config(args):
     cfg["waydroid"]["hwbinder"] = args.HWBINDER_DRIVER
     tools.config.save(args, cfg)
 
-def do_init(args):
+def init(args):
     if not is_initialized(args) or args.force:
         setup_config(args)
         status = "STOPPED"
@@ -122,87 +112,3 @@ def do_init(args):
         helpers.ipc.notify(channel="init", msg="done")
     else:
         logging.info("Already initialized")
-
-def init(args):
-    if args.gui:
-        gui_init(args)
-    else:
-        do_init(args)
-
-def gui_init(args):
-    if is_initialized(args) and not args.force:
-        return
-
-    root = Tk()
-    root.title("Initialize Waydroid")
-    root.iconphoto(True, PhotoImage(file="/usr/lib/waydroid/data/AppIcon.png"))
-    frm = ttk.Frame(root, padding=10)
-    frm.grid()
-
-    systemChannel = StringVar(frm, args.system_channel or tools.config.channels_defaults["system_channel"])
-    ttk.Label(frm, text="System OTA").grid(row=0, column=0)
-    ttk.Entry(frm, textvariable=systemChannel).grid(row=0, column=1, ipadx=20)
-
-    vendorChannel = StringVar(frm, args.vendor_channel or tools.config.channels_defaults["vendor_channel"])
-    ttk.Label(frm, text="Vendor OTA").grid(row=1, column=0)
-    ttk.Entry(frm, textvariable=vendorChannel).grid(row=1, column=1, ipadx=20)
-
-    systemType = StringVar(frm)
-    systemTypes = ["VANILLA", "GAPPS"]
-    ttk.Label(frm, text="Android Type").grid(row=2, column=0)
-    ttk.OptionMenu(frm, systemType, args.system_type or systemTypes[0], *systemTypes).grid(row=2, column=1)
-
-    done = ttk.Button(frm, text="Done", command=root.destroy)
-
-    logBox = Text(frm, borderwidth=3, relief="sunken", height=5)
-    logBox.bind("<Key>", lambda e: "break")
-
-    class StdoutRedirect(logging.StreamHandler):
-        def write(self, s):
-            if s.startswith('\r'):
-                logBox.delete("end-1l", "end")
-                logBox.insert(END, '\n')
-                s = s[1:]
-
-            logBox.insert(END, s)
-            logBox.see(END)
-        def flush(self):
-            pass
-        def emit(self, record):
-            if record.levelno >= logging.INFO:
-                self.write(self.format(record) + self.terminator)
-
-    out = StdoutRedirect()
-    sys.stdout = sys.stderr = out
-    logging.getLogger().addHandler(out)
-
-    def runInit():
-        download["state"] = DISABLED
-        logBox.grid(row=4, columnspan=2)
-
-        args.system_channel = systemChannel.get()
-        args.vendor_channel = vendorChannel.get()
-        args.system_type = systemType.get()
-
-        class Runner(Daemon):
-            def run(self):
-                try:
-                    do_init(args)
-                    if is_initialized(args):
-                        done.grid(row=5, columnspan=2)
-                        print("Done")
-                    else:
-                        download["state"] = NORMAL
-                except Exception as e:
-                    print("ERROR: " + str(e))
-                    download["state"] = NORMAL
-
-        Runner().start()
-
-    download = ttk.Button(frm, text="Download", command=runInit)
-    download.grid(row=3, columnspan=2)
-    root.mainloop()
-
-    sys.stdout = sys.__stdout__
-    sys.stderr = sys.__stderr__
-    logging.getLogger().removeHandler(out)

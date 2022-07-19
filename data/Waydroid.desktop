@@ -1,5 +1,5 @@
 [Desktop Entry]
 Type=Application
 Name=Waydroid
-Exec=waydroid first-launch
+Exec=waydroid show-full-ui
 Icon=/usr/lib/waydroid/data/AppIcon.png

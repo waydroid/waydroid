@@ -5,7 +5,6 @@ import sys
 import logging
 import os
 import traceback
-import subprocess
 
 from . import actions
 from . import config
@@ -33,7 +32,7 @@ def main():
         args.timeout = 1800
 
         if not actions.initializer.is_initialized(args):
-            if args.action and (args.action not in ("init", "first-launch", "log")):
+            if args.action and (args.action != "init" and args.action != "log"):
                 if not args.wait_for_init:
                     print('ERROR: WayDroid is not initialized, run "waydroid init"')
                     return 0
@@ -117,10 +116,6 @@ def main():
             helpers.lxc.logcat(args)
         elif args.action == "show-full-ui":
             actions.app_manager.showFullUI(args)
-        elif args.action == "first-launch":
-            subprocess.run(["pkexec", sys.argv[0], "init", "--gui"])
-            if actions.initializer.is_initialized(args):
-                actions.app_manager.showFullUI(args)
         elif args.action == "status":
             actions.status.print_status(args)
         elif args.action == "log":
