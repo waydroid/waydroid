@@ -1,4 +1,0 @@
-waydroid.py /usr/lib/waydroid
-tools /usr/lib/waydroid
-data /usr/lib/waydroid
-gbinder/anbox.conf /etc/gbinder.d
