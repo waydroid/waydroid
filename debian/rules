@@ -2,6 +2,3 @@
 
 %:
 	dh $@ --with=python3
-
-override_dh_installsystemd:
-	dh_installsystemd --name=waydroid-container
