@@ -131,16 +131,32 @@ def set_lxc_config(args):
     lxc_path = tools.config.defaults["lxc"] + "/waydroid"
     config_file = "config_2"
     lxc_ver = get_lxc_version(args)
+    seccomp_profile_filename = "waydroid.seccomp"
     if lxc_ver == 0:
         raise OSError("LXC is not installed")
     elif lxc_ver <= 2:
         config_file = "config_1"
+        seccomp_profile_filename = "waydroid1.seccomp"
     config_path = tools.config.tools_src + "/data/configs/" + config_file
+    seccomp_profile = tools.config.tools_src + "/data/configs/" + seccomp_profile_filename
+    apparmor_profiles = [tools.config.tools_src + "/data/configs/" + "lxc-waydroid",tools.config.tools_src + "/data/configs/" + "android_app",tools.config.tools_src + "/data/configs/" + "adbd"]
+    apparmor_profile_dir = "/etc/apparmor.d/"
 
     command = ["mkdir", "-p", lxc_path]
     tools.helpers.run.user(args, command)
     command = ["cp", "-fpr", config_path, lxc_path + "/config"]
     tools.helpers.run.user(args, command)
+    command = ["cp", "-fpr", seccomp_profile, lxc_path + "/waydroid.seccomp"]
+    tools.helpers.run.user(args, command)
+    try:
+        command = ["cp", "-fpr", apparmor_profiles[0], apparmor_profile_dir + "lxc/lxc-waydroid"]
+        tools.helpers.run.user(args, command)
+        command = ["cp", "-fpr", apparmor_profiles[1], apparmor_profile_dir + "android_app"]
+        tools.helpers.run.user(args, command)
+        command = ["cp", "-fpr", apparmor_profiles[2], apparmor_profile_dir + "adbd"]
+        tools.helpers.run.user(args, command)
+    except:
+        logging.warning("An error has occurred while installing AppArmor profiles. If profiles are not installed, or AppArmor is disabled or not supported on your system, then the container will run without AppArmor protection.")
     command = ["sed", "-i", "s/LXCARCH/{}/".format(platform.machine()), lxc_path + "/config"]
     tools.helpers.run.user(args, command)
 
