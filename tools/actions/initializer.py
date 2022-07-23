@@ -337,6 +337,7 @@ def remote_init_client(args):
                 draw("Done\n")
 
 
+    GLib.set_prgname("Waydroid")
     win = WaydroidInitWindow()
     win.connect("destroy", notify_and_quit)
 
