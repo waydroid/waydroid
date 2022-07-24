@@ -7,8 +7,22 @@ import signal
 import sys
 import shutil
 import tools.config
+from threading import Timer
 from tools import services
 
+TIMEOUT = 5 * 60 #seconds
+
+def watchdog_bark(args):
+    if not args.booted:
+        logging.warning("WATCHDOG: Android never booted, terminating the session")
+        stop(args)
+        sys.exit(0)
+
+def watchdog_wrap_cb(cb):
+    def wrapped_cb(args):
+        args.booted = True
+        cb(args)
+    return wrapped_cb
 
 def start(args, unlocked_cb=None):
     def signal_handler(sig, frame):
@@ -39,21 +53,30 @@ def start(args, unlocked_cb=None):
         session_cfg = tools.config.load_session()
         if container_state != session_cfg["session"]["state"]:
             if session_cfg["session"]["state"] == "RUNNING":
-                services.user_manager.start(args, unlocked_cb)
+                args.booted = False
+                args.watchdog = Timer(TIMEOUT, watchdog_bark, [args])
+                args.watchdog.start()
+                services.user_manager.start(args, watchdog_wrap_cb(unlocked_cb))
                 services.clipboard_manager.start(args)
                 if unlocked_cb:
                     unlocked_cb = None
             elif session_cfg["session"]["state"] == "STOPPED":
+                if vars(args).get("watchdog"):
+                    args.watchdog.cancel()
                 services.user_manager.stop(args)
                 services.clipboard_manager.stop(args)
             container_state = session_cfg["session"]["state"]
         time.sleep(1)
+    if vars(args).get("watchdog"):
+        args.watchdog.cancel()
     services.user_manager.stop(args)
     services.clipboard_manager.stop(args)
 
 def stop(args):
     config_path = tools.config.session_defaults["config_path"]
     if os.path.isfile(config_path):
+        if vars(args).get("watchdog"):
+            args.watchdog.cancel()
         services.user_manager.stop(args)
         services.clipboard_manager.stop(args)
         os.remove(config_path)
