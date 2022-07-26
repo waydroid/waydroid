@@ -58,7 +58,7 @@ def arguments_session(subparser):
     ret = subparser.add_parser("session", help="session controller")
     sub = ret.add_subparsers(title="subaction", dest="subaction")
     sub.add_parser("start", help="start session")
-    sub.add_parser("stop", help="start session")
+    sub.add_parser("stop", help="stop session")
     return ret
 
 def arguments_container(subparser):
