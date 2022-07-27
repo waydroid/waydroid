@@ -6,7 +6,7 @@ USE_NFTABLES ?= 0
 WAYDROID_DIR := $(DESTDIR)$(PREFIX)/lib/waydroid
 BIN_DIR := $(DESTDIR)$(PREFIX)/bin
 APPS_DIR := $(DESTDIR)$(PREFIX)/share/applications
-SYSD_DIR := $(DESTDIR)/lib/systemd/system
+SYSD_DIR := $(DESTDIR)$(PREFIX)/lib/systemd/system
 
 build:
 	@echo "Nothing to build, run 'make install' to copy the files!"
