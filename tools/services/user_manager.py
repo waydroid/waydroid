@@ -40,7 +40,7 @@ def start(args, unlocked_cb=None):
             os.remove(desktop_file_path)
         lines = ["[Desktop Entry]", "Type=Application"]
         lines.append("Name=Waydroid")
-        lines.append("Exec=waydroid show-full-ui")
+        lines.append("Exec=waydroid first-launch")
         if hide:
             lines.append("NoDisplay=true")
         lines.append("Icon=" + tools.config.tools_src + "/data/AppIcon.png")
