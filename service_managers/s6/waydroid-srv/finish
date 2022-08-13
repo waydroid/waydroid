@@ -1,0 +1,8 @@
+#!/bin/execlineb -P
+foreground {
+	nft "add table inet lxc; delete table inet lxc; add table ip lxc; delete table ip lxc;"
+}
+foreground {
+	/usr/bin/waydroid container stop
+}
+exec /usr/bin/waydroid session stop
