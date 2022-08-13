@@ -32,7 +32,8 @@ session_config_keys = ["user_name",
                        "wayland_display",
                        "pulse_runtime_path",
                        "state",
-                       "lcd_density"]
+                       "lcd_density",
+                       "autoload_netbridge"]
 
 # Config file/commandline default values
 # $WORK gets replaced with the actual value for args.work (which may be
@@ -61,7 +62,8 @@ session_defaults = {
     "wayland_display": str(os.environ.get('WAYLAND_DISPLAY')),
     "pulse_runtime_path": str(os.environ.get('PULSE_RUNTIME_PATH')),
     "state": "STOPPED",
-    "lcd_density": "0"
+    "lcd_density": "0",
+    "autload_netbridge": "1"
 }
 session_defaults["config_path"] = defaults["work"] + "/session.cfg"
 session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + \
