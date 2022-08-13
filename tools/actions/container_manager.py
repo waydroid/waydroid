@@ -120,7 +120,7 @@ def start(args):
         make_prop(args.work + "/waydroid.prop")
 
         # Networking
-        if not session_cfg or session_cfg["waydroid"]["autoload_netbridge"] == "1":
+        if not session_cfg or session_cfg["session"]["autoload_netbridge"] == "1":
             command = [tools.config.tools_src +
                     "/data/scripts/waydroid-net.sh", "start"]
             tools.helpers.run.user(args, command, check=False)
@@ -168,6 +168,12 @@ def start(args):
             raise OSError("container failed to start")
         tools.config.save_session(session_cfg)
 
+        if (ready_fd := session_cfg["session"]["ready_fd"]):
+            if ready_fd.isnumeric():
+                os.write(int(ready_fd), b"\n")
+            else:
+                logging.warning("{readyfd = } is not a valid file descriptor. Ready state skipped")
+
         services.hardware_manager.start(args)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -202,7 +208,7 @@ def stop(args):
             session_cfg = None
 
         # Networking
-        if not session_cfg or session_cfg["waydroid"]["autoload_netbridge"] == "1":
+        if not session_cfg or session_cfg["session"]["autoload_netbridge"] == "1":
             command = [tools.config.tools_src +
                     "/data/scripts/waydroid-net.sh", "stop"]
             tools.helpers.run.user(args, command, check=False)
