@@ -1,15 +1,15 @@
-image: mrcyjanek/waydroid:ubuntu.20-04
+image: mrcyjanek/waydroid:debian-stable 
 matrix:
- - env: DISTRO=focal
-   image: mrcyjanek/waydroid:ubuntu.20-04
- - env: DISTRO=bullseye
-   image: mrcyjanek/waydroid:debian.11
- - env: DISTRO=bookworm
-   image: mrcyjanek/waydroid:debian.12
- - env: DISTRO=hirsute
-   image: mrcyjanek/waydroid:ubuntu.21-04
- - env: DISTRO=jammy
-   image: mrcyjanek/waydroid:ubuntu.22-04
+ - env: DISTRO=debian-stable 
+   image: mrcyjanek/waydroid:debian-stable 
+ - env: DISTRO=debian-unstable
+   image: mrcyjanek/waydroid:debian-unstable
+ - env: DISTRO=ubuntu-devel
+   image: mrcyjanek/waydroid:ubuntu-devel
+ - env: DISTRO=ubuntu-latest
+   image: mrcyjanek/waydroid:ubuntu-latest
+ - env: DISTRO=ubuntu-rolling
+   image: mrcyjanek/waydroid:ubuntu-rolling
 script:
  - apt update
  - build_changelog
