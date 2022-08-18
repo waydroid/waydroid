@@ -177,10 +177,11 @@ def make_base_props(args):
         props.append("sys.use_memfd=true")
 
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
+    dri = tools.helpers.gpu.getDriNode(args)
 
     gralloc = find_hal("gralloc")
     if gralloc == "":
-        if tools.helpers.gpu.getDriNode(args):
+        if dri:
             gralloc = "gbm"
             egl = "mesa"
         else:
@@ -209,7 +210,9 @@ def make_base_props(args):
         props.append("ro.vendor.extension_library=" + ext_library)
 
     vulkan = find_hal("vulkan")
-    if vulkan != "":
+    if not vulkan and dri:
+        vulkan = tools.helpers.gpu.getVulkanDriver(args, os.path.basename(dri))
+    if vulkan:
         props.append("ro.hardware.vulkan=" + vulkan)
 
     treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
