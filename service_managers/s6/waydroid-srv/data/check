@@ -1,0 +1,2 @@
+#!/bin/execlineb -P
+exit 0
