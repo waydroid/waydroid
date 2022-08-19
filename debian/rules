@@ -2,3 +2,6 @@
 
 %:
 	dh $@ --with=python3
+
+override_dh_auto_install:
+	dh_auto_install -- SYSD_DIR=/lib/systemd/system
