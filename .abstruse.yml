@@ -1,15 +1,17 @@
-image: mrcyjanek/waydroid:debian-stable 
+image: mrcyjanek/waydroid:ubuntu-devel
 matrix:
- - env: DISTRO=debian-stable 
-   image: mrcyjanek/waydroid:debian-stable 
- - env: DISTRO=debian-unstable
-   image: mrcyjanek/waydroid:debian-unstable
  - env: DISTRO=ubuntu-devel
    image: mrcyjanek/waydroid:ubuntu-devel
- - env: DISTRO=ubuntu-latest
-   image: mrcyjanek/waydroid:ubuntu-latest
- - env: DISTRO=ubuntu-rolling
-   image: mrcyjanek/waydroid:ubuntu-rolling
+ - env: DISTRO=sid
+   image: mrcyjanek/waydroid:sid
+ - env: DISTRO=bookworm
+   image: mrcyjanek/waydroid:bookworm
+ - env: DISTRO=bullseye
+   image: mrcyjanek/waydroid:bullseye
+ - env: DISTRO=jammy
+   image: mrcyjanek/waydroid:jammy
+ - env: DISTRO=focal
+   image: mrcyjanek/waydroid:focal
 script:
  - apt update
  - build_changelog
