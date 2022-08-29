@@ -7,6 +7,7 @@ import logging
 import glob
 import shutil
 import platform
+import gbinder
 import tools.config
 import tools.helpers.run
 
@@ -171,6 +172,16 @@ def make_base_props(args):
                         return prop
         return ""
 
+    def find_hidl(intf):
+        if args.vendor_type == "MAINLINE":
+            return False
+
+        try:
+            sm = gbinder.ServiceManager("/dev/hwbinder")
+            return intf in sm.list_sync()
+        except:
+            return False
+
     props = []
 
     if not os.path.exists("/dev/ashmem"):
@@ -180,7 +191,10 @@ def make_base_props(args):
     dri = tools.helpers.gpu.getDriNode(args)
 
     gralloc = find_hal("gralloc")
-    if gralloc == "":
+    if not gralloc:
+        if find_hidl("android.hardware.graphics.allocator@4.0::IAllocator/default"):
+            gralloc = "android"
+    if not gralloc:
         if dri:
             gralloc = "gbm"
             egl = "mesa"
