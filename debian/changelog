@@ -1,3 +1,43 @@
+waydroid (1.3.0) bullseye; urgency=medium
+
+  * tools: Fix device names with spaces in initializer
+  * http: Handle malformed urls
+  * Mount TUN device for use by Android VPNs.
+  * Set aidl version based on the android version
+  * Add -w flag for waiting for init
+  * debian: Start container waiting for init if not already
+  * Allows waydroid to create PTY (#349)
+  * Downgrade x86_64 to x86 if no SSE4.2
+  * app_manager: Factor out common function to start session then launch
+  * app_manager: Add launch intent
+  * Add Android Market Protocol Handler
+  * waydroid.market.desktop: update some properties
+  * waydroid.market.desktop: use `waydroid app intent`
+  * Fixup market:// handler
+  * lxc: Optionally bind-mount NFC config
+  * Improve robustness of the dynamic aidl version picker
+  * init: Always redownload the image when changing parameters
+  * Default nvidia to swiftshader
+  * ci: update to jammy
+  * Update Matrix link
+  * container: Only umount /sys/fs/cgroup/schedtune if needed
+  * make waydroid-net more flexible (#267)
+  * Disable OTA updater when using preinstalled images
+  * Add first-launch command
+  * Revert "Add first-launch command"
+  * debian: Move waydroid-container.service under new toplevel systemd dir
+  * gbinder: Remove unnecessary configs
+  * Makefile: Add distro-agnostic buildsystem
+  * debian: Adapt to new Makefile buildsystem
+  * Support upgrading major android versions
+  * Add first-launch command [v2]
+  * Show first-launch icon on wayland gtk
+  * Makefile: Add prefix for systemd directory
+  * fix typo in arguments.py
+  * Add appstream metadata
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Sun, 07 Aug 2022 21:37:46 +0000
+
 waydroid (1.2.1) bullseye; urgency=medium
 
   * Set sys.use_memfd=true if ashmem is not present

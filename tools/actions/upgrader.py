@@ -36,4 +36,5 @@ def upgrade(args):
     if status != "STOPPED":
         logging.info("Starting container")
         helpers.images.mount_rootfs(args, args.images_path)
+        helpers.protocol.set_aidl_version(args)
         helpers.lxc.start(args)
