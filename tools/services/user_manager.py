@@ -20,7 +20,10 @@ def start(args, unlocked_cb=None):
         "org.lineageos.recorder",
         "com.android.deskclock",
         "com.android.gallery3d",
-        "org.lineageos.etar"
+        "org.lineageos.etar",
+        "com.android.camera2",
+        "com.android.inputmethod.latin",
+        "com.google.android.gms"
     ]
 
     def makeDesktopFile(appInfo):
