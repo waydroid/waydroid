@@ -7,6 +7,8 @@ lxc.autodev = 0
 # lxc.autodev.tmpfs.size = 25000000
 lxc.apparmor.profile = unconfined
 
+lxc.no_new_privs = 1
+
 lxc.init.cmd = /init
 
 lxc.mount.auto = cgroup:ro sys:ro proc
