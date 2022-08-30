@@ -34,11 +34,13 @@ def start(args, unlocked_cb=None):
         packageName = appInfo["packageName"]
 
         desktop_file_path = args.apps_dir + "/waydroid." + packageName + ".desktop"
-        if not os.path.exists(desktop_file_path) and not packageName in system_apps:
+        if not os.path.exists(desktop_file_path):
             lines = ["[Desktop Entry]", "Type=Application"]
             lines.append("Name=" + appInfo["name"])
             lines.append("Exec=waydroid app launch " + packageName)
             lines.append("Icon=" + args.waydroid_data + "/icons/" + packageName + ".png")
+            if packageName in system_apps:
+                lines.append("NoDisplay=true")
             desktop_file = open(desktop_file_path, "w")
             for line in lines:
                 desktop_file.write(line + "\n")
