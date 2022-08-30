@@ -11,19 +11,19 @@ from tools.interfaces import IPlatform
 def start(args, unlocked_cb=None):
     system_apps = [
         "com.android.calculator2",
-        "com.android.documentsui",
-        "com.android.settings",
-        "org.lineageos.jelly",
-        "com.android.contacts",
-        "com.android.email",
-        "org.lineageos.eleven",
-        "org.lineageos.recorder",
-        "com.android.deskclock",
-        "com.android.gallery3d",
-        "org.lineageos.etar",
         "com.android.camera2",
+        "com.android.contacts",
+        "com.android.deskclock",
+        "com.android.documentsui",
+        "com.android.email",
+        "com.android.gallery3d",
         "com.android.inputmethod.latin",
-        "com.google.android.gms"
+        "com.android.settings",
+        "com.google.android.gms",
+        "org.lineageos.eleven",
+        "org.lineageos.etar",
+        "org.lineageos.jelly",
+        "org.lineageos.recorder"
     ]
 
     def makeDesktopFile(appInfo):
