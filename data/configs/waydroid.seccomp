@@ -1,0 +1,21 @@
+2
+blacklist
+init_module
+finit_module
+delete_module
+_sysctl
+kexec_file_load
+kexec_load
+reboot
+adjtimex errno 0
+clock_adjtime errno 0
+clock_adjtime64 errno 0
+clock_settime errno 0
+clock_settime64 errno 0
+settimeofday errno 0
+stime errno 0
+add_key errno 0
+keyctl errno 0
+request_key errno 0
+swapoff errno 0
+swapon errno 0

@@ -6,6 +6,7 @@ lxc.arch = LXCARCH
 lxc.autodev = 0
 # lxc.autodev.tmpfs.size = 25000000
 lxc.aa_profile = unconfined
+lxc.seccomp = /var/lib/waydroid/lxc/waydroid/waydroid.seccomp
 
 lxc.cap.keep = audit_control sys_nice wake_alarm setpcap setgid setuid sys_ptrace sys_admin wake_alarm block_suspend sys_time net_admin net_raw net_bind_service kill dac_override dac_read_search fsetid mknod syslog chown sys_resource fowner sys_module ipc_lock sys_chroot
 
