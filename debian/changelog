@@ -1,3 +1,16 @@
+waydroid (1.3.1) bullseye; urgency=medium
+
+  * CI: add support for rolling releases
+  * Makefile: Allow installing over an existing installation
+  * Makefile: Allow overriding directories without having to know the DESTDIR
+  * debian: Use /lib/systemd/system for units
+  * CI: Restore versioned debian
+  * Add mainline vulkan support
+  * Detect HIDL gralloc4
+  * tools: Upver to 1.3.1
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Fri, 02 Sep 2022 12:23:28 +0000
+
 waydroid (1.3.0) bullseye; urgency=medium
 
   * tools: Fix device names with spaces in initializer
