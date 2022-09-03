@@ -21,7 +21,7 @@ def install(args):
             platformService = IPlatform.get_service(args)
             if platformService:
                 platformService.installApp("/data/waydroid_tmp/base.apk")
-            shutil.rmtree(tmp_dir)
+            os.remove(tmp_dir + "/base.apk")
         else:
             logging.error("WayDroid container is {}".format(
                 session_cfg["session"]["state"]))
