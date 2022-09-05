@@ -2,7 +2,7 @@ import glob
 import os
 import tools.helpers.props
 
-unsupported = ["nvidia"]
+unsupported = ["nvidia", "nouveau"]
 
 def getKernelDriver(args, dev):
     return tools.helpers.props.file_get(args, "/sys/class/drm/{}/device/uevent".format(dev), "DRIVER")
