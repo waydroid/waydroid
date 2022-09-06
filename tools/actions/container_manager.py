@@ -14,38 +14,6 @@ from tools import services
 
 
 def start(args):
-    def make_prop(full_props_path):
-        def add_prop(key, cfg_key):
-            value = session_cfg["session"][cfg_key]
-            if value != "None":
-                value = value.replace("/mnt/", "/mnt_extra/")
-                props.append(key + "=" + value)
-
-        if not os.path.isfile(args.work + "/waydroid_base.prop"):
-            raise RuntimeError("waydroid_base.prop Not found")
-        with open(args.work + "/waydroid_base.prop") as f:
-            props = f.read().splitlines()
-        if not props:
-            raise RuntimeError("waydroid_base.prop is broken!!?")
-
-        add_prop("waydroid.host.user", "user_name")
-        add_prop("waydroid.host.uid", "user_id")
-        add_prop("waydroid.host.gid", "group_id")
-        add_prop("waydroid.xdg_runtime_dir", "xdg_runtime_dir")
-        add_prop("waydroid.pulse_runtime_path", "pulse_runtime_path")
-        add_prop("waydroid.wayland_display", "wayland_display")
-        if which("waydroid-sensord") is None:
-            props.append("waydroid.stub_sensors_hal=1")
-        dpi = session_cfg["session"]["lcd_density"]
-        if dpi != "0":
-            props.append("ro.sf.lcd_density=" + dpi)
-
-        final_props = open(full_props_path, "w")
-        for prop in props:
-            final_props.write(prop + "\n")
-        final_props.close()
-        os.chmod(full_props_path, 0o644)
-
     def set_permissions(perm_list=None, mode="777"):
         def chmod(path, mode):
             if os.path.exists(path):
@@ -115,9 +83,6 @@ def start(args):
         
         # Load session configs
         session_cfg = tools.config.load_session()
-        
-        # Generate props
-        make_prop(args.work + "/waydroid.prop")
 
         # Networking
         command = [tools.config.tools_src +
