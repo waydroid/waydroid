@@ -62,8 +62,7 @@ def start(args):
         if cfg["waydroid"]["vendor_type"] == "MAINLINE":
             if helpers.drivers.probeBinderDriver(args) != 0:
                 logging.error("Failed to load Binder driver")
-            if helpers.drivers.probeAshmemDriver(args) != 0:
-                logging.error("Failed to load Ashmem driver")
+            helpers.drivers.probeAshmemDriver(args)
         helpers.drivers.loadBinderNodes(args)
         set_permissions([
             "/dev/" + args.BINDER_DRIVER,
