@@ -112,11 +112,8 @@ def probeBinderDriver(args):
 
 def probeAshmemDriver(args):
     if not os.path.exists("/dev/ashmem"):
-        command = ["modprobe", "ashmem_linux"]
-        output = tools.helpers.run.user(args, command, check=False, output_return=True)
-        if output:
-            logging.error("Failed to load ashmem driver")
-            logging.error(output.strip())
+        command = ["modprobe", "-q", "ashmem_linux"]
+        tools.helpers.run.user(args, command, check=False)
 
     if not os.path.exists("/dev/ashmem"):
         return -1
