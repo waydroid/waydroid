@@ -31,6 +31,7 @@ session_config_keys = ["user_name",
                        "xdg_runtime_dir",
                        "wayland_display",
                        "pulse_runtime_path",
+                       "xdg_activation_token",
                        "state",
                        "lcd_density"]
 
@@ -60,6 +61,7 @@ session_defaults = {
     "xdg_runtime_dir": str(os.environ.get('XDG_RUNTIME_DIR')),
     "wayland_display": str(os.environ.get('WAYLAND_DISPLAY')),
     "pulse_runtime_path": str(os.environ.get('PULSE_RUNTIME_PATH')),
+    "xdg_activation_token": str(os.environ.get('XDG_ACTIVATION_TOKEN')),
     "state": "STOPPED",
     "lcd_density": "0"
 }

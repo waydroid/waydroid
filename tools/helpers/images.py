@@ -115,6 +115,7 @@ def make_prop(args, full_props_path):
     add_prop("waydroid.xdg_runtime_dir", "xdg_runtime_dir")
     add_prop("waydroid.pulse_runtime_path", "pulse_runtime_path")
     add_prop("waydroid.wayland_display", "wayland_display")
+    add_prop("waydroid.xdg_activation_token", "xdg_activation_token")
     if which("waydroid-sensord") is None:
         props.append("waydroid.stub_sensors_hal=1")
     dpi = session_cfg["session"]["lcd_density"]
