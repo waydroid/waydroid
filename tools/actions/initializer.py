@@ -29,13 +29,16 @@ def setup_config(args):
     args.arch = helpers.arch.host()
     cfg["waydroid"]["arch"] = args.arch
 
-    preinstalled_images = tools.config.defaults["preinstalled_images_path"]
+    preinstalled_images_paths = tools.config.defaults["preinstalled_images_paths"]
     if not args.images_path:
-        if os.path.isdir(preinstalled_images):
-            if os.path.isfile(preinstalled_images + "/system.img") and os.path.isfile(preinstalled_images + "/vendor.img"):
-                args.images_path = preinstalled_images
-            else:
-                logging.error("Missing system or vendor on preinstalled images dir, fallback to default")
+        for preinstalled_images in preinstalled_images_paths:
+            if os.path.isdir(preinstalled_images):
+                if os.path.isfile(preinstalled_images + "/system.img") and os.path.isfile(preinstalled_images + "/vendor.img"):
+                    args.images_path = preinstalled_images
+                    break
+                else:
+                    logging.warning("Found directory {} but missing system or vendor image, ignoring...".format(preinstalled_images))
+
     if not args.images_path:
         args.images_path = tools.config.defaults["images_path"]
     cfg["waydroid"]["images_path"] = args.images_path
@@ -54,7 +57,7 @@ def setup_config(args):
         "/waydroid_" + args.arch + "/" + args.system_type + ".json"
     system_request = helpers.http.retrieve(args.system_ota)
     if system_request[0] != 200:
-        if args.images_path != preinstalled_images:
+        if args.images_path not in preinstalled_images_paths:
             raise ValueError(
                 "Failed to get system OTA channel: {}, error: {}".format(args.system_ota, system_request[0]))
         else:
@@ -72,7 +75,7 @@ def setup_config(args):
             break
 
     if not args.vendor_type:
-        if args.images_path != preinstalled_images:
+        if args.images_path not in preinstalled_images_paths:
             raise ValueError(
                 "Failed to get vendor OTA channel: {}".format(vendor_ota))
         else:
@@ -103,7 +106,7 @@ def init(args):
             logging.info("Stopping container")
             helpers.lxc.stop(args)
         helpers.images.umount_rootfs(args)
-        if args.images_path != tools.config.defaults["preinstalled_images_path"]:
+        if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
             helpers.images.get(args)
         if not os.path.isdir(tools.config.defaults["rootfs"]):
             os.mkdir(tools.config.defaults["rootfs"])
