@@ -21,7 +21,7 @@ build:
 install:
 	install -d $(INSTALL_WAYDROID_DIR) $(INSTALL_BIN_DIR) $(INSTALL_APPS_DIR) $(INSTALL_METAINFO_DIR)
 	cp -a data tools waydroid.py $(INSTALL_WAYDROID_DIR)
-	ln -srf $(INSTALL_WAYDROID_DIR)/waydroid.py $(INSTALL_BIN_DIR)/waydroid
+	ln -sf $(WAYDROID_DIR)/waydroid.py $(INSTALL_BIN_DIR)/waydroid
 	mv $(INSTALL_WAYDROID_DIR)/data/*.desktop $(INSTALL_APPS_DIR)
 	mv $(INSTALL_WAYDROID_DIR)/data/*.metainfo.xml $(INSTALL_METAINFO_DIR)
 	if [ $(USE_SYSTEMD) = 1 ]; then \
