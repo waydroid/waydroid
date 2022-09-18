@@ -25,11 +25,10 @@ def upgrade(args):
     helpers.images.umount_rootfs(args)
     helpers.drivers.loadBinderNodes(args)
     if not args.offline:
-        preinstalled_images_path = tools.config.defaults["preinstalled_images_path"]
-        if args.images_path != preinstalled_images_path:
+        if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
             helpers.images.get(args)
         else:
-            logging.info("Upgrade refused because a pre-installed image is detected at {}.".format(preinstalled_images_path))
+            logging.info("Upgrade refused because a pre-installed image is detected at {}.".format(args.images_path))
     helpers.lxc.setup_host_perms(args)
     helpers.lxc.set_lxc_config(args)
     helpers.lxc.make_base_props(args)
