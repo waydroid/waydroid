@@ -1,20 +1,11 @@
-# Waydroid LXC Config
-
-lxc.rootfs.path = /var/lib/waydroid/rootfs
 lxc.uts.name = waydroid
-lxc.arch = LXCARCH
-lxc.autodev = 0
-# lxc.autodev.tmpfs.size = 25000000
+
 lxc.apparmor.profile = unconfined
 lxc.seccomp.profile = /var/lib/waydroid/lxc/waydroid/waydroid.seccomp
-lxc.seccomp.allow_nesting = 1
 
-lxc.cap.keep = audit_control sys_nice wake_alarm setpcap setgid setuid sys_ptrace sys_admin wake_alarm block_suspend sys_time net_admin net_raw net_bind_service kill dac_override dac_read_search fsetid mknod syslog chown sys_resource fowner sys_module ipc_lock sys_chroot
 lxc.no_new_privs = 1
 
 lxc.init.cmd = /init
-
-lxc.mount.auto = cgroup:ro sys:ro proc
 
 lxc.net.0.type = veth
 lxc.net.0.flags = up
@@ -23,9 +14,3 @@ lxc.net.0.name = eth0
 lxc.net.0.hwaddr = 00:16:3e:f9:d3:03
 lxc.net.0.mtu = 1500
 
-lxc.console.path = none
-lxc.pty.max = 10
-
-lxc.include = /var/lib/waydroid/lxc/waydroid/config_nodes
-
-lxc.hook.post-stop = /dev/null

@@ -130,18 +130,25 @@ def generate_nodes_lxc_config(args):
 
 def set_lxc_config(args):
     lxc_path = tools.config.defaults["lxc"] + "/waydroid"
-    config_file = "config_2"
     lxc_ver = get_lxc_version(args)
     if lxc_ver == 0:
         raise OSError("LXC is not installed")
-    elif lxc_ver <= 2:
-        config_file = "config_1"
-    config_path = tools.config.tools_src + "/data/configs/" + config_file
+    config_paths = tools.config.tools_src + "/data/configs/config_"
     seccomp_profile = tools.config.tools_src + "/data/configs/waydroid.seccomp"
+
+    config_snippets = [ config_paths + "base" ]
+    # lxc v1 is a bit special because some options got renamed later
+    if lxc_ver == 1:
+        config_snippets.append(config_paths + "1")
+    else:
+        for ver in range(2, 5):
+            snippet = config_paths + str(ver)
+            if lxc_ver >= ver and os.path.exists(snippet):
+                config_snippets.append(snippet)
 
     command = ["mkdir", "-p", lxc_path]
     tools.helpers.run.user(args, command)
-    command = ["cp", "-fpr", config_path, lxc_path + "/config"]
+    command = ["sh", "-c", "cat {} > \"{}\"".format(' '.join('"{0}"'.format(w) for w in config_snippets), lxc_path + "/config")]
     tools.helpers.run.user(args, command)
     command = ["sed", "-i", "s/LXCARCH/{}/".format(platform.machine()), lxc_path + "/config"]
     tools.helpers.run.user(args, command)
