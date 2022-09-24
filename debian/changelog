@@ -1,3 +1,12 @@
+waydroid (1.3.3) bullseye; urgency=medium
+
+  * Makefile: Install waydroid binary without relative symlink
+  * lxc: Finer-grained config control
+  * Configure multiple preinstalled images paths
+  * tools: Upver to 1.3.3
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Sat, 24 Sep 2022 10:43:18 +0000
+
 waydroid (1.3.2) bullseye; urgency=medium
 
   * app_manager: Don't rmdir /data/waydroid_tmp after install
