@@ -3,6 +3,8 @@
 import logging
 import threading
 import tools.actions.container_manager
+import tools.actions.session_manager
+import tools.config
 from tools import helpers
 from tools.interfaces import IHardware
 
@@ -16,7 +18,11 @@ def start(args):
         logging.debug("Function enableBluetooth not implemented")
 
     def suspend():
-        tools.actions.container_manager.freeze(args)
+        cfg = tools.config.load(args)
+        if cfg["waydroid"]["suspend_action"] == "stop":
+            tools.actions.session_manager.stop(args)
+        else:
+            tools.actions.container_manager.freeze(args)
 
     def reboot():
         helpers.lxc.stop(args)

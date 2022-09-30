@@ -20,7 +20,8 @@ config_keys = ["arch",
                "images_path",
                "vendor_type",
                "system_datetime",
-               "vendor_datetime"]
+               "vendor_datetime",
+               "suspend_action"]
 
 session_config_keys = ["user_name",
                        "user_id",
@@ -46,7 +47,8 @@ defaults = {
     "preinstalled_images_paths": [
         "/etc/waydroid-extra/images",
         "/usr/share/waydroid-extra/images",
-    ]
+    ],
+    "suspend_action": "freeze"
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"
