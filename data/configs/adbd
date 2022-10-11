@@ -1,6 +1,6 @@
 #include <tunables/global>
 
-profile adbd flags=(attach_disconnected,mediate_deleted) {
+profile adbd flags=(attach_disconnected,mediate_deleted,complain) {
   #include <abstractions/base>
   /** ix,
   /dev** rw,
