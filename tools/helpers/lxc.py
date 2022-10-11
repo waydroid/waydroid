@@ -135,6 +135,8 @@ def set_lxc_config(args):
         raise OSError("LXC is not installed")
     config_paths = tools.config.tools_src + "/data/configs/config_"
     seccomp_profile = tools.config.tools_src + "/data/configs/waydroid.seccomp"
+    apparmor_profiles = [tools.config.tools_src + "/data/configs/" + "lxc-waydroid",tools.config.tools_src + "/data/configs/" + "android_app",tools.config.tools_src + "/data/configs/" + "adbd"]
+    apparmor_profile_dir = "/etc/apparmor.d/"
 
     config_snippets = [ config_paths + "base" ]
     # lxc v1 is a bit special because some options got renamed later
@@ -154,6 +156,22 @@ def set_lxc_config(args):
     tools.helpers.run.user(args, command)
     command = ["cp", "-fpr", seccomp_profile, lxc_path + "/waydroid.seccomp"]
     tools.helpers.run.user(args, command)
+
+    try:
+        command = ["cp", "-i", apparmor_profiles[0], apparmor_profile_dir + "lxc/lxc-waydroid"]
+        tools.helpers.run.user(args, command)
+        command = ["apparmor_parser", "-r", apparmor_profile_dir + "lxc/lxc-waydroid"]
+        tools.helpers.run.user(args, command)
+        command = ["cp", "-i", apparmor_profiles[1], apparmor_profile_dir + "android_app"]
+        tools.helpers.run.user(args, command)
+        command = ["apparmor_parser", "-r", apparmor_profile_dir + "android_app"]
+        tools.helpers.run.user(args, command)
+        command = ["cp", "-i", apparmor_profiles[2], apparmor_profile_dir + "adbd"]
+        tools.helpers.run.user(args, command)
+        command = ["apparmor_parser", "-r", apparmor_profile_dir + "adbd"]
+        tools.helpers.run.user(args, command)
+    except:
+        logging.warning("An error has occurred while installing AppArmor profiles. If profiles are not installed, or AppArmor is disabled or not supported on your system, then the container will run without AppArmor protection.")
 
     nodes = generate_nodes_lxc_config(args)
     config_nodes_tmp_path = args.work + "/config_nodes"
