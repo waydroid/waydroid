@@ -227,6 +227,11 @@ def make_base_props(args):
     if ccodec != "":
         props.append("debug.stagefright.ccodec=" + ccodec)
 
+    timezone = os.readlink("/etc/localtime")
+    if timezone != "":
+        timezone = timezone.replace("/usr/share/zoneinfo/","")
+        props.append("persist.sys.timezone=" + timezone)
+
     ext_library = tools.helpers.props.host_get(args, "ro.vendor.extension_library")
     if ext_library != "":
         ext_library = ext_library.replace("vendor/", "vendor_extra/")
