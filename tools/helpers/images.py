@@ -8,6 +8,7 @@ import os
 import tools.config
 from tools import helpers
 from shutil import which
+from shutil import copyfile
 
 def sha256sum(filename):
     h = hashlib.sha256()
@@ -127,6 +128,17 @@ def make_prop(args, full_props_path):
     final_props.close()
     os.chmod(full_props_path, 0o644)
 
+def make_camera_hal_config(args, full_camera_hal_config_path):
+    if not os.path.isfile(args.work + "/camera_hal.yaml"):
+        raise RuntimeError("camera_hal.yaml Not found")
+    with open(args.work + "/camera_hal.yaml") as f:
+        props = f.read().splitlines()
+    if not props:
+        raise RuntimeError("camera_hal.yaml is broken!!?")
+
+    copyfile(args.work + "/camera_hal.yaml", full_camera_hal_config_path)
+    os.chmod(full_camera_hal_config_path, 0o644)
+
 def mount_rootfs(args, images_dir):
     helpers.mount.mount(args, images_dir + "/system.img",
                         tools.config.defaults["rootfs"], umount=True)
@@ -147,6 +159,16 @@ def mount_rootfs(args, images_dir):
     make_prop(args, args.work + "/waydroid.prop")
     helpers.mount.bind_file(args, args.work + "/waydroid.prop",
                             tools.config.defaults["rootfs"] + "/vendor/waydroid.prop")
+    if os.path.exists(args.work + "/camera_hal.yaml"):
+        helpers.mount.bind_file(args, args.work + "/camera_hal.yaml",
+                                tools.config.defaults["rootfs"] +
+                                "/vendor/etc/libcamera/camera_hal.yaml")
+    else:
+        print("ERROR!!!! ERRRROROOOORRR")
+        logging.error((f"Camera config {args.work}/camera_hal.yaml not found.\n"
+                       "Most internal cameras need this to work in Waydroid."))
+        raise RuntimeException("Camera config not found!")
+    print("No error!")
 
 def umount_rootfs(args):
     helpers.mount.umount_all(args, tools.config.defaults["rootfs"])
