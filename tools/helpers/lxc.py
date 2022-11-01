@@ -250,7 +250,7 @@ def make_base_props(args):
 
     opengles = tools.helpers.props.host_get(args, "ro.opengles.version")
     if opengles == "":
-        opengles = "196608"
+        opengles = "196609"
     props.append("ro.opengles.version=" + opengles)
 
     if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
