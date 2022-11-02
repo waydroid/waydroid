@@ -102,8 +102,10 @@ def umount_all(args, folder):
     """
     Umount all folders, that are mounted inside a given folder.
     """
-    for mountpoint in umount_all_list(folder):
+    all_list = umount_all_list(folder)
+    for mountpoint in all_list:
         tools.helpers.run.user(args, ["umount", mountpoint])
+    for mountpoint in all_list:
         if ismount(mountpoint):
             raise RuntimeError("Failed to umount: " + mountpoint)
 
