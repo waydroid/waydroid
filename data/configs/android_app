@@ -1,6 +1,6 @@
 #include <tunables/global>
 
-profile android_app flags=(mediate_deleted,attach_disconnected,complain) {
+profile android_app flags=(attach_disconnected, complain, mediate_deleted) {
   #include <abstractions/base>
   /** ix,
   /dev** rw,
@@ -26,8 +26,11 @@ profile android_app flags=(mediate_deleted,attach_disconnected,complain) {
   capability net_bind_service,
   capability kill,
   capability dac_override,
+  capability chown,
   mount fstype=tmpfs -> /storage**,
+  mount fstype=tmpfs -> /data/misc/profiles**,
   mount options in (rw,bind) options in (rw,rbind) -> /storage**,
+  mount options in (rw,bind) options in (rw,rbind) -> /data/misc/profiles**,
   mount /dev/fuse -> /storage**,
   mount -> /,
   umount /storage**,
@@ -42,8 +45,11 @@ profile android_app flags=(mediate_deleted,attach_disconnected,complain) {
   signal (receive),
 
   /acct** rwkl,
+  /linkerconfig** r,
   owner /data** rwkl,
   /data/app** r,
+  /data/system/unsolzygotesocket rw,
+  /data/dalvik-cache** r,
   /data/misc** r,
   /data/lineageos_updates** r,
   /apex** mr,
