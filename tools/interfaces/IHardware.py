@@ -15,7 +15,10 @@ TRANSACTION_upgrade = 5
 
 def add_service(args, enableNFC, enableBluetooth, suspend, reboot, upgrade):
     helpers.drivers.loadBinderNodes(args)
-    serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER)
+    try:
+        serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER, args.SERVICE_MANAGER_PROTOCOL, args.BINDER_PROTOCOL)
+    except TypeError:
+        serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER)
 
     def response_handler(req, code, flags):
         logging.debug(

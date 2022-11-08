@@ -105,7 +105,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
         tools.helpers.run.user(args, ["rm", path])
 
     # Download the file
-    logging.log(loglevel, "Download " + url)
+    logging.log(loglevel, "Downloading " + url)
     try:
         with urllib.request.urlopen(url) as response:
             with open(path, "wb") as handle:
@@ -138,10 +138,13 @@ def retrieve(url, headers=None):
     if headers is None:
         headers = {}
 
-    req = urllib.request.Request(url, headers=headers)
     try:
+        req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req) as response:
             return 200, response.read()
+    # Handle malformed URL
+    except ValueError as e:
+        return -1, ""
     # Handle 404
     except urllib.error.HTTPError as e:
         return e.code, ""

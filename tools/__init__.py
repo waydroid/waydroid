@@ -31,22 +31,21 @@ def main():
         args.sudo_timer = True
         args.timeout = 1800
 
-        if not os.path.isfile(args.config):
-            if args.action and (args.action != "init" and args.action != "log"):
-                print('ERROR: WayDroid is not initialized, run "waydroid init"')
-                return 0
-            elif os.geteuid() == 0 and args.action == "init":
-                if not os.path.exists(args.work):
-                    os.mkdir(args.work)
-            else:
-                # This branch is taken if:
-                # - waydroid is not yet initialized
-                # - waydroid is invoked with no command or with log
-                if not os.path.exists(args.log):
-                    # The log could have been already created if init was used and failed, if its not the case we use a temporary one
-                    args.log = "/tmp/tools.log"
+        if os.geteuid() == 0:
+            if not os.path.exists(args.work):
+                os.mkdir(args.work)
+        elif not os.path.exists(args.log):
+            args.log = "/tmp/tools.log"
 
         tools_logging.init(args)
+
+        if not actions.initializer.is_initialized(args) and \
+                args.action and args.action not in ("init", "first-launch", "log"):
+            if args.wait_for_init:
+                actions.wait_for_init(args)
+            else:
+                print('ERROR: WayDroid is not initialized, run "waydroid init"')
+                return 0
 
         # Initialize or require config
         if args.action == "init":
@@ -85,6 +84,8 @@ def main():
                 actions.app_manager.remove(args)
             elif args.subaction == "launch":
                 actions.app_manager.launch(args)
+            elif args.subaction == "intent":
+                actions.app_manager.intent(args)
             elif args.subaction == "list":
                 actions.app_manager.list(args)
             else:
@@ -108,6 +109,10 @@ def main():
             helpers.lxc.logcat(args)
         elif args.action == "show-full-ui":
             actions.app_manager.showFullUI(args)
+        elif args.action == "first-launch":
+            actions.remote_init_client(args)
+            if actions.initializer.is_initialized(args):
+                actions.app_manager.showFullUI(args)
         elif args.action == "status":
             actions.status.print_status(args)
         elif args.action == "log":

@@ -7,6 +7,7 @@ import tools.config
 from tools.interfaces import IUserMonitor
 from tools.interfaces import IPlatform
 
+stopping = False
 
 def start(args, unlocked_cb=None):
 
@@ -89,12 +90,17 @@ def start(args, unlocked_cb=None):
                         os.remove(desktop_file_path)
 
     def service_thread():
-        IUserMonitor.add_service(args, userUnlocked, packageStateChanged)
+        while not stopping:
+            IUserMonitor.add_service(args, userUnlocked, packageStateChanged)
 
+    global stopping
+    stopping = False
     args.user_manager = threading.Thread(target=service_thread)
     args.user_manager.start()
 
 def stop(args):
+    global stopping
+    stopping = True
     try:
         if args.userMonitorLoop:
             args.userMonitorLoop.quit()

@@ -12,7 +12,7 @@ from tools.config.save import save, save_session
 #
 # Exported variables (internal configuration)
 #
-version = "1.2.1"
+version = "1.3.3"
 tools_src = os.path.normpath(os.path.realpath(__file__) + "/../../..")
 
 # Keys saved in the config file (mostly what we ask in 'waydroid init')
@@ -43,7 +43,10 @@ defaults = {
     "vendor_type": "MAINLINE",
     "system_datetime": "0",
     "vendor_datetime": "0",
-    "preinstalled_images_path": "/usr/share/waydroid-extra/images"
+    "preinstalled_images_paths": [
+        "/etc/waydroid-extra/images",
+        "/usr/share/waydroid-extra/images",
+    ]
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"

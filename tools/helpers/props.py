@@ -49,3 +49,14 @@ def set(args, prop, value):
                 session_cfg["session"]["state"]))
     else:
         logging.error("WayDroid session is stopped")
+
+def file_get(args, file, prop):
+    with open(file) as build_prop:
+        for line in build_prop:
+            line = line.strip()
+            if len(line) == 0 or line[0] == "#":
+                continue
+            k,v = line.partition("=")[::2]
+            if k == prop:
+                return v;
+    return ""

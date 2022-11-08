@@ -112,11 +112,8 @@ def probeBinderDriver(args):
 
 def probeAshmemDriver(args):
     if not os.path.exists("/dev/ashmem"):
-        command = ["modprobe", "ashmem_linux"]
-        output = tools.helpers.run.user(args, command, check=False, output_return=True)
-        if output:
-            logging.error("Failed to load ashmem driver")
-            logging.error(output.strip())
+        command = ["modprobe", "-q", "ashmem_linux"]
+        tools.helpers.run.user(args, command, check=False)
 
     if not os.path.exists("/dev/ashmem"):
         return -1
@@ -176,3 +173,6 @@ def loadBinderNodes(args):
     args.BINDER_DRIVER = cfg["waydroid"]["binder"]
     args.VNDBINDER_DRIVER = cfg["waydroid"]["vndbinder"]
     args.HWBINDER_DRIVER = cfg["waydroid"]["hwbinder"]
+    # These might not be in cfg on package upgrade
+    args.BINDER_PROTOCOL = cfg["waydroid"].get("binder_protocol")
+    args.SERVICE_MANAGER_PROTOCOL = cfg["waydroid"].get("service_manager_protocol")

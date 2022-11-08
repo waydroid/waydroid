@@ -7,7 +7,7 @@ import hashlib
 import os
 import tools.config
 from tools import helpers
-
+from shutil import which
 
 def sha256sum(filename):
     h = hashlib.sha256()
@@ -93,6 +93,39 @@ def replace(args, system_zip, system_time, vendor_zip, vendor_time):
         cfg["waydroid"]["vendor_datetime"] = str(vendor_time)
         tools.config.save(args, cfg)
 
+def make_prop(args, full_props_path):
+    if not os.path.isfile(args.work + "/waydroid_base.prop"):
+        raise RuntimeError("waydroid_base.prop Not found")
+    with open(args.work + "/waydroid_base.prop") as f:
+        props = f.read().splitlines()
+    if not props:
+        raise RuntimeError("waydroid_base.prop is broken!!?")
+
+    session_cfg = tools.config.load_session()
+
+    def add_prop(key, cfg_key):
+        value = session_cfg["session"][cfg_key]
+        if value != "None":
+            value = value.replace("/mnt/", "/mnt_extra/")
+            props.append(key + "=" + value)
+
+    add_prop("waydroid.host.user", "user_name")
+    add_prop("waydroid.host.uid", "user_id")
+    add_prop("waydroid.host.gid", "group_id")
+    add_prop("waydroid.xdg_runtime_dir", "xdg_runtime_dir")
+    add_prop("waydroid.pulse_runtime_path", "pulse_runtime_path")
+    add_prop("waydroid.wayland_display", "wayland_display")
+    if which("waydroid-sensord") is None:
+        props.append("waydroid.stub_sensors_hal=1")
+    dpi = session_cfg["session"]["lcd_density"]
+    if dpi != "0":
+        props.append("ro.sf.lcd_density=" + dpi)
+
+    final_props = open(full_props_path, "w")
+    for prop in props:
+        final_props.write(prop + "\n")
+    final_props.close()
+    os.chmod(full_props_path, 0o644)
 
 def mount_rootfs(args, images_dir):
     helpers.mount.mount(args, images_dir + "/system.img",
@@ -110,6 +143,8 @@ def mount_rootfs(args, images_dir):
         if os.path.isdir("/vendor/odm"):
             helpers.mount.bind(
                 args, "/vendor/odm", tools.config.defaults["rootfs"] + "/odm_extra")
+
+    make_prop(args, args.work + "/waydroid.prop")
     helpers.mount.bind_file(args, args.work + "/waydroid.prop",
                             tools.config.defaults["rootfs"] + "/vendor/waydroid.prop")
 

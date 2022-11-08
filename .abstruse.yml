@@ -1,13 +1,17 @@
-image: mrcyjanek/waydroid:ubuntu.20-04
+image: mrcyjanek/waydroid:ubuntu-devel
 matrix:
- - env: DISTRO=focal
-   image: mrcyjanek/waydroid:ubuntu.20-04
- - env: DISTRO=bullseye
-   image: mrcyjanek/waydroid:debian.11
+ - env: DISTRO=ubuntu-devel
+   image: mrcyjanek/waydroid:ubuntu-devel
+ - env: DISTRO=sid
+   image: mrcyjanek/waydroid:sid
  - env: DISTRO=bookworm
-   image: mrcyjanek/waydroid:debian.12
- - env: DISTRO=hirsute
-   image: mrcyjanek/waydroid:ubuntu.21-04
+   image: mrcyjanek/waydroid:bookworm
+ - env: DISTRO=bullseye
+   image: mrcyjanek/waydroid:bullseye
+ - env: DISTRO=jammy
+   image: mrcyjanek/waydroid:jammy
+ - env: DISTRO=focal
+   image: mrcyjanek/waydroid:focal
 script:
  - apt update
  - build_changelog

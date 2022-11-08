@@ -6,6 +6,7 @@ import tools.actions.container_manager
 from tools import helpers
 from tools.interfaces import IHardware
 
+stopping = False
 
 def start(args):
     def enableNFC(enable):
@@ -27,16 +28,22 @@ def start(args):
         helpers.images.replace(args, system_zip, system_time,
                                vendor_zip, vendor_time)
         helpers.images.mount_rootfs(args, args.images_path)
+        helpers.protocol.set_aidl_version(args)
         helpers.lxc.start(args)
 
     def service_thread():
-        IHardware.add_service(
-            args, enableNFC, enableBluetooth, suspend, reboot, upgrade)
+        while not stopping:
+            IHardware.add_service(
+                args, enableNFC, enableBluetooth, suspend, reboot, upgrade)
 
+    global stopping
+    stopping = False
     args.hardware_manager = threading.Thread(target=service_thread)
     args.hardware_manager.start()
 
 def stop(args):
+    global stopping
+    stopping = True
     try:
         if args.hardwareLoop:
             args.hardwareLoop.quit()

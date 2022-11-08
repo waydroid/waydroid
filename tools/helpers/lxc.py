@@ -7,6 +7,7 @@ import logging
 import glob
 import shutil
 import platform
+import gbinder
 import tools.config
 import tools.helpers.run
 
@@ -51,7 +52,7 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/pvr_sync")
     make_entry("/dev/pmsg0")
     make_entry("/dev/dxg")
-    make_entry("/dev/dri", options="bind,create=dir,optional 0 0")
+    make_entry(tools.helpers.gpu.getDriNode(args), "dev/dri/renderD128")
 
     for n in glob.glob("/dev/fb*"):
         make_entry(n)
@@ -73,6 +74,9 @@ def generate_nodes_lxc_config(args):
     # Necessary device nodes for adb
     make_entry("none", "dev/pts", "devpts", "defaults,mode=644,ptmxmode=666,create=dir 0 0", False)
     make_entry("/dev/uhid")
+
+    # TUN/TAP device node for VPN
+    make_entry("/dev/net/tun", "dev/tun")
 
     # Low memory killer sys node
     make_entry("/sys/module/lowmemorykiller", options="bind,create=dir,optional 0 0")
@@ -118,24 +122,37 @@ def generate_nodes_lxc_config(args):
     for n in glob.glob("/tmp/run-*"):
         make_entry(n, options="rbind,create=dir,optional 0 0")
 
+    # NFC config
+    make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
+
     return nodes
 
 
 def set_lxc_config(args):
     lxc_path = tools.config.defaults["lxc"] + "/waydroid"
-    config_file = "config_2"
     lxc_ver = get_lxc_version(args)
     if lxc_ver == 0:
         raise OSError("LXC is not installed")
-    elif lxc_ver <= 2:
-        config_file = "config_1"
-    config_path = tools.config.tools_src + "/data/configs/" + config_file
+    config_paths = tools.config.tools_src + "/data/configs/config_"
+    seccomp_profile = tools.config.tools_src + "/data/configs/waydroid.seccomp"
+
+    config_snippets = [ config_paths + "base" ]
+    # lxc v1 is a bit special because some options got renamed later
+    if lxc_ver == 1:
+        config_snippets.append(config_paths + "1")
+    else:
+        for ver in range(2, 5):
+            snippet = config_paths + str(ver)
+            if lxc_ver >= ver and os.path.exists(snippet):
+                config_snippets.append(snippet)
 
     command = ["mkdir", "-p", lxc_path]
     tools.helpers.run.user(args, command)
-    command = ["cp", "-fpr", config_path, lxc_path + "/config"]
+    command = ["sh", "-c", "cat {} > \"{}\"".format(' '.join('"{0}"'.format(w) for w in config_snippets), lxc_path + "/config")]
     tools.helpers.run.user(args, command)
     command = ["sed", "-i", "s/LXCARCH/{}/".format(platform.machine()), lxc_path + "/config"]
+    tools.helpers.run.user(args, command)
+    command = ["cp", "-fpr", seccomp_profile, lxc_path + "/waydroid.seccomp"]
     tools.helpers.run.user(args, command)
 
     nodes = generate_nodes_lxc_config(args)
@@ -165,16 +182,30 @@ def make_base_props(args):
                         return prop
         return ""
 
+    def find_hidl(intf):
+        if args.vendor_type == "MAINLINE":
+            return False
+
+        try:
+            sm = gbinder.ServiceManager("/dev/hwbinder")
+            return intf in sm.list_sync()
+        except:
+            return False
+
     props = []
 
     if not os.path.exists("/dev/ashmem"):
         props.append("sys.use_memfd=true")
 
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
+    dri = tools.helpers.gpu.getDriNode(args)
 
     gralloc = find_hal("gralloc")
-    if gralloc == "":
-        if os.path.exists("/dev/dri"):
+    if not gralloc:
+        if find_hidl("android.hardware.graphics.allocator@4.0::IAllocator/default"):
+            gralloc = "android"
+    if not gralloc:
+        if dri:
             gralloc = "gbm"
             egl = "mesa"
         else:
@@ -203,7 +234,9 @@ def make_base_props(args):
         props.append("ro.vendor.extension_library=" + ext_library)
 
     vulkan = find_hal("vulkan")
-    if vulkan != "":
+    if not vulkan and dri:
+        vulkan = tools.helpers.gpu.getVulkanDriver(args, os.path.basename(dri))
+    if vulkan:
         props.append("ro.hardware.vulkan=" + vulkan)
 
     treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
@@ -220,8 +253,12 @@ def make_base_props(args):
         opengles = "196608"
     props.append("ro.opengles.version=" + opengles)
 
-    props.append("waydroid.system_ota=" + args.system_ota)
-    props.append("waydroid.vendor_ota=" + args.vendor_ota)
+    if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
+        props.append("waydroid.system_ota=" + args.system_ota)
+        props.append("waydroid.vendor_ota=" + args.vendor_ota)
+    else:
+        props.append("waydroid.updater.disabled=true")
+
     props.append("waydroid.tools_version=" + tools.config.version)
 
     if args.vendor_type == "MAINLINE":

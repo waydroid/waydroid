@@ -58,7 +58,7 @@ def arguments_session(subparser):
     ret = subparser.add_parser("session", help="session controller")
     sub = ret.add_subparsers(title="subaction", dest="subaction")
     sub.add_parser("start", help="start session")
-    sub.add_parser("stop", help="start session")
+    sub.add_parser("stop", help="stop session")
     return ret
 
 def arguments_container(subparser):
@@ -82,6 +82,9 @@ def arguments_app(subparser):
     remove.add_argument('PACKAGE', help="package name of app to remove")
     launch = sub.add_parser("launch", help="start single application")
     launch.add_argument('PACKAGE', help="package name of app to launch")
+    intent = sub.add_parser("intent", help="start single application")
+    intent.add_argument('ACTION', help="action name")
+    intent.add_argument('URI', help="data uri")
     sub.add_parser("list", help="list installed applications")
     return ret
 
@@ -99,6 +102,10 @@ def arguments_prop(subparser):
 
 def arguments_fullUI(subparser):
     ret = subparser.add_parser("show-full-ui", help="show android full screen in window")
+    return ret
+
+def arguments_firstLaunch(subparser):
+    ret = subparser.add_parser("first-launch", help="initialize waydroid and start it")
     return ret
 
 def arguments_shell(subparser):
@@ -129,6 +136,8 @@ def arguments():
                         " logfiles (this may reduce performance)")
     parser.add_argument("-q", "--quiet", dest="quiet", action="store_true",
                         help="do not output any log messages")
+    parser.add_argument("-w", "--wait", dest="wait_for_init", action="store_true",
+                        help="wait for init before running")
 
     # Actions
     sub = parser.add_subparsers(title="action", dest="action")
@@ -142,6 +151,7 @@ def arguments():
     arguments_app(sub)
     arguments_prop(sub)
     arguments_fullUI(sub)
+    arguments_firstLaunch(sub)
     arguments_shell(sub)
     arguments_logcat(sub)
 
