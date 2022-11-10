@@ -40,6 +40,9 @@ defaults = {
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"
+defaults["overlay"] = defaults["work"] + "/overlay"
+defaults["overlay_rw"] = defaults["work"] + "/overlay_rw"
+defaults["overlay_work"] = defaults["work"] + "/overlay_work"
 defaults["data"] = defaults["work"] + "/data"
 defaults["lxc"] = defaults["work"] + "/lxc"
 defaults["host_perms"] = defaults["work"] + "/host-permissions"
