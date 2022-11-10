@@ -117,6 +117,8 @@ def init(args):
         helpers.images.umount_rootfs(args)
         if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
             helpers.images.get(args)
+        else:
+            helpers.images.remove_overlay(args)
         if not os.path.isdir(tools.config.defaults["rootfs"]):
             os.mkdir(tools.config.defaults["rootfs"])
         if not os.path.isdir(tools.config.defaults["overlay"]):
