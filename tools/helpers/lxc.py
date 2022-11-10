@@ -53,7 +53,9 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/pvr_sync")
     make_entry("/dev/pmsg0")
     make_entry("/dev/dxg")
-    make_entry(tools.helpers.gpu.getDriNode(args), "dev/dri/renderD128")
+    render, card = tools.helpers.gpu.getDriNode(args)
+    make_entry(render, "dev/dri/renderD128")
+    make_entry(card, "dev/dri/card0")
 
     for n in glob.glob("/dev/fb*"):
         make_entry(n)
@@ -217,7 +219,7 @@ def make_base_props(args):
         props.append("sys.use_memfd=true")
 
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
-    dri = tools.helpers.gpu.getDriNode(args)
+    dri, _ = tools.helpers.gpu.getDriNode(args)
 
     gralloc = find_hal("gralloc")
     if not gralloc:
