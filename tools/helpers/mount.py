@@ -149,3 +149,28 @@ def mount(args, source, destination, create_folders=True, umount=False,
     # Verify, that it has worked
     if not ismount(destination):
         raise RuntimeError("Mount failed: " + source + " -> " + destination)
+
+def mount_overlay(args, lower_dirs, destination, upper_dir=None, work_dir=None,
+                  create_folders=True, readonly=True):
+    """
+    Mount an overlay.
+    """
+    dirs = [*lower_dirs]
+    options = ["xino=off", "lowerdir=" + (":".join(lower_dirs))]
+
+    if upper_dir:
+        dirs.append(upper_dir)
+        dirs.append(work_dir)
+        options.append("upperdir=" + upper_dir)
+        options.append("workdir=" + work_dir)
+
+    for dir_path in dirs:
+        if not os.path.exists(dir_path):
+            if create_folders:
+                tools.helpers.run.user(args, ["mkdir", "-p", dir_path])
+            else:
+                raise RuntimeError("Mount failed, folder does not exist: " +
+                                   dir_path)
+
+    mount(args, "overlay", destination, mount_type="overlay", options=options,
+          readonly=readonly, create_folders=create_folders, force=True)

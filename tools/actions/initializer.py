@@ -119,6 +119,13 @@ def init(args):
             helpers.images.get(args)
         if not os.path.isdir(tools.config.defaults["rootfs"]):
             os.mkdir(tools.config.defaults["rootfs"])
+        if not os.path.isdir(tools.config.defaults["overlay"]):
+            os.mkdir(tools.config.defaults["overlay"])
+            os.mkdir(tools.config.defaults["overlay"]+"/vendor")
+        if not os.path.isdir(tools.config.defaults["overlay_rw"]):
+            os.mkdir(tools.config.defaults["overlay_rw"])
+            os.mkdir(tools.config.defaults["overlay_rw"]+"/system")
+            os.mkdir(tools.config.defaults["overlay_rw"]+"/vendor")
         helpers.lxc.setup_host_perms(args)
         helpers.lxc.set_lxc_config(args)
         helpers.lxc.make_base_props(args)
