@@ -109,17 +109,20 @@ def umount_all(args, folder):
         if ismount(mountpoint):
             raise RuntimeError("Failed to umount: " + mountpoint)
 
-def mount(args, source, destination, create_folders=True, umount=False, readonly=True, mount_type=None, options=None):
+def mount(args, source, destination, create_folders=True, umount=False,
+          readonly=True, mount_type=None, options=None, force=True):
     """
     Mount and create necessary directory structure.
     :param umount: when destination is already a mount point, umount it first.
+    :param force: attempt mounting even if the mount point already exists.
     """
     # Check/umount destination
     if ismount(destination):
         if umount:
             umount_all(args, destination)
         else:
-            return
+            if not force:
+                return
 
     # Check/create folders
     if not os.path.exists(destination):
