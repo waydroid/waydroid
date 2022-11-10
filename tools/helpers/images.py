@@ -4,6 +4,7 @@ import logging
 import zipfile
 import json
 import hashlib
+import shutil
 import os
 import tools.config
 from tools import helpers
@@ -78,6 +79,7 @@ def get(args):
             tools.config.save(args, cfg)
             os.remove(images_zip)
             break
+    remove_overlay(args)
 
 def replace(args, system_zip, system_time, vendor_zip, vendor_time):
     cfg = tools.config.load(args)
@@ -92,6 +94,13 @@ def replace(args, system_zip, system_time, vendor_zip, vendor_time):
             zip_ref.extractall(args.images_path)
         cfg["waydroid"]["vendor_datetime"] = str(vendor_time)
         tools.config.save(args, cfg)
+    remove_overlay(args)
+
+def remove_overlay(args):
+    if os.path.isdir(tools.config.defaults["overlay_rw"]):
+        shutil.rmtree(tools.config.defaults["overlay_rw"])
+    if os.path.isdir(tools.config.defaults["overlay_work"]):
+        shutil.rmtree(tools.config.defaults["overlay_work"])
 
 def make_prop(args, cfg, full_props_path):
     if not os.path.isfile(args.work + "/waydroid_base.prop"):
