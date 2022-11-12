@@ -35,6 +35,7 @@ install:
 	fi
 
 install_apparmor:
+	install -d $(INSTALL_APPARMOR_DIR) $(INSTALL_APPARMOR_DIR)/lxc
 	cp -f data/configs/apparmor_profiles/adbd $(INSTALL_APPARMOR_DIR)/adbd
 	apparmor_parser -r $(INSTALL_APPARMOR_DIR)/adbd
 	cp -f data/configs/apparmor_profiles/android_app $(INSTALL_APPARMOR_DIR)/android_app
