@@ -8,12 +8,14 @@ BIN_DIR := $(PREFIX)/bin
 APPS_DIR := $(PREFIX)/share/applications
 METAINFO_DIR := $(PREFIX)/share/metainfo
 SYSD_DIR := $(PREFIX)/lib/systemd/system
+APPARMOR_DIR := /etc/apparmor.d
 
 INSTALL_WAYDROID_DIR := $(DESTDIR)$(WAYDROID_DIR)
 INSTALL_BIN_DIR := $(DESTDIR)$(BIN_DIR)
 INSTALL_APPS_DIR := $(DESTDIR)$(APPS_DIR)
 INSTALL_METAINFO_DIR := $(DESTDIR)$(METAINFO_DIR)
 INSTALL_SYSD_DIR := $(DESTDIR)$(SYSD_DIR)
+INSTALL_APPARMOR_DIR := $(DESTDIR)$(APPARMOR_DIR)
 
 build:
 	@echo "Nothing to build, run 'make install' to copy the files!"
@@ -32,13 +34,13 @@ install:
 		sed '/LXC_USE_NFT=/ s/false/true/' -i $(INSTALL_WAYDROID_DIR)/data/scripts/waydroid-net.sh; \
 	fi
 
-apparmor:
-	cp -f data/configs/adbd /etc/apparmor.d/adbd
-	apparmor_parser -r /etc/apparmor.d/adbd
-	cp -f data/configs/android_app /etc/apparmor.d/android_app
-	apparmor_parser -r /etc/apparmor.d/android_app
-	cp -f data/configs/lxc-waydroid /etc/apparmor.d/lxc/lxc-waydroid
-	apparmor_parser -r /etc/apparmor.d/lxc/lxc-waydroid
-	sed --sandbox -i "s/lxc.aa_profile = unconfined/lxc.aa_profile = lxc-waydroid/g;" /var/lib/waydroid/lxc/waydroid/config
-	sed --sandbox -i "s/lxc.apparmor.profile = unconfined/lxc.apparmor.profile = lxc-waydroid/g;" /var/lib/waydroid/lxc/waydroid/config
+install_apparmor:
+	cp -f data/configs/apparmor_profiles/adbd $(INSTALL_APPARMOR_DIR)/adbd
+	apparmor_parser -r $(INSTALL_APPARMOR_DIR)/adbd
+	cp -f data/configs/apparmor_profiles/android_app $(INSTALL_APPARMOR_DIR)/android_app
+	apparmor_parser -r $(INSTALL_APPARMOR_DIR)/android_app
+	cp -f data/configs/apparmor_profiles/lxc-waydroid $(INSTALL_APPARMOR_DIR)/lxc/lxc-waydroid
+	apparmor_parser -r $(INSTALL_APPARMOR_DIR)/lxc/lxc-waydroid
+	sed --sandbox -i "/lxc.aa_profile/ s/unconfined/lxc-waydroid/g" $(DESTDIR)$(WAYDROID_DIR)/data/configs/config_1
+	sed --sandbox -i "/lxc.apparmor.profile/ s/unconfined/lxc-waydroid/g" $(DESTDIR)$(WAYDROID_DIR)/data/configs/config_2
 
