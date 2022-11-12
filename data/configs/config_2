@@ -1,6 +1,6 @@
 lxc.uts.name = waydroid
 
-lxc.apparmor.profile = lxc-waydroid
+lxc.apparmor.profile = unconfined
 lxc.seccomp.profile = /var/lib/waydroid/lxc/waydroid/waydroid.seccomp
 
 lxc.no_new_privs = 1

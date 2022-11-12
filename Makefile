@@ -31,3 +31,14 @@ install:
 	if [ $(USE_NFTABLES) = 1 ]; then \
 		sed '/LXC_USE_NFT=/ s/false/true/' -i $(INSTALL_WAYDROID_DIR)/data/scripts/waydroid-net.sh; \
 	fi
+
+apparmor:
+	cp -f data/configs/adbd /etc/apparmor.d/adbd
+	apparmor_parser -r /etc/apparmor.d/adbd
+	cp -f data/configs/android_app /etc/apparmor.d/android_app
+	apparmor_parser -r /etc/apparmor.d/android_app
+	cp -f data/configs/lxc-waydroid /etc/apparmor.d/lxc/lxc-waydroid
+	apparmor_parser -r /etc/apparmor.d/lxc/lxc-waydroid
+	sed --sandbox -i "s/lxc.aa_profile = unconfined/lxc.aa_profile = lxc-waydroid/g;" /var/lib/waydroid/lxc/waydroid/config
+	sed --sandbox -i "s/lxc.apparmor.profile = unconfined/lxc.apparmor.profile = lxc-waydroid/g;" /var/lib/waydroid/lxc/waydroid/config
+
