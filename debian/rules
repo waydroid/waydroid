@@ -5,3 +5,7 @@
 
 override_dh_auto_install:
 	dh_auto_install -- SYSD_DIR=/lib/systemd/system
+	$(MAKE) install_apparmor DESTDIR=$(CURDIR)/debian/waydroid
+	dh_apparmor --profile-name=adbd
+	dh_apparmor --profile-name=android_app
+	dh_apparmor --profile-name=lxc\\/lxc-waydroid

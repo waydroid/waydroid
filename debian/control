@@ -4,7 +4,8 @@ Section: misc
 Priority: optional
 Build-Depends: debhelper (>= 10),
                dh-python,
-               python3
+               python3,
+               dh-apparmor
 Standards-Version: 4.5.0.3
 Vcs-Browser: https://github.com/waydroid/waydroid
 Vcs-Git: https://github.com/waydroid/waydroid.git
