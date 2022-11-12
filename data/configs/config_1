@@ -2,7 +2,7 @@ lxc.utsname = waydroid
 
 lxc.init_cmd = /init
 
-lxc.aa_profile = lxc-waydroid
+lxc.aa_profile = unconfined
 lxc.seccomp = /var/lib/waydroid/lxc/waydroid/waydroid.seccomp
 
 lxc.network.type = veth
