@@ -37,11 +37,13 @@ install:
 install_apparmor:
 	install -d $(INSTALL_APPARMOR_DIR) $(INSTALL_APPARMOR_DIR)/lxc
 	cp -f data/configs/apparmor_profiles/adbd $(INSTALL_APPARMOR_DIR)/adbd
-	apparmor_parser -r $(INSTALL_APPARMOR_DIR)/adbd
 	cp -f data/configs/apparmor_profiles/android_app $(INSTALL_APPARMOR_DIR)/android_app
-	apparmor_parser -r $(INSTALL_APPARMOR_DIR)/android_app
 	cp -f data/configs/apparmor_profiles/lxc-waydroid $(INSTALL_APPARMOR_DIR)/lxc/lxc-waydroid
-	apparmor_parser -r $(INSTALL_APPARMOR_DIR)/lxc/lxc-waydroid
 	sed --sandbox -i "/lxc.aa_profile/ s/unconfined/lxc-waydroid/g" $(DESTDIR)$(WAYDROID_DIR)/data/configs/config_1
 	sed --sandbox -i "/lxc.apparmor.profile/ s/unconfined/lxc-waydroid/g" $(DESTDIR)$(WAYDROID_DIR)/data/configs/config_2
-
+	# Load the profiles if not just packaging
+	if [ -z $(DESTDIR) ] && aa-enabled --quiet 2>/dev/null; then \
+		apparmor_parser -r -T -W "$(INSTALL_APPARMOR_DIR)/adbd"; \
+		apparmor_parser -r -T -W "$(INSTALL_APPARMOR_DIR)/android_app"; \
+		apparmor_parser -r -T -W "$(INSTALL_APPARMOR_DIR)/lxc/lxc-waydroid"; \
+	fi
