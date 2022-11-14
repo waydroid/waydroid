@@ -42,7 +42,7 @@ install_apparmor:
 	sed --sandbox -i "/lxc.aa_profile/ s/unconfined/lxc-waydroid/g" $(DESTDIR)$(WAYDROID_DIR)/data/configs/config_1
 	sed --sandbox -i "/lxc.apparmor.profile/ s/unconfined/lxc-waydroid/g" $(DESTDIR)$(WAYDROID_DIR)/data/configs/config_2
 	# Load the profiles if not just packaging
-	if [ -z $(DESTDIR) ] && aa-enabled --quiet 2>/dev/null; then \
+	if [ -z $(DESTDIR) ] && { aa-enabled --quiet || systemctl is-active -q apparmor; } 2>/dev/null; then \
 		apparmor_parser -r -T -W "$(INSTALL_APPARMOR_DIR)/adbd"; \
 		apparmor_parser -r -T -W "$(INSTALL_APPARMOR_DIR)/android_app"; \
 		apparmor_parser -r -T -W "$(INSTALL_APPARMOR_DIR)/lxc/lxc-waydroid"; \
