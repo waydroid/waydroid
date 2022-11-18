@@ -134,7 +134,11 @@ def get_apparmor_status(args):
         enabled = (tools.helpers.run.user(args, ["aa-status", "--quiet"], check=False) == 0)
     if not enabled and shutil.which("systemctl"):
         enabled = (tools.helpers.run.user(args, ["systemctl", "is-active", "-q", "apparmor"], check=False) == 0)
-    enabled &= os.path.exists(os.path.join("/etc/apparmor.d/lxc", LXC_APPARMOR_PROFILE))
+    try:
+        with open("/sys/kernel/security/apparmor/profiles", "r") as f:
+            enabled &= (LXC_APPARMOR_PROFILE in f.read())
+    except:
+        enabled = False
     return enabled
 
 def set_lxc_config(args):
