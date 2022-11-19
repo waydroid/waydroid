@@ -13,7 +13,7 @@ The Android system inside the container has direct access to any needed hardware
 
 The Android runtime environment ships with a minimal customized Android system
 image based on [LineageOS](https://lineageos.org/). The image is currently based
-on Android 10.
+on Android 11.
 
 ## Documentation
 
