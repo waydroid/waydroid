@@ -1,7 +1,4 @@
-#include <tunables/global>
-
 profile android_app flags=(attach_disconnected, complain, mediate_deleted) {
-  #include <abstractions/base>
   /** ix,
   /dev** rw,
   network,

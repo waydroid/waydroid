@@ -1,7 +1,4 @@
-#include <tunables/global>
-
 profile lxc-waydroid flags=(attach_disconnected, complain, mediate_deleted) {
-  #include <abstractions/base>
   /** ix,
   /system/bin/app_process Pix -> lxc-waydroid//&android_app,
   /system/bin/app_process32 Pix -> lxc-waydroid//&android_app,
