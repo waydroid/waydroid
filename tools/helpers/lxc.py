@@ -60,6 +60,10 @@ def generate_nodes_lxc_config(args):
         make_entry(n)
     for n in glob.glob("/dev/video*"):
         make_entry(n)
+    for n in glob.glob("/dev/v4l-subdev*"):
+        make_entry(n)
+    for n in glob.glob("/dev/media*"):
+        make_entry(n)
 
     # Binder dev nodes
     make_entry("/dev/" + args.BINDER_DRIVER, "dev/binder", check=False)

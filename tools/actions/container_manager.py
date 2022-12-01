@@ -46,6 +46,8 @@ def start(args):
             perm_list.extend(glob.glob("/dev/fb*"))
             # Videos
             perm_list.extend(glob.glob("/dev/video*"))
+            perm_list.extend(glob.glob("/dev/media*"))
+            perm_list.extend(glob.glob("/dev/v4l-subdev*"))
 
         for path in perm_list:
             chmod(path, mode)
