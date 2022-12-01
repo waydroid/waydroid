@@ -266,7 +266,7 @@ def make_base_props(args):
             props.append("ro.hardware.camera=" + camera)
         else:
             if args.vendor_type == "MAINLINE":
-                props.append("ro.hardware.camera=v4l2")
+                props.append("ro.hardware.camera=libcamera")
 
     opengles = tools.helpers.props.host_get(args, "ro.opengles.version")
     if opengles == "":
