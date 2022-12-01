@@ -79,7 +79,7 @@ def start(args):
         logging.debug("Container manager is waiting for session to load")
         while not os.path.exists(tools.config.session_defaults["config_path"]):
             time.sleep(1)
-        
+
         # Load session configs
         session_cfg = tools.config.load_session()
 
@@ -117,7 +117,7 @@ def start(args):
 
         # Set permissions
         set_permissions()
-        
+
         helpers.lxc.start(args)
         session_cfg["session"]["state"] = helpers.lxc.status(args)
         timeout = 10
