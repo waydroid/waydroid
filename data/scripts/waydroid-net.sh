@@ -2,7 +2,10 @@
 
 varrun="/run/waydroid-lxc"
 varlib="/var/lib"
-vnic=$(awk '$1 == "lxc.net.0.link" {print $3}' /var/lib/waydroid/lxc/waydroid/config || echo "waydroid0")
+net_link_key="lxc.net.0.link"
+case "$(lxc-info --version)" in [012].*) net_link_key="lxc.network.link" ;; esac
+vnic=$(awk "\$1 == \"$net_link_key\" {print \$3}" /var/lib/waydroid/lxc/waydroid/config)
+: ${vnic:=waydroid0}
 
 if [ "$vnic" != "waydroid0" ]; then
     echo "vnic is $vnic, bailing out"
