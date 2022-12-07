@@ -150,11 +150,11 @@ def set_lxc_config(args):
     seccomp_profile = tools.config.tools_src + "/data/configs/waydroid.seccomp"
 
     config_snippets = [ config_paths + "base" ]
-    # lxc v1 is a bit special because some options got renamed later
-    if lxc_ver == 1:
+    # lxc v1 and v2 are bit special because some options got renamed later
+    if lxc_ver <= 2:
         config_snippets.append(config_paths + "1")
     else:
-        for ver in range(2, 5):
+        for ver in range(3, 5):
             snippet = config_paths + str(ver)
             if lxc_ver >= ver and os.path.exists(snippet):
                 config_snippets.append(snippet)

@@ -11,7 +11,6 @@ lxc.mount.auto = cgroup:ro sys:ro
 lxc.mount.entry = proc proc proc nodev,nosuid,noexec,hidepid=2 0 0
 
 lxc.console.path = none
-lxc.pty.max = 10
 
 lxc.include = /var/lib/waydroid/lxc/waydroid/config_nodes
 
