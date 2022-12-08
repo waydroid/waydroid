@@ -91,6 +91,8 @@ def generate_nodes_lxc_config(args):
 
     # Recursive mount /run to provide necessary host sockets
     make_entry("/run", options="rbind,create=dir 0 0")
+    # And /dev/shm
+    make_entry("/dev/shm", options="rbind,create=dir,optional 0 0")
 
     # Necessary sw_sync node for HWC
     make_entry("/dev/sw_sync")
