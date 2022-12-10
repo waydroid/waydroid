@@ -373,7 +373,7 @@ def shell(args):
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
                "-n", "waydroid", "--"]
     if args.COMMAND:
-        command.append(args.COMMAND)
+        command.extend(args.COMMAND)
     else:
         command.append("/system/bin/sh")
     subprocess.run(command, env={"PATH": os.environ['PATH'] + ":/system/bin:/vendor/bin"})
