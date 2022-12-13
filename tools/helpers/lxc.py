@@ -232,7 +232,10 @@ def make_base_props(args):
             gralloc = "default"
             egl = "swiftshader"
         props.append("debug.stagefright.ccodec=0")
-    props.append("ro.hardware.gralloc=" + gralloc)
+    #props.append("ro.hardware.gralloc=" + gralloc)
+
+    # Use minigbm unconditionally!
+    props.append("ro.hardware.gralloc=minigbm")
 
     if egl != "":
         props.append("ro.hardware.egl=" + egl)
