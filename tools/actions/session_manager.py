@@ -15,11 +15,10 @@ def start(args, unlocked_cb=None):
         stop(args)
         sys.exit(0)
 
-    xdg_session = os.getenv("XDG_SESSION_TYPE")
-    if xdg_session != "wayland":
-        logging.warning('XDG Session is not "wayland"')
-
     cfg = tools.config.load_session()
+    wayland_display = cfg["session"]["wayland_display"]
+    if wayland_display == "None" or not wayland_display:
+        logging.warning('WAYLAND_DISPLAY is not set, defaulting to "wayland-0"')
     waydroid_data = cfg["session"]["waydroid_data"]
     if not os.path.isdir(waydroid_data):
         os.makedirs(waydroid_data)
