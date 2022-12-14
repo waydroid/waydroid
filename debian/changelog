@@ -1,3 +1,33 @@
+waydroid (1.3.4) bullseye; urgency=medium
+
+  * Remove CAP_SYS_MODULE from the capability bounding set.
+  * Mount proc with the hidepid=2 option
+  * Enable OpenGL ES 3.1
+  * hardware-manager: Optionally stop the session on suspend
+  * desktop: Mark as compatible with mobile form factor
+  * Adding AppArmor profiles for the container.
+  * Temporarily switching all profiles to "complain" mode in order to work out policy mistakes.
+  * Policies have been adjusted for Android 11.
+  * AppArmor policy setup has been moved to the Makefile
+  * * Makefile adjustments * AppArmor profile texts have been moved into a dedicated directory
+  * Makefile: Install apparmor dir
+  * Makefile: Don't enable the apparmor profiles if packaging
+  * debian: Install apparmor profiles
+  * Also support SUSE apparmor
+  * Change apparmor profile at runtime
+  * lxc: Only enable apparmor if the profile is currently loaded
+  * Update README.md
+  * apparmor: Remove unnecessary includes
+  * clipboard: Return empty string if error
+  * lxc: Fixup LXC config versioning
+  * net: Fix vnic name selection for LXC <=2
+  * lxc: Mount /dev/shm which might host XDG_RUNTIME_DIR
+  * fix(shell): allow command to have arguments
+  * session: warn about unset WAYLAND_DISPLAY instead of XDG_SESSION_TYPE
+  * Revert "Mount proc with the hidepid=2 option"
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Wed, 14 Dec 2022 13:47:05 +0000
+
 waydroid (1.3.3) bullseye; urgency=medium
 
   * Makefile: Install waydroid binary without relative symlink
