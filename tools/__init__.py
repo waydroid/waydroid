@@ -5,6 +5,7 @@ import sys
 import logging
 import os
 import traceback
+import dbus.mainloop.glib
 
 from . import actions
 from . import config
@@ -38,6 +39,9 @@ def main():
             args.log = "/tmp/tools.log"
 
         tools_logging.init(args)
+
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        dbus.mainloop.glib.threads_init()
 
         if not actions.initializer.is_initialized(args) and \
                 args.action and args.action not in ("init", "first-launch", "log"):

@@ -10,6 +10,10 @@ import threading
 import multiprocessing
 import select
 import queue
+import time
+import dbus
+import dbus.service
+from gi.repository import GLib
 
 def is_initialized(args):
     return os.path.isfile(args.config) and os.path.isdir(tools.config.defaults["rootfs"])
@@ -98,6 +102,11 @@ def setup_config(args):
 
 def init(args):
     if not is_initialized(args) or args.force:
+        initializer_service = None
+        try:
+            initializer_service = dbus.SystemBus().get_object("id.waydro.ContainerService", "/Initializer")
+        except dbus.DBusException:
+            pass
         setup_config(args)
         status = "STOPPED"
         if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
@@ -118,24 +127,37 @@ def init(args):
             helpers.images.mount_rootfs(args, args.images_path)
             helpers.lxc.start(args)
 
-        helpers.ipc.notify(channel="init", msg="done")
+        if "running_init_in_service" not in args or not args.running_init_in_service:
+            try:
+                if initializer_service:
+                    initializer_service.Done(dbus_interface="id.waydro.Initializer")
+            except dbus.DBusException:
+                pass
     else:
         logging.info("Already initialized")
 
 def wait_for_init(args):
-    helpers.ipc.create_channel("init")
     helpers.ipc.create_channel("remote_init_output")
-    while True:
-        print('WayDroid waiting for initialization...')
-        msg = helpers.ipc.read_one(channel="init")
-        if msg == "done":
-            if is_initialized(args):
-                break
-            else:
-                continue
-        if msg.startswith("cmd"):
-            remote_init_server(args, msg)
-            continue
+
+    name = dbus.service.BusName("id.waydro.ContainerService", dbus.SystemBus())
+    mainloop = GLib.MainLoop()
+    dbus_obj = DbusInitializer(mainloop, dbus.SystemBus(), '/Initializer', args)
+    mainloop.run()
+
+class DbusInitializer(dbus.service.Object):
+    def __init__(self, looper, bus, object_path, args):
+        self.args = args
+        self.looper = looper
+        dbus.service.Object.__init__(self, bus, object_path)
+
+    @dbus.service.method("id.waydro.Initializer", in_signature='a{ss}', out_signature='')
+    def Init(self, params):
+        threading.Thread(target=remote_init_server, args=(self.args, params)).start()
+
+    @dbus.service.method("id.waydro.Initializer", in_signature='', out_signature='')
+    def Done(self):
+        if is_initialized(self.args):
+            self.looper.quit()
 
 def background_remote_init_process(args):
     with helpers.ipc.open_channel("remote_init_output", "wb") as channel_out:
@@ -185,14 +207,14 @@ def background_remote_init_process(args):
         sys.stderr = sys.__stderr__
         logging.getLogger().removeHandler(out)
 
-def remote_init_server(args, cmd):
-    params = cmd.split('\f')[1:]
+def remote_init_server(args, params):
     args.force = True
     args.images_path = ""
     args.rom_type = ""
-    args.system_channel = params[0]
-    args.vendor_channel = params[1]
-    args.system_type = params[2]
+    args.system_channel = params["system_channel"]
+    args.vendor_channel = params["vendor_channel"]
+    args.system_type = params["system_type"]
+    args.running_init_in_service = True
 
     p = multiprocessing.Process(target=background_remote_init_process, args=(args,))
     p.daemon = True
@@ -203,15 +225,23 @@ def remote_init_client(args):
     # Local imports cause Gtk is intrusive
     import gi
     gi.require_version("Gtk", "3.0")
-    from gi.repository import Gtk, GLib
+    from gi.repository import Gtk
+
+    bus = dbus.SystemBus()
 
     if is_initialized(args):
-        helpers.ipc.notify(channel="init", msg="done")
+        try:
+            bus.get_object("id.waydro.ContainerService", "/Initializer").Done(dbus_interface="id.waydro.Initializer")
+        except dbus.DBusException:
+            pass
         return
 
     def notify_and_quit(caller):
         if is_initialized(args):
-            helpers.ipc.notify(channel="init", msg="done")
+            try:
+                bus.get_object("id.waydro.ContainerService", "/Initializer").Done(dbus_interface="id.waydro.Initializer")
+            except dbus.DBusException:
+                pass
         GLib.idle_add(Gtk.main_quit)
 
     class WaydroidInitWindow(Gtk.Window):
@@ -300,14 +330,17 @@ def remote_init_client(args):
 
             if self.open_channel is not None:
                 self.open_channel.close()
-                # Wait for other end to re-open
-                tmp = helpers.ipc.open_channel("init", "w", buffering=1)
-                tmp.close()
+                # Wait for other end to reset
+                time.sleep(1)
 
             draw("Waiting for waydroid container service...\n")
             try:
-                helpers.ipc.notify_blocking(channel="init", msg="{}\f{}\f{}\f{}".format(
-                    "cmd", self.sysOta.get_text(), self.vndOta.get_text(), self.sysType.get_active_text()))
+                params = {
+                    "system_channel": self.sysOta.get_text(),
+                    "vendor_channel": self.vndOta.get_text(),
+                    "system_type": self.sysType.get_active_text()
+                }
+                bus.get_object("id.waydro.ContainerService", "/Initializer").Init(params, dbus_interface="id.waydro.Initializer")
             except:
                 draw("The waydroid container service is not listening\n")
                 GLib.idle_add(self.downloadBtn.set_sensitive, True)
