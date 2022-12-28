@@ -15,6 +15,11 @@ def install(args):
     try:
         tools.helpers.ipc.DBusSessionService()
 
+        cm = tools.helpers.ipc.DBusContainerService()
+        session = cm.GetSession()
+        if session["state"] == "FROZEN":
+            cm.Unfreeze()
+
         tmp_dir = tools.config.session_defaults["waydroid_data"] + "/waydroid_tmp"
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
@@ -24,6 +29,9 @@ def install(args):
         if platformService:
             platformService.installApp("/data/waydroid_tmp/base.apk")
         os.remove(tmp_dir + "/base.apk")
+
+        if session["state"] == "FROZEN":
+            cm.Freeze()
     except (dbus.DBusException, KeyError):
         logging.error("WayDroid session is stopped")
 
@@ -31,11 +39,19 @@ def remove(args):
     try:
         tools.helpers.ipc.DBusSessionService()
 
+        cm = tools.helpers.ipc.DBusContainerService()
+        session = cm.GetSession()
+        if session["state"] == "FROZEN":
+            cm.Unfreeze()
+
         platformService = IPlatform.get_service(args)
         if platformService:
             ret = platformService.removeApp(args.PACKAGE)
             if ret != 0:
                 logging.error("Failed to uninstall package: {}".format(args.PACKAGE))
+
+        if session["state"] == "FROZEN":
+            cm.Freeze()
     except dbus.DBusException:
         logging.error("WayDroid session is stopped")
 
@@ -73,6 +89,11 @@ def list(args):
     try:
         tools.helpers.ipc.DBusSessionService()
 
+        cm = tools.helpers.ipc.DBusContainerService()
+        session = cm.GetSession()
+        if session["state"] == "FROZEN":
+            cm.Unfreeze()
+
         platformService = IPlatform.get_service(args)
         if platformService:
             appsList = platformService.getAppsInfo()
@@ -82,6 +103,9 @@ def list(args):
                 print("categories:")
                 for cat in app["categories"]:
                     print("\t" + cat)
+
+        if session["state"] == "FROZEN":
+            cm.Freeze()
         else:
             logging.error("Failed to access IPlatform service")
     except dbus.DBusException:
