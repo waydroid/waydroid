@@ -6,6 +6,8 @@ import logging
 import os
 import traceback
 import dbus.mainloop.glib
+import dbus
+import dbus.exceptions
 
 from . import actions
 from . import config
@@ -42,11 +44,17 @@ def main():
 
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         dbus.mainloop.glib.threads_init()
+        dbus_name_scope = None
 
         if not actions.initializer.is_initialized(args) and \
                 args.action and args.action not in ("init", "first-launch", "log"):
             if args.wait_for_init:
-                actions.wait_for_init(args)
+                try:
+                    dbus_name_scope = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+                    actions.wait_for_init(args)
+                except dbus.exceptions.NameExistsException:
+                    print('ERROR: WayDroid service is already awaiting initialization')
+                    return 1
             else:
                 print('ERROR: WayDroid is not initialized, run "waydroid init"')
                 return 0
@@ -69,6 +77,12 @@ def main():
         elif args.action == "container":
             actionNeedRoot(args.action)
             if args.subaction == "start":
+                if dbus_name_scope is None:
+                    try:
+                        dbus_name_scope = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+                    except dbus.exceptions.NameExistsException:
+                        print('ERROR: WayDroid container service is already running')
+                        return 1
                 actions.container_manager.start(args)
             elif args.subaction == "stop":
                 actions.container_manager.stop(args)

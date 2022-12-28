@@ -7,19 +7,43 @@ import signal
 import sys
 import shutil
 import tools.config
+import tools.helpers.ipc
 from tools import services
+import dbus
+import dbus.service
+import dbus.exceptions
+from gi.repository import GLib
+import copy
 
+class DbusSessionManager(dbus.service.Object):
+    def __init__(self, looper, bus, object_path, args):
+        self.args = args
+        self.looper = looper
+        dbus.service.Object.__init__(self, bus, object_path)
+
+    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='')
+    def Stop(self):
+        do_stop(self.args, self.looper)
+        stop_container()
+
+def service(args, looper):
+    dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
+    looper.run()
 
 def start(args, unlocked_cb=None):
-    def signal_handler(sig, frame):
-        stop(args)
-        sys.exit(0)
+    try:
+        name = dbus.service.BusName("id.waydro.Session", dbus.SessionBus(), do_not_queue=True)
+    except dbus.exceptions.NameExistsException:
+        logging.error("Session is already running")
+        if unlocked_cb:
+            unlocked_cb()
+        return
 
-    cfg = tools.config.load_session()
-    wayland_display = cfg["session"]["wayland_display"]
+    session = copy.copy(tools.config.session_defaults);
+    wayland_display = session["wayland_display"]
     if wayland_display == "None" or not wayland_display:
         logging.warning('WAYLAND_DISPLAY is not set, defaulting to "wayland-0"')
-    waydroid_data = cfg["session"]["waydroid_data"]
+    waydroid_data = session["waydroid_data"]
     if not os.path.isdir(waydroid_data):
         os.makedirs(waydroid_data)
     dpi = tools.helpers.props.host_get(args, "ro.sf.lcd_density")
@@ -29,32 +53,44 @@ def start(args, unlocked_cb=None):
             dpi = str(int(dpi) * 20)
         else:
             dpi = "0"
-    cfg["session"]["lcd_density"] = dpi
-    tools.config.save_session(cfg)
+    session["lcd_density"] = dpi
 
-    container_state = "IDLE"
-    signal.signal(signal.SIGINT, signal_handler)
-    while os.path.exists(tools.config.session_defaults["config_path"]):
-        session_cfg = tools.config.load_session()
-        if container_state != session_cfg["session"]["state"]:
-            if session_cfg["session"]["state"] == "RUNNING":
-                services.user_manager.start(args, unlocked_cb)
-                services.clipboard_manager.start(args)
-                if unlocked_cb:
-                    unlocked_cb = None
-            elif session_cfg["session"]["state"] == "STOPPED":
-                services.user_manager.stop(args)
-                services.clipboard_manager.stop(args)
-            container_state = session_cfg["session"]["state"]
-        time.sleep(1)
+    mainloop = GLib.MainLoop()
+
+    def sigint_handler(data):
+        do_stop(args, mainloop)
+        stop_container()
+
+    def sigusr_handler(data):
+        do_stop(args, mainloop)
+
+    GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, sigint_handler, None)
+    GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, sigint_handler, None)
+    GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGUSR1, sigusr_handler, None)
+    try:
+        tools.helpers.ipc.DBusContainerService().Start(session)
+    except dbus.DBusException:
+        logging.error("WayDroid container is not listening")
+        sys.exit(0)
+
+
+    services.user_manager.start(args, session, unlocked_cb)
+    services.clipboard_manager.start(args)
+    service(args, mainloop)
+
+def do_stop(args, looper):
     services.user_manager.stop(args)
     services.clipboard_manager.stop(args)
+    looper.quit()
 
 def stop(args):
-    config_path = tools.config.session_defaults["config_path"]
-    if os.path.isfile(config_path):
-        services.user_manager.stop(args)
-        services.clipboard_manager.stop(args)
-        os.remove(config_path)
-    else:
-        logging.error("WayDroid session is not started")
+    try:
+        tools.helpers.ipc.DBusSessionService().Stop()
+    except dbus.DBusException:
+        stop_container()
+
+def stop_container():
+    try:
+        tools.helpers.ipc.DBusContainerService().Stop()
+    except dbus.DBusException:
+        pass

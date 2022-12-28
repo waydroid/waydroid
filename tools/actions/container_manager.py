@@ -11,49 +11,88 @@ import uuid
 import tools.config
 from tools import helpers
 from tools import services
+import dbus
+import dbus.service
+import dbus.exceptions
+from gi.repository import GLib
 
+class DbusContainerManager(dbus.service.Object):
+    def __init__(self, looper, bus, object_path, args):
+        self.args = args
+        self.looper = looper
+        dbus.service.Object.__init__(self, bus, object_path)
+
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='a{ss}', out_signature='')
+    def Start(self, session):
+        do_start(self.args, session)
+
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    def Stop(self):
+        stop(self.args)
+
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    def Freeze(self):
+        freeze(self.args)
+
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    def Unfreeze(self):
+        unfreeze(self.args)
+
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='a{ss}')
+    def GetSession(self):
+        try:
+            session = self.args.session
+            session["state"] = helpers.lxc.status(self.args)
+            return session
+        except AttributeError:
+            return {}
+
+def service(args, looper):
+    dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
+    looper.run()
+
+def set_permissions(args, perm_list=None, mode="777"):
+    def chmod(path, mode):
+        if os.path.exists(path):
+            command = ["chmod", mode, "-R", path]
+            tools.helpers.run.user(args, command, check=False)
+
+    # Nodes list
+    if not perm_list:
+        perm_list = [
+            "/dev/ashmem",
+
+            # sw_sync for HWC
+            "/dev/sw_sync",
+            "/sys/kernel/debug/sync/sw_sync",
+
+            # Media
+            "/dev/Vcodec",
+            "/dev/MTK_SMI",
+            "/dev/mdp_sync",
+            "/dev/mtk_cmdq",
+
+            # Graphics
+            "/dev/dri",
+            "/dev/graphics",
+            "/dev/pvr_sync",
+            "/dev/ion",
+        ]
+
+        # Framebuffers
+        perm_list.extend(glob.glob("/dev/fb*"))
+        # Videos
+        perm_list.extend(glob.glob("/dev/video*"))
+
+    for path in perm_list:
+        chmod(path, mode)
 
 def start(args):
-    def set_permissions(perm_list=None, mode="777"):
-        def chmod(path, mode):
-            if os.path.exists(path):
-                command = ["chmod", mode, "-R", path]
-                tools.helpers.run.user(args, command, check=False)
-
-        # Nodes list
-        if not perm_list:
-            perm_list = [
-                "/dev/ashmem",
-
-                # sw_sync for HWC
-                "/dev/sw_sync",
-                "/sys/kernel/debug/sync/sw_sync",
-
-                # Media
-                "/dev/Vcodec",
-                "/dev/MTK_SMI",
-                "/dev/mdp_sync",
-                "/dev/mtk_cmdq",
-
-                # Graphics
-                "/dev/dri",
-                "/dev/graphics",
-                "/dev/pvr_sync",
-                "/dev/ion",
-            ]
-
-            # Framebuffers
-            perm_list.extend(glob.glob("/dev/fb*"))
-            # Videos
-            perm_list.extend(glob.glob("/dev/video*"))
-
-        for path in perm_list:
-            chmod(path, mode)
-
-    def signal_handler(sig, frame):
-        services.hardware_manager.stop(args)
-        stop(args)
-        sys.exit(0)
+    try:
+        name = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+    except dbus.exceptions.NameExistsException:
+        logging.error("Container service is already running")
+        return
 
     status = helpers.lxc.status(args)
     if status == "STOPPED":
@@ -64,102 +103,89 @@ def start(args):
                 logging.error("Failed to load Binder driver")
             helpers.drivers.probeAshmemDriver(args)
         helpers.drivers.loadBinderNodes(args)
-        set_permissions([
+        set_permissions(args, [
             "/dev/" + args.BINDER_DRIVER,
             "/dev/" + args.VNDBINDER_DRIVER,
             "/dev/" + args.HWBINDER_DRIVER
         ], "666")
 
-        if os.path.exists(tools.config.session_defaults["config_path"]):
-            session_cfg = tools.config.load_session()
-            if session_cfg["session"]["state"] != "STOPPED":
-                logging.warning("Found session config on state: {}, restart session".format(
-                    session_cfg["session"]["state"]))
-                os.remove(tools.config.session_defaults["config_path"])
-        logging.debug("Container manager is waiting for session to load")
-        while not os.path.exists(tools.config.session_defaults["config_path"]):
-            time.sleep(1)
-        
-        # Load session configs
-        session_cfg = tools.config.load_session()
+        mainloop = GLib.MainLoop()
 
-        # Networking
-        command = [tools.config.tools_src +
-                   "/data/scripts/waydroid-net.sh", "start"]
-        tools.helpers.run.user(args, command, check=False)
+        def sigint_handler(data):
+            stop(args)
+            mainloop.quit()
 
-        # Sensors
-        if which("waydroid-sensord"):
-            tools.helpers.run.user(
-                args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
-
-        # Mount rootfs
-        helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"])
-
-        helpers.protocol.set_aidl_version(args)
-
-        # Mount data
-        helpers.mount.bind(args, session_cfg["session"]["waydroid_data"],
-                           tools.config.defaults["data"])
-
-        # Cgroup hacks
-        if which("start"):
-            command = ["start", "cgroup-lite"]
-            tools.helpers.run.user(args, command, check=False)
-        if os.path.ismount("/sys/fs/cgroup/schedtune"):
-            command = ["umount", "-l", "/sys/fs/cgroup/schedtune"]
-            tools.helpers.run.user(args, command, check=False)
-
-        #TODO: remove NFC hacks
-        if which("stop"):
-            command = ["stop", "nfcd"]
-            tools.helpers.run.user(args, command, check=False)
-
-        # Set permissions
-        set_permissions()
-        
-        helpers.lxc.start(args)
-        session_cfg["session"]["state"] = helpers.lxc.status(args)
-        timeout = 10
-        while session_cfg["session"]["state"] != "RUNNING" and timeout > 0:
-            session_cfg["session"]["state"] = helpers.lxc.status(args)
-            logging.info(
-                "waiting {} seconds for container to start...".format(timeout))
-            timeout = timeout - 1
-            time.sleep(1)
-        if session_cfg["session"]["state"] != "RUNNING":
-            raise OSError("container failed to start")
-        tools.config.save_session(session_cfg)
-
-        services.hardware_manager.start(args)
-
-        signal.signal(signal.SIGINT, signal_handler)
-        while os.path.exists(tools.config.session_defaults["config_path"]):
-            session_cfg = tools.config.load_session()
-            if session_cfg["session"]["state"] == "STOPPED":
-                services.hardware_manager.stop(args)
-                sys.exit(0)
-            elif session_cfg["session"]["state"] == "UNFREEZE":
-                session_cfg["session"]["state"] = helpers.lxc.status(args)
-                tools.config.save_session(session_cfg)
-                unfreeze(args)
-            time.sleep(1)
-
-        logging.warning("session manager stopped, stopping container and waiting...")
-        stop(args)
-        services.hardware_manager.stop(args)
-        start(args)
+        GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, sigint_handler, None)
+        GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, sigint_handler, None)
+        service(args, mainloop)
     else:
         logging.error("WayDroid container is {}".format(status))
 
+def do_start(args, session):
+    if "session" in args:
+        logging.info("Already tracking a session")
+        return
+
+    args.session = session
+
+    # Networking
+    command = [tools.config.tools_src +
+               "/data/scripts/waydroid-net.sh", "start"]
+    tools.helpers.run.user(args, command, check=False)
+
+    # Sensors
+    if which("waydroid-sensord"):
+        tools.helpers.run.user(
+            args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
+
+    # Mount rootfs
+    cfg = tools.config.load(args)
+    helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"], args.session)
+
+    helpers.protocol.set_aidl_version(args)
+
+    # Mount data
+    helpers.mount.bind(args, args.session["waydroid_data"],
+                       tools.config.defaults["data"])
+
+    # Cgroup hacks
+    if which("start"):
+        command = ["start", "cgroup-lite"]
+        tools.helpers.run.user(args, command, check=False)
+    if os.path.ismount("/sys/fs/cgroup/schedtune"):
+        command = ["umount", "-l", "/sys/fs/cgroup/schedtune"]
+        tools.helpers.run.user(args, command, check=False)
+
+    #TODO: remove NFC hacks
+    if which("stop"):
+        command = ["stop", "nfcd"]
+        tools.helpers.run.user(args, command, check=False)
+
+    # Set permissions
+    set_permissions(args)
+
+    helpers.lxc.start(args)
+    lxc_status = helpers.lxc.status(args)
+    timeout = 10
+    while lxc_status != "RUNNING" and timeout > 0:
+        lxc_status = helpers.lxc.status(args)
+        logging.info(
+            "waiting {} seconds for container to start...".format(timeout))
+        timeout = timeout - 1
+        time.sleep(1)
+    if lxc_status != "RUNNING":
+        raise OSError("container failed to start")
+
+    services.hardware_manager.start(args)
+
 def stop(args):
-    status = helpers.lxc.status(args)
-    if status != "STOPPED":
-        helpers.lxc.stop(args)
-        if os.path.exists(tools.config.session_defaults["config_path"]):
-            session_cfg = tools.config.load_session()
-            session_cfg["session"]["state"] = helpers.lxc.status(args)
-            tools.config.save_session(session_cfg)
+    try:
+        services.hardware_manager.stop(args)
+        status = helpers.lxc.status(args)
+        if status != "STOPPED":
+            helpers.lxc.stop(args)
+            while helpers.lxc.status(args) != "STOPPED":
+                pass
 
         # Networking
         command = [tools.config.tools_src +
@@ -185,8 +211,14 @@ def stop(args):
         # Umount data
         helpers.mount.umount_all(args, tools.config.defaults["data"])
 
-    else:
-        logging.error("WayDroid container is {}".format(status))
+        if "session" in args:
+            try:
+                os.kill(int(args.session["pid"]), signal.SIGUSR1)
+            except:
+                pass
+            del args.session
+    except:
+        pass
 
 def restart(args):
     status = helpers.lxc.status(args)
@@ -200,10 +232,8 @@ def freeze(args):
     status = helpers.lxc.status(args)
     if status == "RUNNING":
         helpers.lxc.freeze(args)
-        if os.path.exists(tools.config.session_defaults["config_path"]):
-            session_cfg = tools.config.load_session()
-            session_cfg["session"]["state"] = helpers.lxc.status(args)
-            tools.config.save_session(session_cfg)
+        while helpers.lxc.status(args) == "RUNNING":
+            pass
     else:
         logging.error("WayDroid container is {}".format(status))
 
@@ -211,9 +241,5 @@ def unfreeze(args):
     status = helpers.lxc.status(args)
     if status == "FROZEN":
         helpers.lxc.unfreeze(args)
-        if os.path.exists(tools.config.session_defaults["config_path"]):
-            session_cfg = tools.config.load_session()
-            session_cfg["session"]["state"] = helpers.lxc.status(args)
-            tools.config.save_session(session_cfg)
-    else:
-        logging.error("WayDroid container is {}".format(status))
+        while helpers.lxc.status(args) == "FROZEN":
+            pass

@@ -93,7 +93,7 @@ def replace(args, system_zip, system_time, vendor_zip, vendor_time):
         cfg["waydroid"]["vendor_datetime"] = str(vendor_time)
         tools.config.save(args, cfg)
 
-def make_prop(args, full_props_path):
+def make_prop(args, cfg, full_props_path):
     if not os.path.isfile(args.work + "/waydroid_base.prop"):
         raise RuntimeError("waydroid_base.prop Not found")
     with open(args.work + "/waydroid_base.prop") as f:
@@ -101,10 +101,8 @@ def make_prop(args, full_props_path):
     if not props:
         raise RuntimeError("waydroid_base.prop is broken!!?")
 
-    session_cfg = tools.config.load_session()
-
     def add_prop(key, cfg_key):
-        value = session_cfg["session"][cfg_key]
+        value = cfg[cfg_key]
         if value != "None":
             value = value.replace("/mnt/", "/mnt_extra/")
             props.append(key + "=" + value)
@@ -117,7 +115,7 @@ def make_prop(args, full_props_path):
     add_prop("waydroid.wayland_display", "wayland_display")
     if which("waydroid-sensord") is None:
         props.append("waydroid.stub_sensors_hal=1")
-    dpi = session_cfg["session"]["lcd_density"]
+    dpi = cfg["lcd_density"]
     if dpi != "0":
         props.append("ro.sf.lcd_density=" + dpi)
 
@@ -127,7 +125,7 @@ def make_prop(args, full_props_path):
     final_props.close()
     os.chmod(full_props_path, 0o644)
 
-def mount_rootfs(args, images_dir):
+def mount_rootfs(args, images_dir, session):
     helpers.mount.mount(args, images_dir + "/system.img",
                         tools.config.defaults["rootfs"], umount=True)
     helpers.mount.mount(args, images_dir + "/vendor.img",
@@ -144,7 +142,7 @@ def mount_rootfs(args, images_dir):
             helpers.mount.bind(
                 args, "/vendor/odm", tools.config.defaults["rootfs"] + "/odm_extra")
 
-    make_prop(args, args.work + "/waydroid.prop")
+    make_prop(args, session, args.work + "/waydroid.prop")
     helpers.mount.bind_file(args, args.work + "/waydroid.prop",
                             tools.config.defaults["rootfs"] + "/vendor/waydroid.prop")
 
