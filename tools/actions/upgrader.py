@@ -4,7 +4,7 @@ import logging
 import os
 from tools import helpers
 import tools.config
-
+import dbus
 
 def get_config(args):
     cfg = tools.config.load(args)
@@ -13,6 +13,7 @@ def get_config(args):
     args.vendor_type = cfg["waydroid"]["vendor_type"]
     args.system_ota = cfg["waydroid"]["system_ota"]
     args.vendor_ota = cfg["waydroid"]["vendor_ota"]
+    args.session = None
 
 def upgrade(args):
     get_config(args)
@@ -22,6 +23,10 @@ def upgrade(args):
     if status != "STOPPED":
         logging.info("Stopping container")
         helpers.lxc.stop(args)
+        try:
+            args.session = tools.helpers.ipc.DBusContainerService().GetSession()
+        except dbus.DBusException:
+            pass
     helpers.images.umount_rootfs(args)
     helpers.drivers.loadBinderNodes(args)
     if not args.offline:
@@ -32,8 +37,8 @@ def upgrade(args):
     helpers.lxc.setup_host_perms(args)
     helpers.lxc.set_lxc_config(args)
     helpers.lxc.make_base_props(args)
-    if status != "STOPPED":
+    if status != "STOPPED" and args.session:
         logging.info("Starting container")
-        helpers.images.mount_rootfs(args, args.images_path)
+        helpers.images.mount_rootfs(args, args.images_path, args.session)
         helpers.protocol.set_aidl_version(args)
         helpers.lxc.start(args)

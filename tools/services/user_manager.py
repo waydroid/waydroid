@@ -9,7 +9,7 @@ from tools.interfaces import IPlatform
 
 stopping = False
 
-def start(args, unlocked_cb=None):
+def start(args, session, unlocked_cb=None):
 
     def makeDesktopFile(appInfo):
         showApp = False
@@ -54,9 +54,8 @@ def start(args, unlocked_cb=None):
 
     def userUnlocked(uid):
         logging.info("Android with user {} is ready".format(uid))
-        session_cfg = tools.config.load_session()
-        args.waydroid_data = session_cfg["session"]["waydroid_data"]
-        args.apps_dir = session_cfg["session"]["xdg_data_home"] + \
+        args.waydroid_data = session["waydroid_data"]
+        args.apps_dir = session["xdg_data_home"] + \
             "/applications/"
 
         platformService = IPlatform.get_service(args)
@@ -73,7 +72,7 @@ def start(args, unlocked_cb=None):
             else:
                 makeWaydroidDesktopFile(True)
         if unlocked_cb:
-            unlocked_cb(args)
+            unlocked_cb()
 
     def packageStateChanged(mode, packageName, uid):
         platformService = IPlatform.get_service(args)

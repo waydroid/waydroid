@@ -21,34 +21,18 @@ def host_set(args, prop, value):
         tools.helpers.run.user(args, command)
 
 def get(args, prop):
-    if os.path.exists(tools.config.session_defaults["config_path"]):
-        session_cfg = tools.config.load_session()
-        if session_cfg["session"]["state"] == "RUNNING":
-            platformService = IPlatform.get_service(args)
-            if platformService:
-                return platformService.getprop(prop, "")
-            else:
-                logging.error("Failed to access IPlatform service")
-        else:
-            logging.error("WayDroid container is {}".format(
-                session_cfg["session"]["state"]))
+    platformService = IPlatform.get_service(args)
+    if platformService:
+        return platformService.getprop(prop, "")
     else:
-        logging.error("WayDroid session is stopped")
+        logging.error("Failed to access IPlatform service")
 
 def set(args, prop, value):
-    if os.path.exists(tools.config.session_defaults["config_path"]):
-        session_cfg = tools.config.load_session()
-        if session_cfg["session"]["state"] == "RUNNING":
-            platformService = IPlatform.get_service(args)
-            if platformService:
-                platformService.setprop(prop, value)
-            else:
-                logging.error("Failed to access IPlatform service")
-        else:
-            logging.error("WayDroid container is {}".format(
-                session_cfg["session"]["state"]))
+    platformService = IPlatform.get_service(args)
+    if platformService:
+        platformService.setprop(prop, value)
     else:
-        logging.error("WayDroid session is stopped")
+        logging.error("Failed to access IPlatform service")
 
 def file_get(args, file, prop):
     with open(file) as build_prop:

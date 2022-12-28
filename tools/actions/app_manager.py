@@ -6,63 +6,50 @@ import shutil
 import time
 import tools.config
 import tools.helpers.props
+import tools.helpers.ipc
 from tools.interfaces import IPlatform
 from tools.interfaces import IStatusBarService
+import dbus
 
 def install(args):
-    if os.path.exists(tools.config.session_defaults["config_path"]):
-        session_cfg = tools.config.load_session()
-        if session_cfg["session"]["state"] == "RUNNING":
-            tmp_dir = session_cfg["session"]["waydroid_data"] + "/waydroid_tmp"
-            if not os.path.exists(tmp_dir):
-                os.makedirs(tmp_dir)
+    try:
+        tools.helpers.ipc.DBusSessionService()
 
-            shutil.copyfile(args.PACKAGE, tmp_dir + "/base.apk")
-            platformService = IPlatform.get_service(args)
-            if platformService:
-                platformService.installApp("/data/waydroid_tmp/base.apk")
-            os.remove(tmp_dir + "/base.apk")
-        else:
-            logging.error("WayDroid container is {}".format(
-                session_cfg["session"]["state"]))
-    else:
+        tmp_dir = tools.config.session_defaults["waydroid_data"] + "/waydroid_tmp"
+        if not os.path.exists(tmp_dir):
+            os.makedirs(tmp_dir)
+
+        shutil.copyfile(args.PACKAGE, tmp_dir + "/base.apk")
+        platformService = IPlatform.get_service(args)
+        if platformService:
+            platformService.installApp("/data/waydroid_tmp/base.apk")
+        os.remove(tmp_dir + "/base.apk")
+    except (dbus.DBusException, KeyError):
         logging.error("WayDroid session is stopped")
 
 def remove(args):
-    if os.path.exists(tools.config.session_defaults["config_path"]):
-        session_cfg = tools.config.load_session()
-        if session_cfg["session"]["state"] == "RUNNING":
-            platformService = IPlatform.get_service(args)
-            if platformService:
-                ret = platformService.removeApp(args.PACKAGE)
-                if ret != 0:
-                    logging.error("Failed to uninstall package: {}".format(args.PACKAGE))
-            else:
-                logging.error("Failed to access IPlatform service")
-        else:
-            logging.error("WayDroid container is {}".format(
-                session_cfg["session"]["state"]))
-    else:
+    try:
+        tools.helpers.ipc.DBusSessionService()
+
+        platformService = IPlatform.get_service(args)
+        if platformService:
+            ret = platformService.removeApp(args.PACKAGE)
+            if ret != 0:
+                logging.error("Failed to uninstall package: {}".format(args.PACKAGE))
+    except dbus.DBusException:
         logging.error("WayDroid session is stopped")
 
-def maybeLaunchLater(args, retry, launchNow):
-    if os.path.exists(tools.config.session_defaults["config_path"]):
-        session_cfg = tools.config.load_session()
-
-        if session_cfg["session"]["state"] == "RUNNING":
-            launchNow()
-        elif session_cfg["session"]["state"] == "FROZEN" or session_cfg["session"]["state"] == "UNFREEZE":
-            session_cfg["session"]["state"] = "UNFREEZE"
-            tools.config.save_session(session_cfg)
-            while session_cfg["session"]["state"] != "RUNNING":
-                session_cfg = tools.config.load_session()
-            launchNow()
-        else:
-            logging.error("WayDroid container is {}".format(
-                session_cfg["session"]["state"]))
-    else:
+def maybeLaunchLater(args, launchNow):
+    try:
+        tools.helpers.ipc.DBusSessionService()
+        try:
+            tools.helpers.ipc.DBusContainerService().Unfreeze()
+        except:
+            logging.error("Failed to unfreeze container. Trying to launch anyways...")
+        launchNow()
+    except dbus.DBusException:
         logging.error("Starting waydroid session")
-        tools.actions.session_manager.start(args, retry)
+        tools.actions.session_manager.start(args, launchNow)
 
 def launch(args):
     def justLaunch():
@@ -80,27 +67,24 @@ def launch(args):
                     2, "policy_control", "immersive.full=*")
         else:
             logging.error("Failed to access IPlatform service")
-    maybeLaunchLater(args, launch, justLaunch)
+    maybeLaunchLater(args, justLaunch)
 
 def list(args):
-    if os.path.exists(tools.config.session_defaults["config_path"]):
-        session_cfg = tools.config.load_session()
-        if session_cfg["session"]["state"] == "RUNNING":
-            platformService = IPlatform.get_service(args)
-            if platformService:
-                appsList = platformService.getAppsInfo()
-                for app in appsList:
-                    print("Name: " + app["name"])
-                    print("packageName: " + app["packageName"])
-                    print("categories:")
-                    for cat in app["categories"]:
-                        print("\t" + cat)
-            else:
-                logging.error("Failed to access IPlatform service")
+    try:
+        tools.helpers.ipc.DBusSessionService()
+
+        platformService = IPlatform.get_service(args)
+        if platformService:
+            appsList = platformService.getAppsInfo()
+            for app in appsList:
+                print("Name: " + app["name"])
+                print("packageName: " + app["packageName"])
+                print("categories:")
+                for cat in app["categories"]:
+                    print("\t" + cat)
         else:
-            logging.error("WayDroid container is {}".format(
-                session_cfg["session"]["state"]))
-    else:
+            logging.error("Failed to access IPlatform service")
+    except dbus.DBusException:
         logging.error("WayDroid session is stopped")
 
 def showFullUI(args):
@@ -115,7 +99,7 @@ def showFullUI(args):
                 statusBarService.expand()
                 time.sleep(0.5)
                 statusBarService.collapse()
-    maybeLaunchLater(args, showFullUI, justShow)
+    maybeLaunchLater(args, justShow)
 
 def intent(args):
     def justLaunch():
@@ -136,4 +120,4 @@ def intent(args):
                     2, "policy_control", "immersive.full=*")
         else:
             logging.error("Failed to access IPlatform service")
-    maybeLaunchLater(args, intent, justLaunch)
+    maybeLaunchLater(args, justLaunch)
