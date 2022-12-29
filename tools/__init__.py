@@ -24,7 +24,6 @@ def main():
     # Wrap everything to display nice error messages
     args = None
     try:
-        os.umask(0o000)
         # Parse arguments, set up logging
         args = helpers.arguments()
         args.cache = {}
