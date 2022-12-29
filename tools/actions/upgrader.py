@@ -15,8 +15,22 @@ def get_config(args):
     args.vendor_ota = cfg["waydroid"]["vendor_ota"]
     args.session = None
 
+def migration(args):
+    def versiontuple(v):
+        return tuple(map(int, (v.split("."))))
+
+    try:
+        old_ver = tools.helpers.props.file_get(args, args.work + "/waydroid_base.prop", "waydroid.tools_version")
+        if versiontuple(old_ver) <= versiontuple("1.3.4"):
+            chmod_paths = ["cache_http", "host-permissions", "lxc", "images", "waydroid_base.prop", "waydroid.prop", "waydroid.cfg"]
+            tools.helpers.run.user(args, ["chmod", "-R", "g-w,o-w"] + [os.path.join(args.work, f) for f in chmod_paths], check=False)
+            tools.helpers.run.user(args, ["chmod", "g-w,o-w", args.work], check=False)
+    except:
+        pass
+
 def upgrade(args):
     get_config(args)
+    migration(args)
     status = "STOPPED"
     if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
         status = helpers.lxc.status(args)
