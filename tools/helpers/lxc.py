@@ -132,8 +132,8 @@ def generate_nodes_lxc_config(args):
 LXC_APPARMOR_PROFILE = "lxc-waydroid"
 def get_apparmor_status(args):
     enabled = False
-    if shutil.which("aa-status"):
-        enabled = (tools.helpers.run.user(args, ["aa-status", "--quiet"], check=False) == 0)
+    if shutil.which("aa-enabled"):
+        enabled = (tools.helpers.run.user(args, ["aa-enabled", "--quiet"], check=False) == 0)
     if not enabled and shutil.which("systemctl"):
         enabled = (tools.helpers.run.user(args, ["systemctl", "is-active", "-q", "apparmor"], check=False) == 0)
     try:
