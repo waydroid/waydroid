@@ -19,7 +19,8 @@ Depends: ${misc:Depends},
          python3-gi,
          gir1.2-gtk-3.0,
          python3-dbus,
-         dbus
+         dbus,
+         policykit-1
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container.

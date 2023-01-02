@@ -152,14 +152,37 @@ class DbusInitializer(dbus.service.Object):
         self.looper = looper
         dbus.service.Object.__init__(self, bus, object_path)
 
-    @dbus.service.method("id.waydro.Initializer", in_signature='a{ss}', out_signature='')
-    def Init(self, params):
-        threading.Thread(target=remote_init_server, args=(self.args, params)).start()
+    @dbus.service.method("id.waydro.Initializer", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
+    def Init(self, params, sender=None, conn=None):
+        channels_cfg = tools.config.load_channels()
+        no_auth = params["system_channel"] == channels_cfg["channels"]["system_channel"] and \
+                  params["vendor_channel"] == channels_cfg["channels"]["vendor_channel"]
+        if no_auth or ensure_polkit_auth(sender, conn, "id.waydro.Initializer.Init"):
+            threading.Thread(target=remote_init_server, args=(self.args, params)).start()
+        else:
+            raise PermissionError("Polkit: Authentication failed")
 
     @dbus.service.method("id.waydro.Initializer", in_signature='', out_signature='')
     def Done(self):
         if is_initialized(self.args):
             self.looper.quit()
+
+def ensure_polkit_auth(sender, conn, privilege):
+    dbus_info = dbus.Interface(conn.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False), "org.freedesktop.DBus")
+    pid = dbus_info.GetConnectionUnixProcessID(sender)
+    polkit = dbus.Interface(dbus.SystemBus().get_object("org.freedesktop.PolicyKit1", "/org/freedesktop/PolicyKit1/Authority", False), "org.freedesktop.PolicyKit1.Authority")
+    try:
+        (is_auth, _, _) = polkit.CheckAuthorization(
+            ("unix-process", {
+                "pid": dbus.UInt32(pid, variant_level=1),
+                "start-time": dbus.UInt64(0, variant_level=1)}),
+            privilege, {"AllowUserInteraction": "true"},
+            dbus.UInt32(1),
+            "",
+            timeout=300)
+        return is_auth
+    except dbus.DBusException:
+        raise PermissionError("Polkit: Authentication timed out")
 
 def background_remote_init_process(args):
     with helpers.ipc.open_channel("remote_init_output", "wb") as channel_out:
@@ -249,6 +272,8 @@ def remote_init_client(args):
     class WaydroidInitWindow(Gtk.Window):
         def __init__(self):
             super().__init__(title="Initialize Waydroid")
+            channels_cfg = tools.config.load_channels()
+
             self.set_default_size(600, 250)
             self.set_icon_from_file(tools.config.tools_src + "/data/AppIcon.png")
 
@@ -259,14 +284,14 @@ def remote_init_client(args):
 
             sysOtaLabel = Gtk.Label("System OTA")
             sysOtaEntry = Gtk.Entry()
-            sysOtaEntry.set_text(tools.config.channels_defaults["system_channel"])
+            sysOtaEntry.set_text(channels_cfg["channels"]["system_channel"])
             grid.attach(sysOtaLabel, 0, 0, 1, 1)
             grid.attach_next_to(sysOtaEntry ,sysOtaLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.sysOta = sysOtaEntry.get_buffer()
 
             vndOtaLabel = Gtk.Label("Vendor OTA")
             vndOtaEntry = Gtk.Entry()
-            vndOtaEntry.set_text(tools.config.channels_defaults["vendor_channel"])
+            vndOtaEntry.set_text(channels_cfg["channels"]["vendor_channel"])
             grid.attach(vndOtaLabel, 0, 1, 1, 1)
             grid.attach_next_to(vndOtaEntry, vndOtaLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.vndOta = vndOtaEntry.get_buffer()
@@ -342,9 +367,12 @@ def remote_init_client(args):
                     "vendor_channel": self.vndOta.get_text(),
                     "system_type": self.sysType.get_active_text()
                 }
-                tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Init(params)
-            except:
-                draw("The waydroid container service is not listening\n")
+                tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Init(params, timeout=310)
+            except dbus.DBusException as e:
+                if e.get_dbus_name() == "org.freedesktop.DBus.Python.PermissionError":
+                    draw(e.get_dbus_message().splitlines()[-1] + "\n")
+                else:
+                    draw("The waydroid container service is not listening\n")
                 GLib.idle_add(self.downloadBtn.set_sensitive, True)
                 return
 
