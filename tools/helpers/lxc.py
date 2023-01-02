@@ -60,6 +60,10 @@ def generate_nodes_lxc_config(args):
         make_entry(n)
     for n in glob.glob("/dev/video*"):
         make_entry(n)
+    for n in glob.glob("/dev/v4l-subdev*"):
+        make_entry(n)
+    for n in glob.glob("/dev/media*"):
+        make_entry(n)
 
     # Binder dev nodes
     make_entry("/dev/" + args.BINDER_DRIVER, "dev/binder", check=False)
@@ -230,7 +234,10 @@ def make_base_props(args):
             gralloc = "default"
             egl = "swiftshader"
         props.append("debug.stagefright.ccodec=0")
-    props.append("ro.hardware.gralloc=" + gralloc)
+    #props.append("ro.hardware.gralloc=" + gralloc)
+
+    # Use minigbm unconditionally!
+    props.append("ro.hardware.gralloc=minigbm")
 
     if egl != "":
         props.append("ro.hardware.egl=" + egl)
@@ -264,7 +271,7 @@ def make_base_props(args):
             props.append("ro.hardware.camera=" + camera)
         else:
             if args.vendor_type == "MAINLINE":
-                props.append("ro.hardware.camera=v4l2")
+                props.append("ro.hardware.camera=libcamera")
 
     opengles = tools.helpers.props.host_get(args, "ro.opengles.version")
     if opengles == "":
