@@ -367,8 +367,11 @@ def unfreeze(args):
     tools.helpers.run.user(args, command)
 
 def shell(args):
-    if status(args) != "RUNNING":
-        logging.error("WayDroid container is {}".format(status(args)))
+    state = status(args)
+    if state == "FROZEN":
+        unfreeze(args)
+    elif state != "RUNNING":
+        logging.error("WayDroid container is {}".format(state))
         return
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
                "-n", "waydroid", "--"]
@@ -377,11 +380,18 @@ def shell(args):
     else:
         command.append("/system/bin/sh")
     subprocess.run(command, env={"PATH": os.environ['PATH'] + ":/system/bin:/vendor/bin"})
+    if state == "FROZEN":
+        freeze(args)
 
 def logcat(args):
-    if status(args) != "RUNNING":
-        logging.error("WayDroid container is {}".format(status(args)))
+    state = status(args)
+    if state == "FROZEN":
+        unfreeze(args)
+    elif state != "RUNNING":
+        logging.error("WayDroid container is {}".format(state))
         return
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
                "-n", "waydroid", "--", "/system/bin/logcat"]
     subprocess.run(command)
+    if state == "FROZEN":
+        freeze(args)
