@@ -42,7 +42,7 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/zero")
     make_entry("/dev/null")
     make_entry("/dev/full")
-    make_entry("/dev/ashmem", check=False)
+    make_entry("/dev/ashmem")
     make_entry("/dev/fuse")
     make_entry("/dev/ion")
     make_entry("/dev/char", options="bind,create=dir,optional 0 0")

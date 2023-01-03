@@ -48,6 +48,7 @@ def upgrade(args):
             helpers.images.get(args)
         else:
             logging.info("Upgrade refused because a pre-installed image is detected at {}.".format(args.images_path))
+    helpers.drivers.probeAshmemDriver(args)
     helpers.lxc.setup_host_perms(args)
     helpers.lxc.set_lxc_config(args)
     helpers.lxc.make_base_props(args)
