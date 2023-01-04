@@ -165,17 +165,6 @@ def do_start(args, session):
     set_permissions(args)
 
     helpers.lxc.start(args)
-    lxc_status = helpers.lxc.status(args)
-    timeout = 10
-    while lxc_status != "RUNNING" and timeout > 0:
-        lxc_status = helpers.lxc.status(args)
-        logging.info(
-            "waiting {} seconds for container to start...".format(timeout))
-        timeout = timeout - 1
-        time.sleep(1)
-    if lxc_status != "RUNNING":
-        raise OSError("container failed to start")
-
     services.hardware_manager.start(args)
 
 def stop(args):

@@ -6,6 +6,7 @@ import re
 import logging
 import glob
 import shutil
+import time
 import platform
 import gbinder
 import tools.config
@@ -344,13 +345,27 @@ def setup_host_perms(args):
 def status(args):
     command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
     out = subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
-    os.chmod(args.log, 0o666)
     return out
+
+def wait_for_running(args):
+    lxc_status = status(args)
+    timeout = 10
+    while lxc_status != "RUNNING" and timeout > 0:
+        lxc_status = status(args)
+        logging.info(
+            "waiting {} seconds for container to start...".format(timeout))
+        timeout = timeout - 1
+        time.sleep(1)
+    if lxc_status != "RUNNING":
+        raise OSError("container failed to start")
 
 def start(args):
     command = ["lxc-start", "-P", tools.config.defaults["lxc"],
                "-F", "-n", "waydroid", "--", "/init"]
     tools.helpers.run.user(args, command, output="background")
+    wait_for_running(args)
+    # Workaround lxc-start changing stdout/stderr permissions to 700
+    os.chmod(args.log, 0o666)
 
 def stop(args):
     command = ["lxc-stop", "-P",
