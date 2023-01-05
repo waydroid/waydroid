@@ -110,11 +110,9 @@ def main():
                     "Run waydroid {} -h for usage information.".format(args.action))
         elif args.action == "prop":
             if args.subaction == "get":
-                ret = helpers.props.get(args, args.key)
-                if ret:
-                    print(ret)
+                actions.prop.get(args)
             elif args.subaction == "set":
-                helpers.props.set(args, args.key, args.value)
+                actions.prop.set(args)
             else:
                 logging.info(
                     "Run waydroid {} -h for usage information.".format(args.action))

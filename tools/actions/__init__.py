@@ -6,3 +6,4 @@ from tools.actions.session_manager import start, stop
 from tools.actions.container_manager import start, stop, freeze, unfreeze
 from tools.actions.app_manager import install, remove, launch, list
 from tools.actions.status import print_status
+from tools.actions.prop import get, set
