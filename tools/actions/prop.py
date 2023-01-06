@@ -30,7 +30,7 @@ def set(args):
         if session["state"] == "FROZEN":
             cm.Unfreeze()
 
-        helpers.props.set(args, args.key, args.value)
+        tools.helpers.props.set(args, args.key, args.value)
 
         if session["state"] == "FROZEN":
             cm.Freeze()
