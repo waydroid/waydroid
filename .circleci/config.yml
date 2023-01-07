@@ -11,7 +11,7 @@ jobs:
     executor: continuation/default
     resource_class: small
     steps:
-      - checkout
+      - droidian-buildd/checkout
       - droidian-buildd/generate
       - continuation/continue:
           configuration_path: generated_config.yml
