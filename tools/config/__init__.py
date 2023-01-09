@@ -21,7 +21,8 @@ config_keys = ["arch",
                "vendor_type",
                "system_datetime",
                "vendor_datetime",
-               "suspend_action"]
+               "suspend_action",
+               "mount_overlays"]
 
 # Config file/commandline default values
 # $WORK gets replaced with the actual value for args.work (which may be
@@ -36,7 +37,8 @@ defaults = {
         "/etc/waydroid-extra/images",
         "/usr/share/waydroid-extra/images",
     ],
-    "suspend_action": "freeze"
+    "suspend_action": "freeze",
+    "mount_overlays": "True",
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"

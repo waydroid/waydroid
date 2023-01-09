@@ -135,20 +135,23 @@ def make_prop(args, cfg, full_props_path):
     os.chmod(full_props_path, 0o644)
 
 def mount_rootfs(args, images_dir, session):
+    cfg = tools.config.load(args)
     helpers.mount.mount(args, images_dir + "/system.img",
                         tools.config.defaults["rootfs"], umount=True)
-    helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"],
-                                       tools.config.defaults["rootfs"]],
-                                tools.config.defaults["rootfs"],
-                                upper_dir=tools.config.defaults["overlay_rw"] + "/system",
-                                work_dir=tools.config.defaults["overlay_work"] + "/system")
+    if cfg["waydroid"]["mount_overlays"] == "True":
+        helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"],
+                                           tools.config.defaults["rootfs"]],
+                                    tools.config.defaults["rootfs"],
+                                    upper_dir=tools.config.defaults["overlay_rw"] + "/system",
+                                    work_dir=tools.config.defaults["overlay_work"] + "/system")
     helpers.mount.mount(args, images_dir + "/vendor.img",
                            tools.config.defaults["rootfs"] + "/vendor")
-    helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"] + "/vendor",
-                                       tools.config.defaults["rootfs"] + "/vendor"],
-                                tools.config.defaults["rootfs"] + "/vendor",
-                                upper_dir=tools.config.defaults["overlay_rw"] + "/vendor",
-                                work_dir=tools.config.defaults["overlay_work"] + "/vendor")
+    if cfg["waydroid"]["mount_overlays"] == "True":
+        helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"] + "/vendor",
+                                           tools.config.defaults["rootfs"] + "/vendor"],
+                                    tools.config.defaults["rootfs"] + "/vendor",
+                                    upper_dir=tools.config.defaults["overlay_rw"] + "/vendor",
+                                    work_dir=tools.config.defaults["overlay_work"] + "/vendor")
 
     for egl_path in ["/vendor/lib/egl", "/vendor/lib64/egl"]:
         if os.path.isdir(egl_path):
