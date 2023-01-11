@@ -146,7 +146,7 @@ def do_start(args, session):
 
     # Mount data
     helpers.mount.bind(args, args.session["waydroid_data"],
-                       tools.config.defaults["data"])
+                       tools.config.defaults["data"], recursive=True)
 
     # Cgroup hacks
     if which("start"):
