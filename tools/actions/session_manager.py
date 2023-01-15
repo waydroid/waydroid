@@ -69,10 +69,12 @@ def start(args, unlocked_cb=None):
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGUSR1, sigusr_handler, None)
     try:
         tools.helpers.ipc.DBusContainerService().Start(session)
-    except dbus.DBusException:
-        logging.error("WayDroid container is not listening")
+    except dbus.DBusException as e:
+        if e.get_dbus_name().startswith("org.freedesktop.DBus.Python"):
+            logging.error(e.get_dbus_message().splitlines()[-1])
+        else:
+            logging.error("WayDroid container is not listening")
         sys.exit(0)
-
 
     services.user_manager.start(args, session, unlocked_cb)
     services.clipboard_manager.start(args)

@@ -123,10 +123,7 @@ def start(args):
 
 def do_start(args, session):
     if "session" in args:
-        logging.info("Already tracking a session")
-        return
-
-    args.session = session
+        raise RuntimeError("Already tracking a session")
 
     # Networking
     command = [tools.config.tools_src +
@@ -140,12 +137,12 @@ def do_start(args, session):
 
     # Mount rootfs
     cfg = tools.config.load(args)
-    helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"], args.session)
+    helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"], session)
 
     helpers.protocol.set_aidl_version(args)
 
     # Mount data
-    helpers.mount.bind(args, args.session["waydroid_data"],
+    helpers.mount.bind(args, session["waydroid_data"],
                        tools.config.defaults["data"])
 
     # Cgroup hacks
@@ -166,6 +163,8 @@ def do_start(args, session):
 
     helpers.lxc.start(args)
     services.hardware_manager.start(args)
+
+    args.session = session
 
 def stop(args):
     try:
