@@ -128,7 +128,7 @@ def do_start(args, session):
     # Networking
     command = [tools.config.tools_src +
                "/data/scripts/waydroid-net.sh", "start"]
-    tools.helpers.run.user(args, command, check=False)
+    tools.helpers.run.user(args, command)
 
     # Sensors
     if which("waydroid-sensord"):
