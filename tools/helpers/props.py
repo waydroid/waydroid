@@ -42,5 +42,5 @@ def file_get(args, file, prop):
                 continue
             k,v = line.partition("=")[::2]
             if k == prop:
-                return v;
+                return v
     return ""
