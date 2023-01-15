@@ -3,7 +3,7 @@ set -e
 
 configure() {
 	# Update configs
-    waydroid upgrade -o
+	waydroid upgrade -o
 }
 
 case "$1" in
