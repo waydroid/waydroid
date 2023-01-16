@@ -128,7 +128,7 @@ add rule ip lxc postrouting ip saddr ${LXC_NETWORK} ip daddr != ${LXC_NETWORK} c
 start() {
     [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
 
-    [ ! -f "${varrun}/network_up" ] || { echo "waydroid-net is already running"; exit 1; }
+    [ ! -f "${varrun}/network_up" ] || { echo "waydroid-net is already running"; exit 0; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         stop force || true
