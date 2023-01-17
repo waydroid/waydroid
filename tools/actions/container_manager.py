@@ -26,9 +26,9 @@ class DbusContainerManager(dbus.service.Object):
     def Start(self, session):
         do_start(self.args, session)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
-    def Stop(self):
-        stop(self.args)
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='b', out_signature='')
+    def Stop(self, quit_session):
+        stop(self.args, quit_session)
 
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
     def Freeze(self):
@@ -166,7 +166,7 @@ def do_start(args, session):
 
     args.session = session
 
-def stop(args):
+def stop(args, quit_session=True):
     try:
         services.hardware_manager.stop(args)
         status = helpers.lxc.status(args)
@@ -200,10 +200,11 @@ def stop(args):
         helpers.mount.umount_all(args, tools.config.defaults["data"])
 
         if "session" in args:
-            try:
-                os.kill(int(args.session["pid"]), signal.SIGUSR1)
-            except:
-                pass
+            if quit_session:
+                try:
+                    os.kill(int(args.session["pid"]), signal.SIGUSR1)
+                except:
+                    pass
             del args.session
     except:
         pass

@@ -24,7 +24,7 @@ class DbusSessionManager(dbus.service.Object):
     @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='')
     def Stop(self):
         do_stop(self.args, self.looper)
-        stop_container()
+        stop_container(quit_session=False)
 
 def service(args, looper):
     dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
@@ -76,7 +76,7 @@ def start(args, unlocked_cb=None):
 
     def sigint_handler(data):
         do_stop(args, mainloop)
-        stop_container()
+        stop_container(quit_session=False)
 
     def sigusr_handler(data):
         do_stop(args, mainloop)
@@ -106,10 +106,10 @@ def stop(args):
     try:
         tools.helpers.ipc.DBusSessionService().Stop()
     except dbus.DBusException:
-        stop_container()
+        stop_container(quit_session=True)
 
-def stop_container():
+def stop_container(quit_session):
     try:
-        tools.helpers.ipc.DBusContainerService().Stop()
+        tools.helpers.ipc.DBusContainerService().Stop(quit_session)
     except dbus.DBusException:
         pass
