@@ -32,20 +32,20 @@ LXC_IPV6_MASK=""
 LXC_IPV6_NETWORK=""
 LXC_IPV6_NAT="false"
 
-IPTABLES_BIN="$(which iptables-legacy)"
+IPTABLES_BIN="$(command -v iptables-legacy)"
 if [ ! -n "$IPTABLES_BIN" ]; then
-    IPTABLES_BIN="$(which iptables)"
+    IPTABLES_BIN="$(command -v iptables)"
 fi
-IP6TABLES_BIN="$(which ip6tables-legacy)"
+IP6TABLES_BIN="$(command -v ip6tables-legacy)"
 if [ ! -n "$IP6TABLES_BIN" ]; then
-    IP6TABLES_BIN="$(which ip6tables)"
+    IP6TABLES_BIN="$(command -v ip6tables)"
 fi
 
 use_nft() {
     [ -n "$NFT" ] && nft list ruleset > /dev/null 2>&1 && [ "$LXC_USE_NFT" = "true" ]
 }
 
-NFT="$(which nft)"
+NFT="$(command -v nft)"
 if ! use_nft; then
     use_iptables_lock="-w"
     $IPTABLES_BIN -w -L -n > /dev/null 2>&1 || use_iptables_lock=""
@@ -158,7 +158,7 @@ start() {
     # can't write its pid into, so we restorecon it (to var_run_t)
     if [ ! -d "${varrun}" ]; then
         mkdir -p "${varrun}"
-        if which restorecon >/dev/null 2>&1; then
+        if command -v restorecon >/dev/null 2>&1; then
             restorecon "${varrun}"
         fi
     fi
