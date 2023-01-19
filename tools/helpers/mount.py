@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import os
 import tools.helpers.run
+from tools.helpers.version import versiontuple, kernel_version
 
 
 def ismount(folder):
@@ -156,13 +157,16 @@ def mount_overlay(args, lower_dirs, destination, upper_dir=None, work_dir=None,
     Mount an overlay.
     """
     dirs = [*lower_dirs]
-    options = ["xino=off", "lowerdir=" + (":".join(lower_dirs))]
+    options = ["lowerdir=" + (":".join(lower_dirs))]
 
     if upper_dir:
         dirs.append(upper_dir)
         dirs.append(work_dir)
         options.append("upperdir=" + upper_dir)
         options.append("workdir=" + work_dir)
+
+    if kernel_version() >= versiontuple("4.17"):
+        options.append("xino=off")
 
     for dir_path in dirs:
         if not os.path.exists(dir_path):

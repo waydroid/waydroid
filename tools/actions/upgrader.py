@@ -3,6 +3,7 @@
 import logging
 import os
 from tools import helpers
+from tools.helpers.version import versiontuple
 import tools.config
 import dbus
 
@@ -16,9 +17,6 @@ def get_config(args):
     args.session = None
 
 def migration(args):
-    def versiontuple(v):
-        return tuple(map(int, (v.split("."))))
-
     try:
         old_ver = tools.helpers.props.file_get(args, args.work + "/waydroid_base.prop", "waydroid.tools_version")
         if versiontuple(old_ver) <= versiontuple("1.3.4"):
