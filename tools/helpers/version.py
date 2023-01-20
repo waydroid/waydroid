@@ -1,4 +1,5 @@
 import os
+import re
 
 def versiontuple(v):
     return tuple(map(int, (v.split("."))))
