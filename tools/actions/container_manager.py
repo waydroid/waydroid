@@ -145,10 +145,6 @@ def do_start(args, session):
 
     helpers.protocol.set_aidl_version(args)
 
-    # Mount data
-    helpers.mount.bind(args, session["waydroid_data"],
-                       tools.config.defaults["data"])
-
     # Cgroup hacks
     if which("start"):
         command = ["start", "cgroup-lite"]
@@ -164,6 +160,14 @@ def do_start(args, session):
 
     # Set permissions
     set_permissions(args)
+
+    # Create session-specific LXC config file
+    helpers.lxc.generate_session_lxc_config(args, session)
+    # Backwards compatibility
+    with open(tools.config.defaults["lxc"] + "/waydroid/config") as f:
+        if "config_session" not in f.read():
+            helpers.mount.bind(args, session["waydroid_data"],
+                               tools.config.defaults["data"])
 
     helpers.lxc.start(args)
     services.hardware_manager.start(args)
@@ -200,8 +204,11 @@ def stop(args, quit_session=True):
         # Umount rootfs
         helpers.images.umount_rootfs(args)
 
-        # Umount data
-        helpers.mount.umount_all(args, tools.config.defaults["data"])
+        # Backwards compatibility
+        try:
+            helpers.mount.umount_all(args, tools.config.defaults["data"])
+        except:
+            pass
 
         if "session" in args:
             if quit_session:
