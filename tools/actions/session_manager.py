@@ -87,8 +87,8 @@ def start(args, unlocked_cb=None):
     try:
         tools.helpers.ipc.DBusContainerService().Start(session)
     except dbus.DBusException as e:
+        logging.debug(e)
         if e.get_dbus_name().startswith("org.freedesktop.DBus.Python"):
-            logging.debug(e)
             logging.error(e.get_dbus_message().splitlines()[-1])
         else:
             logging.error("WayDroid container is not listening")
