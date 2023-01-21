@@ -22,8 +22,13 @@ class DbusContainerManager(dbus.service.Object):
         self.looper = looper
         dbus.service.Object.__init__(self, bus, object_path)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='a{ss}', out_signature='')
-    def Start(self, session):
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
+    def Start(self, session, sender, conn):
+        if session["user_id"] != "0":
+            dbus_info = dbus.Interface(conn.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False), "org.freedesktop.DBus")
+            uid = dbus_info.GetConnectionUnixUser(sender)
+            if str(uid) != session["user_id"]:
+                raise RuntimeError("Cannot start a session on behalf of another user")
         do_start(self.args, session)
 
     @dbus.service.method("id.waydro.ContainerManager", in_signature='b', out_signature='')
