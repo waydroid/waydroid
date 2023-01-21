@@ -383,6 +383,21 @@ def unfreeze(args):
                tools.config.defaults["lxc"], "-n", "waydroid"]
     tools.helpers.run.user(args, command)
 
+ANDROID_ENV = {
+    "PATH": "/product/bin:/apex/com.android.runtime/bin:/apex/com.android.art/bin:/system_ext/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin",
+    "ANDROID_ROOT": "/system",
+    "ANDROID_DATA": "/data",
+    "ANDROID_STORAGE": "/storage",
+    "ANDROID_ART_ROOT": "/apex/com.android.art",
+    "ANDROID_I18N_ROOT": "/apex/com.android.i18n",
+    "ANDROID_TZDATA_ROOT": "/apex/com.android.tzdata",
+    "ANDROID_RUNTIME_ROOT": "/apex/com.android.runtime",
+}
+
+def android_env_attach_options():
+    env = [k + "=" + v for k, v in ANDROID_ENV.items()]
+    return [x for var in env for x in ("--set-var", var)]
+
 def shell(args):
     state = status(args)
     if state == "FROZEN":
@@ -391,24 +406,17 @@ def shell(args):
         logging.error("WayDroid container is {}".format(state))
         return
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
-               "-n", "waydroid", "--"]
+               "-n", "waydroid", "--clear-env"]
+    command.extend(android_env_attach_options())
+    command.append("--")
     if args.COMMAND:
         command.extend(args.COMMAND)
     else:
         command.append("/system/bin/sh")
-    subprocess.run(command, env={"PATH": os.environ['PATH'] + ":/system/bin:/vendor/bin"})
+    subprocess.run(command)
     if state == "FROZEN":
         freeze(args)
 
 def logcat(args):
-    state = status(args)
-    if state == "FROZEN":
-        unfreeze(args)
-    elif state != "RUNNING":
-        logging.error("WayDroid container is {}".format(state))
-        return
-    command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
-               "-n", "waydroid", "--", "/system/bin/logcat"]
-    subprocess.run(command)
-    if state == "FROZEN":
-        freeze(args)
+    args.COMMAND = ["/system/bin/logcat"]
+    shell(args)
