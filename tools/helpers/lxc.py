@@ -21,22 +21,24 @@ def get_lxc_version(args):
     else:
         return 0
 
+def add_node_entry(nodes, src, dist, mnt_type, options, check):
+    if check and not os.path.exists(src):
+        return False
+    entry = "lxc.mount.entry = "
+    entry += src + " "
+    if dist is None:
+        dist = src[1:]
+    entry += dist + " "
+    entry += mnt_type + " "
+    entry += options
+    nodes.append(entry)
+    return True
 
 def generate_nodes_lxc_config(args):
-    def make_entry(src, dist=None, mnt_type="none", options="bind,create=file,optional 0 0", check=True):
-        if check and not os.path.exists(src):
-            return False
-        entry = "lxc.mount.entry = "
-        entry += src + " "
-        if dist is None:
-            dist = src[1:]
-        entry += dist + " "
-        entry += mnt_type + " "
-        entry += options
-        nodes.append(entry)
-        return True
-
     nodes = []
+    def make_entry(src, dist=None, mnt_type="none", options="bind,create=file,optional 0 0", check=True):
+        return add_node_entry(nodes, src, dist, mnt_type, options, check)
+
     # Necessary dev nodes
     make_entry("tmpfs", "dev", "tmpfs", "nosuid 0 0", False)
     make_entry("/dev/zero")
@@ -84,18 +86,9 @@ def generate_nodes_lxc_config(args):
     # Low memory killer sys node
     make_entry("/sys/module/lowmemorykiller", options="bind,create=dir,optional 0 0")
 
-    # Mount /data
-    make_entry("tmpfs", "mnt", "tmpfs", "mode=0755,uid=0,gid=1000", False)
-    make_entry(tools.config.defaults["data"], "data", options="bind 0 0", check=False)
-
     # Mount host permissions
     make_entry(tools.config.defaults["host_perms"],
                "vendor/etc/host-permissions", options="bind,optional 0 0")
-
-    # Recursive mount /run to provide necessary host sockets
-    make_entry("/run", options="rbind,create=dir 0 0")
-    # And /dev/shm
-    make_entry("/dev/shm", options="rbind,create=dir,optional 0 0")
 
     # Necessary sw_sync node for HWC
     make_entry("/dev/sw_sync")
@@ -118,14 +111,10 @@ def generate_nodes_lxc_config(args):
     make_entry("/mnt/wslg", "mnt_extra/wslg",
                options="rbind,create=dir,optional 0 0")
 
-    # var
-    make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
-    make_entry("/var/run", options="rbind,create=dir,optional 0 0")
-
-    # tmp
+    # Make a tmpfs at every possible rootfs mountpoint
     make_entry("tmpfs", "tmp", "tmpfs", "nodev 0 0", False)
-    for n in glob.glob("/tmp/run-*"):
-        make_entry(n, options="rbind,create=dir,optional 0 0")
+    make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
+    make_entry("tmpfs", "run", "tmpfs", "nodev 0 0", False)
 
     # NFC config
     make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
@@ -185,6 +174,43 @@ def set_lxc_config(args):
     command = ["mv", config_nodes_tmp_path, lxc_path]
     tools.helpers.run.user(args, command)
 
+    # Create empty file
+    open(os.path.join(lxc_path, "config_session"), mode="w").close()
+
+def generate_session_lxc_config(args, session):
+    nodes = []
+    def make_entry(src, dist=None, mnt_type="none", options="rbind,create=file 0 0"):
+        if any(x in src for x in ["\n", "\r"]):
+            logging.warning("User-provided mount path contains illegal character")
+            return False
+        if dist is None and (not os.path.exists(src) or
+                             str(os.stat(src).st_uid) != session["user_id"]):
+            logging.warning("User-provided mount path is not owned by user")
+            return False
+        return add_node_entry(nodes, src, dist, mnt_type, options, check=False)
+
+    # Make sure XDG_RUNTIME_DIR exists
+    if not make_entry("tmpfs", session["xdg_runtime_dir"], options="create=dir 0 0"):
+        raise OSError("Failed to create XDG_RUNTIME_DIR mount point")
+
+    wayland_socket = os.path.realpath(os.path.join(session["xdg_runtime_dir"], session["wayland_display"]))
+    if not make_entry(wayland_socket):
+        raise OSError("Failed to bind Wayland socket")
+
+    pulse_socket = os.path.join(session["pulse_runtime_path"], "native")
+    make_entry(pulse_socket)
+
+    if not make_entry(session["waydroid_data"], "data", options="rbind 0 0"):
+        raise OSError("Failed to bind userdata")
+
+    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+    config_nodes_tmp_path = args.work + "/config_session"
+    config_nodes = open(config_nodes_tmp_path, "w")
+    for node in nodes:
+        config_nodes.write(node + "\n")
+    config_nodes.close()
+    command = ["mv", config_nodes_tmp_path, lxc_path]
+    tools.helpers.run.user(args, command)
 
 def make_base_props(args):
     def find_hal(hardware):
