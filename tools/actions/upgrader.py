@@ -39,6 +39,7 @@ def upgrade(args):
             container.Stop(False)
         except Exception as e:
             logging.debug(e)
+            tools.actions.container_manager.stop(args)
     migration(args)
     helpers.drivers.loadBinderNodes(args)
     if not args.offline:
