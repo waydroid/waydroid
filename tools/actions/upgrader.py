@@ -20,7 +20,7 @@ def migration(args):
     try:
         old_ver = tools.helpers.props.file_get(args, args.work + "/waydroid_base.prop", "waydroid.tools_version")
         if versiontuple(old_ver) <= versiontuple("1.3.4"):
-            chmod_paths = ["cache_http", "host-permissions", "lxc", "images", "waydroid_base.prop", "waydroid.prop", "waydroid.cfg"]
+            chmod_paths = ["cache_http", "host-permissions", "lxc", "images", "rootfs", "data", "waydroid_base.prop", "waydroid.prop", "waydroid.cfg"]
             tools.helpers.run.user(args, ["chmod", "-R", "g-w,o-w"] + [os.path.join(args.work, f) for f in chmod_paths], check=False)
             tools.helpers.run.user(args, ["chmod", "g-w,o-w", args.work], check=False)
     except:
@@ -28,7 +28,6 @@ def migration(args):
 
 def upgrade(args):
     get_config(args)
-    migration(args)
     status = "STOPPED"
     if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
         status = helpers.lxc.status(args)
@@ -40,6 +39,7 @@ def upgrade(args):
             container.Stop(False)
         except Exception as e:
             logging.debug(e)
+    migration(args)
     helpers.drivers.loadBinderNodes(args)
     if not args.offline:
         if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
