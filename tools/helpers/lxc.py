@@ -181,11 +181,11 @@ def generate_session_lxc_config(args, session):
     nodes = []
     def make_entry(src, dist=None, mnt_type="none", options="rbind,create=file 0 0"):
         if any(x in src for x in ["\n", "\r"]):
-            logging.warning("User-provided mount path contains illegal character")
+            logging.warning("User-provided mount path contains illegal character: " + src)
             return False
         if dist is None and (not os.path.exists(src) or
                              str(os.stat(src).st_uid) != session["user_id"]):
-            logging.warning("User-provided mount path is not owned by user")
+            logging.warning("User-provided mount path is not owned by user: " + src)
             return False
         return add_node_entry(nodes, src, dist, mnt_type, options, check=False)
 
