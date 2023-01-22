@@ -23,6 +23,7 @@ def migration(args):
             chmod_paths = ["cache_http", "host-permissions", "lxc", "images", "rootfs", "data", "waydroid_base.prop", "waydroid.prop", "waydroid.cfg"]
             tools.helpers.run.user(args, ["chmod", "-R", "g-w,o-w"] + [os.path.join(args.work, f) for f in chmod_paths], check=False)
             tools.helpers.run.user(args, ["chmod", "g-w,o-w", args.work], check=False)
+            os.remove(os.path.join(args.work, "session.cfg"))
     except:
         pass
 
