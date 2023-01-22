@@ -142,12 +142,6 @@ def do_start(args, session):
         tools.helpers.run.user(
             args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
 
-    # Mount rootfs
-    cfg = tools.config.load(args)
-    helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"], session)
-
-    helpers.protocol.set_aidl_version(args)
-
     # Cgroup hacks
     if which("start"):
         command = ["start", "cgroup-lite"]
@@ -171,6 +165,12 @@ def do_start(args, session):
         if "config_session" not in f.read():
             helpers.mount.bind(args, session["waydroid_data"],
                                tools.config.defaults["data"])
+
+    # Mount rootfs
+    cfg = tools.config.load(args)
+    helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"], session)
+
+    helpers.protocol.set_aidl_version(args)
 
     helpers.lxc.start(args)
     services.hardware_manager.start(args)
