@@ -28,6 +28,9 @@ class DbusContainerManager(dbus.service.Object):
         uid = dbus_info.GetConnectionUnixUser(sender)
         if str(uid) not in ["0", session["user_id"]]:
             raise RuntimeError("Cannot start a session on behalf of another user")
+        pid = dbus_info.GetConnectionUnixProcessID(sender)
+        if str(uid) != "0" and str(pid) != session["pid"]:
+            raise RuntimeError("Invalid session pid")
         do_start(self.args, session)
 
     @dbus.service.method("id.waydro.ContainerManager", in_signature='b', out_signature='')
