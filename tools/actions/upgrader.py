@@ -34,12 +34,12 @@ def upgrade(args):
         status = helpers.lxc.status(args)
     if status != "STOPPED":
         logging.info("Stopping container")
-        helpers.lxc.stop(args)
         try:
-            args.session = tools.helpers.ipc.DBusContainerService().GetSession()
-        except dbus.DBusException:
-            pass
-    helpers.images.umount_rootfs(args)
+            container = tools.helpers.ipc.DBusContainerService()
+            args.session = container.GetSession()
+            container.Stop(False)
+        except Exception as e:
+            logging.debug(e)
     helpers.drivers.loadBinderNodes(args)
     if not args.offline:
         if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
@@ -50,8 +50,10 @@ def upgrade(args):
     helpers.lxc.setup_host_perms(args)
     helpers.lxc.set_lxc_config(args)
     helpers.lxc.make_base_props(args)
-    if status != "STOPPED" and args.session:
+    if status != "STOPPED":
         logging.info("Starting container")
-        helpers.images.mount_rootfs(args, args.images_path, args.session)
-        helpers.protocol.set_aidl_version(args)
-        helpers.lxc.start(args)
+        try:
+            container.Start(args.session)
+        except Exception as e:
+            logging.debug(e)
+            logging.error("Failed to restart container. Please do so manually.")
