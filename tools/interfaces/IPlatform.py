@@ -2,6 +2,8 @@ import gbinder
 import logging
 import time
 from tools import helpers
+from gi.repository import GLib
+import signal
 
 
 INTERFACE = "lineageos.waydroid.IPlatform"
@@ -299,6 +301,13 @@ def get_service(args):
         serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER, args.SERVICE_MANAGER_PROTOCOL, args.BINDER_PROTOCOL)
     except TypeError:
         serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER)
+
+    if not serviceManager.is_present():
+        logging.info("Waiting for binder Service Manager...")
+        if not wait_for_manager(serviceManager):
+            logging.error("Service Manager never appeared")
+            return None
+
     tries = 1000
 
     remote, status = serviceManager.get_service_sync(SERVICE_NAME)
@@ -313,3 +322,14 @@ def get_service(args):
             return None
 
     return IPlatform(remote)
+
+# Like ServiceManager.wait() but can be interrupted
+def wait_for_manager(sm):
+    mainloop = GLib.MainLoop()
+    sm.add_presence_handler(lambda: mainloop.quit() if sm.is_present() else None)
+    GLib.timeout_add_seconds(60, lambda: mainloop.quit())
+    GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, lambda _: mainloop.quit(), None)
+    mainloop.run()
+    if not sm.is_present():
+        return False
+    return True
