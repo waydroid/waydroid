@@ -28,6 +28,8 @@ def install(args):
         platformService = IPlatform.get_service(args)
         if platformService:
             platformService.installApp("/data/waydroid_tmp/base.apk")
+        else:
+            logging.error("Failed to access IPlatform service")
         os.remove(tmp_dir + "/base.apk")
 
         if session["state"] == "FROZEN":
@@ -49,6 +51,8 @@ def remove(args):
             ret = platformService.removeApp(args.PACKAGE)
             if ret != 0:
                 logging.error("Failed to uninstall package: {}".format(args.PACKAGE))
+        else:
+            logging.error("Failed to access IPlatform service")
 
         if session["state"] == "FROZEN":
             cm.Freeze()
@@ -103,11 +107,11 @@ def list(args):
                 print("categories:")
                 for cat in app["categories"]:
                     print("\t" + cat)
+        else:
+            logging.error("Failed to access IPlatform service")
 
         if session["state"] == "FROZEN":
             cm.Freeze()
-        else:
-            logging.error("Failed to access IPlatform service")
     except dbus.DBusException:
         logging.error("WayDroid session is stopped")
 
@@ -123,6 +127,8 @@ def showFullUI(args):
                 statusBarService.expand()
                 time.sleep(0.5)
                 statusBarService.collapse()
+        else:
+            logging.error("Failed to access IPlatform service")
     maybeLaunchLater(args, justShow)
 
 def intent(args):
