@@ -30,7 +30,7 @@ def service(args, looper):
     dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
     looper.run()
 
-def start(args, unlocked_cb=None):
+def start(args, unlocked_cb=None, background=True):
     try:
         name = dbus.service.BusName("id.waydro.Session", dbus.SessionBus(), do_not_queue=True)
     except dbus.exceptions.NameExistsException:
@@ -71,6 +71,8 @@ def start(args, unlocked_cb=None):
         else:
             dpi = "0"
     session["lcd_density"] = dpi
+
+    session["background_start"] = "true" if background else "false"
 
     mainloop = GLib.MainLoop()
 

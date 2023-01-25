@@ -69,7 +69,7 @@ def maybeLaunchLater(args, launchNow):
         launchNow()
     except dbus.DBusException:
         logging.error("Starting waydroid session")
-        tools.actions.session_manager.start(args, launchNow)
+        tools.actions.session_manager.start(args, launchNow, background=False)
 
 def launch(args):
     def justLaunch():
