@@ -8,7 +8,7 @@ WAYDROID_DIR := $(PREFIX)/lib/waydroid
 BIN_DIR := $(PREFIX)/bin
 APPS_DIR := $(PREFIX)/share/applications
 METAINFO_DIR := $(PREFIX)/share/metainfo
-SYSD_DIR := $(PREFIX)/lib/systemd/system
+SYSD_DIR := $(PREFIX)/lib/systemd
 DBUS_DIR := $(PREFIX)/share/dbus-1
 POLKIT_DIR := $(PREFIX)/share/polkit-1
 APPARMOR_DIR := /etc/apparmor.d
@@ -35,11 +35,15 @@ install:
 	cp dbus/id.waydro.Container.policy $(INSTALL_POLKIT_DIR)/actions/
 	if [ $(USE_DBUS_ACTIVATION) = 1 ]; then \
 		install -d $(INSTALL_DBUS_DIR)/system-services; \
+		install -d $(INSTALL_DBUS_DIR)/services; \
 		cp dbus/id.waydro.Container.service $(INSTALL_DBUS_DIR)/system-services/; \
+		cp dbus/id.waydro.Session.service $(INSTALL_DBUS_DIR)/services/; \
 	fi
 	if [ $(USE_SYSTEMD) = 1 ]; then \
-		install -d $(INSTALL_SYSD_DIR); \
-		cp systemd/waydroid-container.service $(INSTALL_SYSD_DIR); \
+		install -d $(INSTALL_SYSD_DIR)/system; \
+		install -d $(INSTALL_SYSD_DIR)/user; \
+		cp systemd/waydroid-container.service $(INSTALL_SYSD_DIR)/system; \
+		cp systemd/waydroid-session.service $(INSTALL_SYSD_DIR)/user; \
 	fi
 	if [ $(USE_NFTABLES) = 1 ]; then \
 		sed '/LXC_USE_NFT=/ s/false/true/' -i $(INSTALL_WAYDROID_DIR)/data/scripts/waydroid-net.sh; \

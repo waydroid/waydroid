@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=id.waydro.Session
+Exec=/usr/bin/waydroid session start
+SystemdService=waydroid-session.service

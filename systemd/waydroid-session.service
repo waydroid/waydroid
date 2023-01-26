@@ -1,0 +1,9 @@
+[Unit]
+Description=Waydroid Session
+
+[Service]
+BusName=id.waydro.Session
+ExecStart=waydroid session start
+
+[Install]
+WantedBy=graphical-session.target
