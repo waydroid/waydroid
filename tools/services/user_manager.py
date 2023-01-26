@@ -78,7 +78,7 @@ def start(args, session, unlocked_cb=None):
         platformService = IPlatform.get_service(args)
         if platformService:
             appInfo = platformService.getAppInfo(packageName)
-            desktop_file_path = args.apps_dir + "/" + packageName + ".desktop"
+            desktop_file_path = args.apps_dir + "/waydroid." + packageName + ".desktop"
             if mode == 0:
                 # Package added
                 makeDesktopFile(appInfo)
