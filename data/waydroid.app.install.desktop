@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Install in Waydroid
+NoDisplay=true
+MimeType=application/vnd.android.package-archive
+Exec=/usr/bin/waydroid app install %f
+Icon=/usr/lib/waydroid/data/AppIcon.png
