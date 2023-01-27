@@ -119,6 +119,7 @@ def make_prop(args, cfg, full_props_path):
     add_prop("waydroid.host.user", "user_name")
     add_prop("waydroid.host.uid", "user_id")
     add_prop("waydroid.host.gid", "group_id")
+    add_prop("waydroid.host_data_path", "waydroid_data")
     add_prop("waydroid.xdg_runtime_dir", "xdg_runtime_dir")
     add_prop("waydroid.pulse_runtime_path", "pulse_runtime_path")
     add_prop("waydroid.wayland_display", "wayland_display")
