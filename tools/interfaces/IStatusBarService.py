@@ -73,10 +73,11 @@ def get_service(args):
 # Like ServiceManager.wait() but can be interrupted
 def wait_for_manager(sm):
     mainloop = GLib.MainLoop()
-    sm.add_presence_handler(lambda: mainloop.quit() if sm.is_present() else None)
+    hndl = sm.add_presence_handler(lambda: mainloop.quit() if sm.is_present() else None)
     GLib.timeout_add_seconds(60, lambda: mainloop.quit())
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, lambda _: mainloop.quit(), None)
     mainloop.run()
+    sm.remove_handler(hndl)
     if not sm.is_present():
         return False
     return True
