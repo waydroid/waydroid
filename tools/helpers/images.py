@@ -87,11 +87,13 @@ def replace(args, system_zip, system_time, vendor_zip, vendor_time):
     if os.path.exists(system_zip):
         with zipfile.ZipFile(system_zip, 'r') as zip_ref:
             zip_ref.extractall(args.images_path)
+        os.remove(system_zip)
         cfg["waydroid"]["system_datetime"] = str(system_time)
         tools.config.save(args, cfg)
     if os.path.exists(vendor_zip):
         with zipfile.ZipFile(vendor_zip, 'r') as zip_ref:
             zip_ref.extractall(args.images_path)
+        os.remove(vendor_zip)
         cfg["waydroid"]["vendor_datetime"] = str(vendor_time)
         tools.config.save(args, cfg)
     remove_overlay(args)
