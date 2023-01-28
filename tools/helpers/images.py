@@ -143,11 +143,17 @@ def mount_rootfs(args, images_dir, session):
     helpers.mount.mount(args, images_dir + "/system.img",
                         tools.config.defaults["rootfs"], umount=True)
     if cfg["waydroid"]["mount_overlays"] == "True":
-        helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"],
-                                           tools.config.defaults["rootfs"]],
+        try:
+            helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"],
+                                               tools.config.defaults["rootfs"]],
                                     tools.config.defaults["rootfs"],
                                     upper_dir=tools.config.defaults["overlay_rw"] + "/system",
                                     work_dir=tools.config.defaults["overlay_work"] + "/system")
+        except RuntimeError:
+            cfg["waydroid"]["mount_overlays"] = "False"
+            tools.config.save(args, cfg)
+            logging.warning("Mounting overlays failed. The feature has been disabled.")
+
     helpers.mount.mount(args, images_dir + "/vendor.img",
                            tools.config.defaults["rootfs"] + "/vendor")
     if cfg["waydroid"]["mount_overlays"] == "True":
