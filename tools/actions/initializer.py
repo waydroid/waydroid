@@ -113,8 +113,13 @@ def init(args):
             status = helpers.lxc.status(args)
         if status != "STOPPED":
             logging.info("Stopping container")
-            helpers.lxc.stop(args)
-        helpers.images.umount_rootfs(args)
+            try:
+                container = tools.helpers.ipc.DBusContainerService()
+                args.session = container.GetSession()
+                container.Stop(False)
+            except Exception as e:
+                logging.debug(e)
+                tools.actions.container_manager.stop(args)
         if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
             helpers.images.get(args)
         else:
@@ -134,8 +139,11 @@ def init(args):
         helpers.lxc.make_base_props(args)
         if status != "STOPPED":
             logging.info("Starting container")
-            helpers.images.mount_rootfs(args, args.images_path)
-            helpers.lxc.start(args)
+            try:
+                container.Start(args.session)
+            except Exception as e:
+                logging.debug(e)
+                logging.error("Failed to restart container. Please do so manually.")
 
         if "running_init_in_service" not in args or not args.running_init_in_service:
             try:
