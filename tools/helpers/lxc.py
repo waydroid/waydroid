@@ -372,8 +372,11 @@ def setup_host_perms(args):
 
 def status(args):
     command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
-    out = subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
-    return out
+    try:
+        return tools.helpers.run.user(args, command, output_return=True).strip()
+    except:
+        logging.info("Couldn't get LXC status. Assuming STOPPED.")
+        return "STOPPED"
 
 def wait_for_running(args):
     lxc_status = status(args)
