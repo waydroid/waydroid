@@ -1,4 +1,4 @@
-profile android_app flags=(attach_disconnected, complain, mediate_deleted) {
+profile android_app flags=(attach_disconnected, mediate_deleted) {
   /** ix,
   /dev** rw,
   network,
