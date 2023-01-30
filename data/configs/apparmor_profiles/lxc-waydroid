@@ -1,4 +1,4 @@
-profile lxc-waydroid flags=(attach_disconnected, complain, mediate_deleted) {
+profile lxc-waydroid flags=(attach_disconnected, mediate_deleted) {
   /** ix,
   /system/bin/app_process Pix -> lxc-waydroid//&android_app,
   /system/bin/app_process32 Pix -> lxc-waydroid//&android_app,
