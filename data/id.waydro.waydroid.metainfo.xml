@@ -1,3 +1,4 @@
+<!-- Copyright 2023 Waydroid -->
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
   <id>id.waydro.waydroid</id>
@@ -7,6 +8,14 @@
 
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-only</project_license>
+
+  <url type="homepage">https://waydro.id/</url>
+  <url type="bugtracker">https://github.com/waydroid/waydroid/issues</url>
+  <url type="faq">https://docs.waydro.id/faq</url>
+  <url type="help">https://matrix.to/#/#waydroid:mrcyjanek.net</url>
+  <url type="donation">https://opencollective.com/waydroid/donate</url>
+  <url type="translate">https://gaijinent.com/contacts</url>
+  <url type="contact">https://matrix.to/#/#waydroid:mrcyjanek.net</url>
 
   <supports>
     <control>pointing</control>
@@ -33,4 +42,18 @@
       <image>https://waydro.id/assets/images/hero/clean_desktop.jpeg</image>
     </screenshot>
   </screenshots>
+
+  <!-- Update to latest release information -->
+  <releases>
+    <release version="1.3.4" date="2022-12-14"/>
+  </releases>
+
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">intense</content_attribute>
+    <content_attribute id="social-info">intense</content_attribute>
+    <content_attribute id="social-audio">intense</content_attribute>
+    <content_attribute id="social-location">intense</content_attribute>
+    <content_attribute id="social-contacts">intense</content_attribute>
+  </content_rating>
+
 </component>
