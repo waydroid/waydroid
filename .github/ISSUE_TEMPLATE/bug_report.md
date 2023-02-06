@@ -15,7 +15,7 @@ If applicable, add screenshots to help explain your problem.
 
 **General information (please complete the following information):**
  - Waydroid tools Version [e.g. 1.1.0]
- - Waydroid Images Version [e.g. VANILLA 20211021]
+ - Waydroid Images Version [e.g. VANILLA 20211021], or `system_datetime`/`vendor_datetime` from `/var/lib/waydroid/waydroid.cfg`
 
 **Desktop (please complete the following information):**
  - OS: [e.g. Ubuntu 20.04 x64]
@@ -34,6 +34,7 @@ If applicable, add screenshots to help explain your problem.
 Add any other context about the problem here.
 
 **Logs (please upload as file)**
- - Prop file, located on `/var/lib/waydroid/waydroid_base.prop`
- - Output of `waydroid log`
- - *Full* (not partially) Output of `waydroid logcat` from the beginning of starting waydroid services
+ - Prop file, located at `/var/lib/waydroid/waydroid.prop`. In case that doesn't exist, use `/var/lib/waydroid/waydroid_base.prop` instead
+ - Log file, located at `/var/lib/waydroid/waydroid.log`
+ - *Full* (not partial) output of `waydroid logcat` while Waydroid is running
+ - Output of `dmesg`
