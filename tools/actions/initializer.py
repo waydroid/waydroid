@@ -293,7 +293,7 @@ def remote_init_client(args):
             channels_cfg = tools.config.load_channels()
 
             self.set_default_size(600, 250)
-            self.set_icon_from_file(tools.config.tools_src + "/data/AppIcon.png")
+            self.set_icon_name("waydroid")
 
             grid = Gtk.Grid(row_spacing=6, column_spacing=6, margin=10, column_homogeneous=True)
             grid.set_hexpand(True)
