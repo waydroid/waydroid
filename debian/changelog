@@ -1,3 +1,71 @@
+waydroid (1.4.0) bullseye; urgency=medium
+
+  * lxc: Fixup apparmor detection
+  * lxc: Allow shell and logcat from frozen
+  * initializer: Move triggers to dbus
+  * Move session IPC to dbus
+  * Makefile: Install dbus service
+  * app_manager: Allow install/remove/list while frozen
+  * tools: Remove umask 0
+  * initializer: Require admin authentication for remote initialization with custom channels
+  * lxc: Workaround against lxc changing logfile permissions
+  * tools: Allow prop commands while frozen
+  * Fix prop set command
+  * gpu: Also mount card node
+  * helpers/mount: Check for failed umounts only umounting the whole list
+  * helpers/mount: Allow to specify explicit mount type and options
+  * helpers/mount: Add an option to mount even if mount point already exists
+  * Mount overlays on top of image mount points
+  * Remove RW image overlay when upgrading images
+  * Make overlays opt-out
+  * Make session more resilient to start failures
+  * session: Add strict WAYLAND_DISPLAY validity checks
+  * debian: Unify waydroid.postinst indentation
+  * props: Drop unneeded ';' from end of return line
+  * lxc: Only add /dev/ashmem to config_nodes when it exists
+  * container: Make "waydroid-net.sh start" failure fatal
+  * net: Don't fail start when already running
+  * container: Allow stopping without killing the session deamon
+  * Use `command -v` instead of `which`
+  * mount: Only disable overlayfs xino on kernels that support it
+  * version: Don't fail when uname contains only two numbers
+  * session: Dump the full exception to log file when failed to start
+  * version: Fix "NameError: name 're' is not defined"
+  * lxc: Attach with proper environment
+  * security: Verify session user_id against DBus connection
+  * session: Also log dbus connection exceptions
+  * fixup! security: Verify session user_id against DBus connection
+  * lxc: Create session-specific mount entries (Closes: #704)
+  * upgrade: Restart container through DBus
+  * upgrade: Drop more privileges during 1.4.0 migration
+  * upgrade: Fallback to stopping container manually
+  * upgrade: Remove session.cfg during 1.4.0 migration
+  * security: Verify session pid against DBus connection
+  * container_manager: Mount rootfs last
+  * lxc: Improve session config error message
+  * container: Extend nfcd stop/start hacks to systemd
+  * app_manager: Fix IPlatform error logging
+  * interfaces: Fix ServiceManager race condition in clients
+  * session: Provide waydroid.background_start bool
+  * Add apk mimetype handler
+  * user_manager: Fix app removal
+  * session: Provide waydroid.host_data_path prop
+  * images: Cleanup Waydroid Updater zips after extracting
+  * interfaces: Remove presence handler after use
+  * packaging: install icons to xdg icons resource path, and get the .desktop file to use relative icon name
+  * Disable overlays if mounting fails once
+  * lxc: Handle lxc-info failure
+  * initializer: Restart container through DBus
+  * arch: Fallback to arm on weird arm64 kernels with 32-bit userspace
+  * Update appstream
+  * Update github issue template
+  * Fix last hardcoded direct usages of AppIcon.png
+  * waydroid.app.install.desktop: Don't hardcode waydroid binary path
+  * Add developer_name to appstream metadata
+  * Upver to 1.4.0
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Wed, 08 Feb 2023 16:30:33 +0000
+
 waydroid (1.3.4) bullseye; urgency=medium
 
   * Remove CAP_SYS_MODULE from the capability bounding set.
