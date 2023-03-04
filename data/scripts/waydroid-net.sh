@@ -93,26 +93,9 @@ start_nftables() {
     start_ipv6
     NFT_RULESET=""
     if [ -n "$LXC_IPV6_ARG" ] && [ "$LXC_IPV6_NAT" = "true" ]; then
-        NFT_RULESET="${NFT_RULESET}
-add table ip6 lxc;
-flush table ip6 lxc;
-add chain ip6 lxc postrouting { type nat hook postrouting priority 100; };
-add rule ip6 lxc postrouting ip saddr ${LXC_IPV6_NETWORK} ip daddr != ${LXC_IPV6_NETWORK} counter masquerade;
-"
+        NFT_RULESET="${NFT_RULESET}; $(cat /etc/waydroid/nftables.d/ipv6.nft)"
     fi
-    NFT_RULESET="${NFT_RULESET};
-add table inet lxc;
-flush table inet lxc;
-add chain inet lxc input { type filter hook input priority 0; };
-add rule inet lxc input iifname ${LXC_BRIDGE} udp dport { 53, 67 } accept;
-add rule inet lxc input iifname ${LXC_BRIDGE} tcp dport { 53, 67 } accept;
-add chain inet lxc forward { type filter hook forward priority 0; };
-add rule inet lxc forward iifname ${LXC_BRIDGE} accept;
-add rule inet lxc forward oifname ${LXC_BRIDGE} accept;
-add table ip lxc;
-flush table ip lxc;
-add chain ip lxc postrouting { type nat hook postrouting priority 100; };
-add rule ip lxc postrouting ip saddr ${LXC_NETWORK} ip daddr != ${LXC_NETWORK} counter masquerade"
+    NFT_RULESET="${NFT_RULESET}; $(cat /etc/waydroid/nftables.d/base.nft)"
     nft "${NFT_RULESET}"
 }
 

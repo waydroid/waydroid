@@ -1,0 +1,4 @@
+add table ip6 lxc;
+flush table ip6 lxc;
+add chain ip6 lxc postrouting { type nat hook postrouting priority 100; };
+add rule ip6 lxc postrouting ip saddr ${LXC_IPV6_NETWORK} ip daddr != ${LXC_IPV6_NETWORK} counter masquerade;
