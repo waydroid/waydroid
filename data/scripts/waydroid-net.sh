@@ -14,23 +14,14 @@ else
     echo "vnic is waydroid0"
 fi
 
-USE_LXC_BRIDGE="true"
-LXC_BRIDGE="${vnic}"
-LXC_BRIDGE_MAC="00:16:3e:00:00:01"
-LXC_ADDR="192.168.240.1"
-LXC_NETMASK="255.255.255.0"
-LXC_NETWORK="192.168.240.0/24"
-LXC_DHCP_RANGE="192.168.240.2,192.168.240.254"
-LXC_DHCP_MAX="253"
-LXC_DHCP_CONFILE=""
-LXC_DHCP_PING="true"
-LXC_DOMAIN=""
-LXC_USE_NFT="false"
-
-LXC_IPV6_ADDR=""
-LXC_IPV6_MASK=""
-LXC_IPV6_NETWORK=""
-LXC_IPV6_NAT="false"
+if [ -e /etc/waydroid/lxc.conf ]; then
+    set -o allexport
+    . /etc/waydroid/lxc.conf
+    set +x allexport
+else
+    echo "Didn't find a configuration file in /etc/waydroid/lxc.conf";
+    exit 1
+fi
 
 IPTABLES_BIN="$(command -v iptables-legacy)"
 if [ ! -n "$IPTABLES_BIN" ]; then
