@@ -28,6 +28,10 @@ def start(args, session, unlocked_cb=None):
             lines.append("Exec=waydroid app launch " + packageName)
             lines.append("Icon=" + args.waydroid_data + "/icons/" + packageName + ".png")
             lines.append("X-Purism-FormFactor=Workstation;Mobile;")
+            lines.append("Actions=app_settings;")
+            lines.append("[Desktop Action app_settings]")
+            lines.append("Name=App Settings")
+            lines.append("Exec=waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:" + packageName)
             desktop_file = open(desktop_file_path, "w")
             for line in lines:
                 desktop_file.write(line + "\n")
