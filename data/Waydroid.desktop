@@ -3,4 +3,5 @@ Type=Application
 Name=Waydroid
 Exec=waydroid first-launch
 Icon=waydroid
+Categories=X-WayDroid-App;
 X-Purism-FormFactor=Workstation;Mobile;
