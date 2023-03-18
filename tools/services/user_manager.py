@@ -27,6 +27,7 @@ def start(args, session, unlocked_cb=None):
             lines.append("Name=" + appInfo["name"])
             lines.append("Exec=waydroid app launch " + packageName)
             lines.append("Icon=" + args.waydroid_data + "/icons/" + packageName + ".png")
+            lines.append("Categories=X-WayDroid-App;")
             lines.append("X-Purism-FormFactor=Workstation;Mobile;")
             desktop_file = open(desktop_file_path, "w")
             for line in lines:
@@ -42,6 +43,7 @@ def start(args, session, unlocked_cb=None):
         lines = ["[Desktop Entry]", "Type=Application"]
         lines.append("Name=Waydroid")
         lines.append("Exec=waydroid show-full-ui")
+        lines.append("Categories=X-WayDroid-App;")
         lines.append("X-Purism-FormFactor=Workstation;Mobile;")
         if hide:
             lines.append("NoDisplay=true")
