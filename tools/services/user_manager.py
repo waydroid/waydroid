@@ -56,7 +56,7 @@ def start(args, session, unlocked_cb=None):
         for line in lines:
             desktop_file.write(line + "\n")
         desktop_file.close()
-        os.chmod(desktop_file_path, 0o755)
+        os.chmod(desktop_file_path, 0o644)
 
     def userUnlocked(uid):
         logging.info("Android with user {} is ready".format(uid))
