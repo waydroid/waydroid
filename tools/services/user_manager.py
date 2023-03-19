@@ -18,7 +18,7 @@ def start(args, session, unlocked_cb=None):
                 showApp = True
         if not showApp:
             return -1
-        
+
         packageName = appInfo["packageName"]
 
         desktop_file_path = args.apps_dir + "/waydroid." + packageName + ".desktop"
@@ -37,7 +37,7 @@ def start(args, session, unlocked_cb=None):
             for line in lines:
                 desktop_file.write(line + "\n")
             desktop_file.close()
-            os.chmod(desktop_file_path, 0o755)
+            os.chmod(desktop_file_path, 0o644)
             return 0
 
     def makeWaydroidDesktopFile(hide):
@@ -56,7 +56,7 @@ def start(args, session, unlocked_cb=None):
         for line in lines:
             desktop_file.write(line + "\n")
         desktop_file.close()
-        os.chmod(desktop_file_path, 0o755)
+        os.chmod(desktop_file_path, 0o644)
 
     def userUnlocked(uid):
         logging.info("Android with user {} is ready".format(uid))
