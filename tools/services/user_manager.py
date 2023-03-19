@@ -12,51 +12,52 @@ stopping = False
 def start(args, session, unlocked_cb=None):
 
     def makeDesktopFile(appInfo):
-        showApp = False
-        for cat in appInfo["categories"]:
-            if cat.strip() == "android.intent.category.LAUNCHER":
-                showApp = True
-        if not showApp:
-            return -1
-        
-        packageName = appInfo["packageName"]
-
-        desktop_file_path = args.apps_dir + "/waydroid." + packageName + ".desktop"
-        if not os.path.exists(desktop_file_path):
-            lines = ["[Desktop Entry]", "Type=Application"]
-            lines.append("Name=" + appInfo["name"])
-            lines.append("Exec=waydroid app launch " + packageName)
-            lines.append("Icon=" + args.waydroid_data + "/icons/" + packageName + ".png")
-            lines.append("Categories=X-WayDroid-App;")
-            lines.append("X-Purism-FormFactor=Workstation;Mobile;")
-            lines.append("Actions=app_settings;")
-            lines.append("[Desktop Action app_settings]")
-            lines.append("Name=App Settings")
-            lines.append("Exec=waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:" + packageName)
-            desktop_file = open(desktop_file_path, "w")
-            for line in lines:
-                desktop_file.write(line + "\n")
-            desktop_file.close()
-            os.chmod(desktop_file_path, 0o755)
+#       showApp = False
+#       for cat in appInfo["categories"]:
+#           if cat.strip() == "android.intent.category.LAUNCHER":
+#               showApp = True
+#       if not showApp:
+#           return -1
+#
+#       packageName = appInfo["packageName"]
+#
+#       desktop_file_path = args.apps_dir + "/waydroid." + packageName + ".desktop"
+#       if not os.path.exists(desktop_file_path):
+#           lines = ["[Desktop Entry]", "Type=Application"]
+#           lines.append("Name=" + appInfo["name"])
+#           lines.append("Exec=waydroid app launch " + packageName)
+#           lines.append("Icon=" + args.waydroid_data + "/icons/" + packageName + ".png")
+#           lines.append("Categories=X-WayDroid-App;")
+#           lines.append("X-Purism-FormFactor=Workstation;Mobile;")
+#           lines.append("Actions=app_settings;")
+#           lines.append("[Desktop Action app_settings]")
+#           lines.append("Name=App Settings")
+#           lines.append("Exec=waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:" + packageName)
+#           desktop_file = open(desktop_file_path, "w")
+#           for line in lines:
+#               desktop_file.write(line + "\n")
+#           desktop_file.close()
+#           os.chmod(desktop_file_path, 0o755)
             return 0
 
     def makeWaydroidDesktopFile(hide):
-        desktop_file_path = args.apps_dir + "/Waydroid.desktop"
-        if os.path.isfile(desktop_file_path):
-            os.remove(desktop_file_path)
-        lines = ["[Desktop Entry]", "Type=Application"]
-        lines.append("Name=Waydroid")
-        lines.append("Exec=waydroid show-full-ui")
-        lines.append("Categories=X-WayDroid-App;")
-        lines.append("X-Purism-FormFactor=Workstation;Mobile;")
-        if hide:
-            lines.append("NoDisplay=true")
-        lines.append("Icon=waydroid")
-        desktop_file = open(desktop_file_path, "w")
-        for line in lines:
-            desktop_file.write(line + "\n")
-        desktop_file.close()
-        os.chmod(desktop_file_path, 0o755)
+#       desktop_file_path = args.apps_dir + "/Waydroid.desktop"
+#       if os.path.isfile(desktop_file_path):
+#           os.remove(desktop_file_path)
+#       lines = ["[Desktop Entry]", "Type=Application"]
+#       lines.append("Name=Waydroid")
+#       lines.append("Exec=waydroid show-full-ui")
+#       lines.append("Categories=X-WayDroid-App;")
+#       lines.append("X-Purism-FormFactor=Workstation;Mobile;")
+#       if hide:
+#           lines.append("NoDisplay=true")
+#       lines.append("Icon=waydroid")
+#       desktop_file = open(desktop_file_path, "w")
+#       for line in lines:
+#           desktop_file.write(line + "\n")
+#       desktop_file.close()
+#       os.chmod(desktop_file_path, 0o755)
+        return 0
 
     def userUnlocked(uid):
         logging.info("Android with user {} is ready".format(uid))
