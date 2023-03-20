@@ -1,4 +1,4 @@
-profile adbd flags=(attach_disconnected,mediate_deleted) {
+profile adbd flags=(attach_disconnected,mediate_deleted,complain) {
   /** ix,
   /dev** rw,
   network,
