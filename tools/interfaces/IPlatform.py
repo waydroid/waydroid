@@ -71,11 +71,11 @@ class IPlatform:
         reply, status = self.client.transact_sync_reply(
             TRANSACTION_getAppsInfo, request)
 
+        apps_list = []
         if status:
             logging.error("Sending reply failed")
         else:
             reader = reply.init_reader()
-            apps_list = []
             status, exception = reader.read_int32()
             if exception == 0:
                 status, apps = reader.read_int32()
