@@ -3,6 +3,7 @@
 import os
 import tools.config
 import tools.helpers.ipc
+import tools.helpers.net
 import dbus
 
 def print_status(args):
@@ -17,6 +18,7 @@ def print_status(args):
             print("Session:\tRUNNING")
             print("Container:\t" + session["state"])
             print("Vendor type:\t" + cfg["waydroid"]["vendor_type"])
+            print("IP address:\t" + (tools.helpers.net.get_device_ip_address() or "UNKNOWN"))
             print("Session user:\t{}({})".format(session["user_name"], session["user_id"]))
             print("Wayland display:\t" + session["wayland_display"])
         else:
