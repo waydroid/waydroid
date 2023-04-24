@@ -47,6 +47,7 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/ashmem")
     make_entry("/dev/fuse")
     make_entry("/dev/ion")
+    make_entry("/dev/tty")
     make_entry("/dev/char", options="bind,create=dir,optional 0 0")
 
     # Graphic dev nodes
