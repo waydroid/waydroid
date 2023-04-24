@@ -1,3 +1,20 @@
+waydroid (1.4.1) bullseye; urgency=medium
+
+  * CI: Add ubuntu lunar
+  * Add App Settings to .desktop file
+  * Add X-WayDroid-App category to WayDroid desktop files (#810)
+  * All AppArmor profiles have been switched to the "enforce" mode.
+  * .desktop files should not be executable (#815)
+  * Revert "All AppArmor profiles have been switched to the "enforce" mode."
+  * Add missing environment variable BOOTCLASSPATH to waydroid shell
+  * user_manager: Do not crash when install applications during boot
+  * Create CODE_OF_CONDUCT.md
+  * Add device IP address to status, auto adb connect
+  * lxc: Add /dev/tty
+  * Upver to 1.4.1
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Mon, 24 Apr 2023 11:54:54 +0000
+
 waydroid (1.4.0) bullseye; urgency=medium
 
   * lxc: Fixup apparmor detection
