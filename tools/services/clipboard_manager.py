@@ -25,6 +25,7 @@ def start(args):
             return pyclip.paste()
         except Exception as e:
             logging.debug(str(e))
+        return ""
 
     def service_thread():
         while not stopping:

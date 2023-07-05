@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Install in Waydroid
+NoDisplay=true
+MimeType=application/vnd.android.package-archive
+Exec=waydroid app install %f
+Icon=waydroid

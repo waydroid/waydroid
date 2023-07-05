@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import os
 import tools.helpers.run
+from tools.helpers.version import versiontuple, kernel_version
 
 
 def ismount(folder):
@@ -102,22 +103,27 @@ def umount_all(args, folder):
     """
     Umount all folders, that are mounted inside a given folder.
     """
-    for mountpoint in umount_all_list(folder):
+    all_list = umount_all_list(folder)
+    for mountpoint in all_list:
         tools.helpers.run.user(args, ["umount", mountpoint])
+    for mountpoint in all_list:
         if ismount(mountpoint):
             raise RuntimeError("Failed to umount: " + mountpoint)
 
-def mount(args, source, destination, create_folders=True, umount=False, readonly=True):
+def mount(args, source, destination, create_folders=True, umount=False,
+          readonly=True, mount_type=None, options=None, force=True):
     """
     Mount and create necessary directory structure.
     :param umount: when destination is already a mount point, umount it first.
+    :param force: attempt mounting even if the mount point already exists.
     """
     # Check/umount destination
     if ismount(destination):
         if umount:
             umount_all(args, destination)
         else:
-            return
+            if not force:
+                return
 
     # Check/create folders
     if not os.path.exists(destination):
@@ -127,11 +133,48 @@ def mount(args, source, destination, create_folders=True, umount=False, readonly
             raise RuntimeError("Mount failed, folder does not exist: " +
                             destination)
 
-    # Actually mount the folder
-    tools.helpers.run.user(args, ["mount", source, destination])
+    extra_args = []
+    opt_args = []
+    if mount_type:
+        extra_args.extend(["-t", mount_type])
     if readonly:
-        tools.helpers.run.user(args, ["mount", "-o", "remount,ro", source, destination])
+        opt_args.append("ro")
+    if options:
+        opt_args.extend(options)
+    if opt_args:
+        extra_args.extend(["-o", ",".join(opt_args)])
+
+    # Actually mount the folder
+    tools.helpers.run.user(args, ["mount", *extra_args, source, destination])
 
     # Verify, that it has worked
     if not ismount(destination):
         raise RuntimeError("Mount failed: " + source + " -> " + destination)
+
+def mount_overlay(args, lower_dirs, destination, upper_dir=None, work_dir=None,
+                  create_folders=True, readonly=True):
+    """
+    Mount an overlay.
+    """
+    dirs = [*lower_dirs]
+    options = ["lowerdir=" + (":".join(lower_dirs))]
+
+    if upper_dir:
+        dirs.append(upper_dir)
+        dirs.append(work_dir)
+        options.append("upperdir=" + upper_dir)
+        options.append("workdir=" + work_dir)
+
+    if kernel_version() >= versiontuple("4.17"):
+        options.append("xino=off")
+
+    for dir_path in dirs:
+        if not os.path.exists(dir_path):
+            if create_folders:
+                tools.helpers.run.user(args, ["mkdir", "-p", dir_path])
+            else:
+                raise RuntimeError("Mount failed, folder does not exist: " +
+                                   dir_path)
+
+    mount(args, "overlay", destination, mount_type="overlay", options=options,
+          readonly=readonly, create_folders=create_folders, force=True)

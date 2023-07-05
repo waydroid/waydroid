@@ -110,7 +110,7 @@ def arguments_firstLaunch(subparser):
 
 def arguments_shell(subparser):
     ret = subparser.add_parser("shell", help="run remote shell command")
-    ret.add_argument('COMMAND', nargs='?', help="command to run")
+    ret.add_argument('COMMAND', nargs='*', help="command to run")
     return ret
 
 def arguments_logcat(subparser):

@@ -32,26 +32,6 @@ def load(args):
 
     return cfg
 
-def load_session():
-    config_path = tools.config.session_defaults["config_path"]
-    cfg = configparser.ConfigParser()
-    if os.path.isfile(config_path):
-        cfg.read(config_path)
-
-    if "session" not in cfg:
-        cfg["session"] = {}
-
-    for key in tools.config.session_defaults:
-        if key in tools.config.session_config_keys and key not in cfg["session"]:
-            cfg["session"][key] = str(tools.config.session_defaults[key])
-
-        if key not in tools.config.session_config_keys and key in cfg["session"]:
-            logging.debug("Ignored unconfigurable and possibly outdated"
-                          " default value from config: {}".format(cfg['session'][key]))
-            del cfg["session"][key]
-
-    return cfg
-
 def load_channels():
     config_path = tools.config.channels_defaults["config_path"]
     cfg = configparser.ConfigParser()

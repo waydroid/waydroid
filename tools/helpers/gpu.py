@@ -7,12 +7,18 @@ unsupported = ["nvidia", "nouveau"]
 def getKernelDriver(args, dev):
     return tools.helpers.props.file_get(args, "/sys/class/drm/{}/device/uevent".format(dev), "DRIVER")
 
+def getCardFromRender(args, dev):
+    try:
+        return "/dev/dri/" + os.path.basename(glob.glob("/sys/class/drm/{}/device/drm/card*".format(dev))[0])
+    except IndexError:
+        return ""
+
 def getDriNode(args):
     for node in glob.glob("/dev/dri/renderD*"):
-        dev = os.path.basename(node)
-        if getKernelDriver(args, dev) not in unsupported:
-            return node
-    return ""
+        renderDev = os.path.basename(node)
+        if getKernelDriver(args, renderDev) not in unsupported:
+            return node, getCardFromRender(args, renderDev)
+    return "", ""
 
 def getVulkanDriver(args, dev):
     mapping = {

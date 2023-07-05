@@ -8,6 +8,8 @@ matrix:
    image: mrcyjanek/waydroid:bookworm
  - env: DISTRO=bullseye
    image: mrcyjanek/waydroid:bullseye
+ - env: DISTRO=lunar
+   image: mrcyjanek/waydroid:lunar
  - env: DISTRO=jammy
    image: mrcyjanek/waydroid:jammy
  - env: DISTRO=focal

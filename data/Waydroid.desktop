@@ -2,4 +2,6 @@
 Type=Application
 Name=Waydroid
 Exec=waydroid first-launch
-Icon=/usr/lib/waydroid/data/AppIcon.png
+Icon=/usr/share/icons/hicolor/512x512/apps/waydroid.png
+Categories=X-WayDroid-App;
+X-Purism-FormFactor=Workstation;Mobile;
