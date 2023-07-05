@@ -6,13 +6,13 @@ import pwd
 #
 # Exported functions
 #
-from tools.config.load import load, load_session, load_channels
-from tools.config.save import save, save_session
+from tools.config.load import load, load_channels
+from tools.config.save import save
 
 #
 # Exported variables (internal configuration)
 #
-version = "1.3.3"
+version = "1.4.1"
 tools_src = os.path.normpath(os.path.realpath(__file__) + "/../../..")
 
 # Keys saved in the config file (mostly what we ask in 'waydroid init')
@@ -20,19 +20,9 @@ config_keys = ["arch",
                "images_path",
                "vendor_type",
                "system_datetime",
-               "vendor_datetime"]
-
-session_config_keys = ["user_name",
-                       "user_id",
-                       "group_id",
-                       "host_user",
-                       "xdg_data_home",
-                       "waydroid_data",
-                       "xdg_runtime_dir",
-                       "wayland_display",
-                       "pulse_runtime_path",
-                       "state",
-                       "lcd_density"]
+               "vendor_datetime",
+               "suspend_action",
+               "mount_overlays"]
 
 # Config file/commandline default values
 # $WORK gets replaced with the actual value for args.work (which may be
@@ -46,10 +36,15 @@ defaults = {
     "preinstalled_images_paths": [
         "/etc/waydroid-extra/images",
         "/usr/share/waydroid-extra/images",
-    ]
+    ],
+    "suspend_action": "freeze",
+    "mount_overlays": "True",
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"
+defaults["overlay"] = defaults["work"] + "/overlay"
+defaults["overlay_rw"] = defaults["work"] + "/overlay_rw"
+defaults["overlay_work"] = defaults["work"] + "/overlay_work"
 defaults["data"] = defaults["work"] + "/data"
 defaults["lxc"] = defaults["work"] + "/lxc"
 defaults["host_perms"] = defaults["work"] + "/host-permissions"
@@ -59,12 +54,14 @@ session_defaults = {
     "user_id": str(os.getuid()),
     "group_id": str(os.getgid()),
     "host_user": os.path.expanduser("~"),
+    "pid": str(os.getpid()),
     "xdg_data_home": str(os.environ.get('XDG_DATA_HOME', os.path.expanduser("~") + "/.local/share")),
     "xdg_runtime_dir": str(os.environ.get('XDG_RUNTIME_DIR')),
     "wayland_display": str(os.environ.get('WAYLAND_DISPLAY')),
     "pulse_runtime_path": str(os.environ.get('PULSE_RUNTIME_PATH')),
     "state": "STOPPED",
-    "lcd_density": "0"
+    "lcd_density": "0",
+    "background_start": "true"
 }
 session_defaults["config_path"] = defaults["work"] + "/session.cfg"
 session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + \

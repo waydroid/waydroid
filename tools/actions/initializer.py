@@ -10,6 +10,10 @@ import threading
 import multiprocessing
 import select
 import queue
+import time
+import dbus
+import dbus.service
+from gi.repository import GLib
 
 def is_initialized(args):
     return os.path.isfile(args.config) and os.path.isdir(tools.config.defaults["rootfs"])
@@ -98,44 +102,105 @@ def setup_config(args):
 
 def init(args):
     if not is_initialized(args) or args.force:
+        initializer_service = None
+        try:
+            initializer_service = tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer")
+        except dbus.DBusException:
+            pass
         setup_config(args)
         status = "STOPPED"
         if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
             status = helpers.lxc.status(args)
         if status != "STOPPED":
             logging.info("Stopping container")
-            helpers.lxc.stop(args)
-        helpers.images.umount_rootfs(args)
+            try:
+                container = tools.helpers.ipc.DBusContainerService()
+                args.session = container.GetSession()
+                container.Stop(False)
+            except Exception as e:
+                logging.debug(e)
+                tools.actions.container_manager.stop(args)
         if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
             helpers.images.get(args)
+        else:
+            helpers.images.remove_overlay(args)
         if not os.path.isdir(tools.config.defaults["rootfs"]):
             os.mkdir(tools.config.defaults["rootfs"])
+        if not os.path.isdir(tools.config.defaults["overlay"]):
+            os.mkdir(tools.config.defaults["overlay"])
+            os.mkdir(tools.config.defaults["overlay"]+"/vendor")
+        if not os.path.isdir(tools.config.defaults["overlay_rw"]):
+            os.mkdir(tools.config.defaults["overlay_rw"])
+            os.mkdir(tools.config.defaults["overlay_rw"]+"/system")
+            os.mkdir(tools.config.defaults["overlay_rw"]+"/vendor")
+        helpers.drivers.probeAshmemDriver(args)
         helpers.lxc.setup_host_perms(args)
         helpers.lxc.set_lxc_config(args)
         helpers.lxc.make_base_props(args)
         if status != "STOPPED":
             logging.info("Starting container")
-            helpers.images.mount_rootfs(args, args.images_path)
-            helpers.lxc.start(args)
+            try:
+                container.Start(args.session)
+            except Exception as e:
+                logging.debug(e)
+                logging.error("Failed to restart container. Please do so manually.")
 
-        helpers.ipc.notify(channel="init", msg="done")
+        if "running_init_in_service" not in args or not args.running_init_in_service:
+            try:
+                if initializer_service:
+                    initializer_service.Done()
+            except dbus.DBusException:
+                pass
     else:
         logging.info("Already initialized")
 
 def wait_for_init(args):
-    helpers.ipc.create_channel("init")
     helpers.ipc.create_channel("remote_init_output")
-    while True:
-        print('WayDroid waiting for initialization...')
-        msg = helpers.ipc.read_one(channel="init")
-        if msg == "done":
-            if is_initialized(args):
-                break
-            else:
-                continue
-        if msg.startswith("cmd"):
-            remote_init_server(args, msg)
-            continue
+
+    mainloop = GLib.MainLoop()
+    dbus_obj = DbusInitializer(mainloop, dbus.SystemBus(), '/Initializer', args)
+    mainloop.run()
+
+    # After init
+    dbus_obj.remove_from_connection()
+
+class DbusInitializer(dbus.service.Object):
+    def __init__(self, looper, bus, object_path, args):
+        self.args = args
+        self.looper = looper
+        dbus.service.Object.__init__(self, bus, object_path)
+
+    @dbus.service.method("id.waydro.Initializer", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
+    def Init(self, params, sender=None, conn=None):
+        channels_cfg = tools.config.load_channels()
+        no_auth = params["system_channel"] == channels_cfg["channels"]["system_channel"] and \
+                  params["vendor_channel"] == channels_cfg["channels"]["vendor_channel"]
+        if no_auth or ensure_polkit_auth(sender, conn, "id.waydro.Initializer.Init"):
+            threading.Thread(target=remote_init_server, args=(self.args, params)).start()
+        else:
+            raise PermissionError("Polkit: Authentication failed")
+
+    @dbus.service.method("id.waydro.Initializer", in_signature='', out_signature='')
+    def Done(self):
+        if is_initialized(self.args):
+            self.looper.quit()
+
+def ensure_polkit_auth(sender, conn, privilege):
+    dbus_info = dbus.Interface(conn.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False), "org.freedesktop.DBus")
+    pid = dbus_info.GetConnectionUnixProcessID(sender)
+    polkit = dbus.Interface(dbus.SystemBus().get_object("org.freedesktop.PolicyKit1", "/org/freedesktop/PolicyKit1/Authority", False), "org.freedesktop.PolicyKit1.Authority")
+    try:
+        (is_auth, _, _) = polkit.CheckAuthorization(
+            ("unix-process", {
+                "pid": dbus.UInt32(pid, variant_level=1),
+                "start-time": dbus.UInt64(0, variant_level=1)}),
+            privilege, {"AllowUserInteraction": "true"},
+            dbus.UInt32(1),
+            "",
+            timeout=300)
+        return is_auth
+    except dbus.DBusException:
+        raise PermissionError("Polkit: Authentication timed out")
 
 def background_remote_init_process(args):
     with helpers.ipc.open_channel("remote_init_output", "wb") as channel_out:
@@ -185,14 +250,14 @@ def background_remote_init_process(args):
         sys.stderr = sys.__stderr__
         logging.getLogger().removeHandler(out)
 
-def remote_init_server(args, cmd):
-    params = cmd.split('\f')[1:]
+def remote_init_server(args, params):
     args.force = True
     args.images_path = ""
     args.rom_type = ""
-    args.system_channel = params[0]
-    args.vendor_channel = params[1]
-    args.system_type = params[2]
+    args.system_channel = params["system_channel"]
+    args.vendor_channel = params["vendor_channel"]
+    args.system_type = params["system_type"]
+    args.running_init_in_service = True
 
     p = multiprocessing.Process(target=background_remote_init_process, args=(args,))
     p.daemon = True
@@ -203,22 +268,32 @@ def remote_init_client(args):
     # Local imports cause Gtk is intrusive
     import gi
     gi.require_version("Gtk", "3.0")
-    from gi.repository import Gtk, GLib
+    from gi.repository import Gtk
+
+    bus = dbus.SystemBus()
 
     if is_initialized(args):
-        helpers.ipc.notify(channel="init", msg="done")
+        try:
+            tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Done()
+        except dbus.DBusException:
+            pass
         return
 
     def notify_and_quit(caller):
         if is_initialized(args):
-            helpers.ipc.notify(channel="init", msg="done")
+            try:
+                tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Done()
+            except dbus.DBusException:
+                pass
         GLib.idle_add(Gtk.main_quit)
 
     class WaydroidInitWindow(Gtk.Window):
         def __init__(self):
             super().__init__(title="Initialize Waydroid")
+            channels_cfg = tools.config.load_channels()
+
             self.set_default_size(600, 250)
-            self.set_icon_from_file(tools.config.tools_src + "/data/AppIcon.png")
+            self.set_icon_name("waydroid")
 
             grid = Gtk.Grid(row_spacing=6, column_spacing=6, margin=10, column_homogeneous=True)
             grid.set_hexpand(True)
@@ -227,14 +302,14 @@ def remote_init_client(args):
 
             sysOtaLabel = Gtk.Label("System OTA")
             sysOtaEntry = Gtk.Entry()
-            sysOtaEntry.set_text(tools.config.channels_defaults["system_channel"])
+            sysOtaEntry.set_text(channels_cfg["channels"]["system_channel"])
             grid.attach(sysOtaLabel, 0, 0, 1, 1)
             grid.attach_next_to(sysOtaEntry ,sysOtaLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.sysOta = sysOtaEntry.get_buffer()
 
             vndOtaLabel = Gtk.Label("Vendor OTA")
             vndOtaEntry = Gtk.Entry()
-            vndOtaEntry.set_text(tools.config.channels_defaults["vendor_channel"])
+            vndOtaEntry.set_text(channels_cfg["channels"]["vendor_channel"])
             grid.attach(vndOtaLabel, 0, 1, 1, 1)
             grid.attach_next_to(vndOtaEntry, vndOtaLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.vndOta = vndOtaEntry.get_buffer()
@@ -300,16 +375,22 @@ def remote_init_client(args):
 
             if self.open_channel is not None:
                 self.open_channel.close()
-                # Wait for other end to re-open
-                tmp = helpers.ipc.open_channel("init", "w", buffering=1)
-                tmp.close()
+                # Wait for other end to reset
+                time.sleep(1)
 
             draw("Waiting for waydroid container service...\n")
             try:
-                helpers.ipc.notify_blocking(channel="init", msg="{}\f{}\f{}\f{}".format(
-                    "cmd", self.sysOta.get_text(), self.vndOta.get_text(), self.sysType.get_active_text()))
-            except:
-                draw("The waydroid container service is not listening\n")
+                params = {
+                    "system_channel": self.sysOta.get_text(),
+                    "vendor_channel": self.vndOta.get_text(),
+                    "system_type": self.sysType.get_active_text()
+                }
+                tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Init(params, timeout=310)
+            except dbus.DBusException as e:
+                if e.get_dbus_name() == "org.freedesktop.DBus.Python.PermissionError":
+                    draw(e.get_dbus_message().splitlines()[-1] + "\n")
+                else:
+                    draw("The waydroid container service is not listening\n")
                 GLib.idle_add(self.downloadBtn.set_sensitive, True)
                 return
 

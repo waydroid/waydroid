@@ -24,5 +24,7 @@ def maybe_remap(target):
             if "sse4_2" not in f.read():
                 logging.info("x86_64 CPU does not support SSE4.2, falling back to x86...")
                 return "x86"
+    elif target == "arm64" and platform.architecture()[0] == "32bit":
+        return "arm"
 
     return target

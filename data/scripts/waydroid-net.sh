@@ -2,7 +2,10 @@
 
 varrun="/run/waydroid-lxc"
 varlib="/var/lib"
-vnic=$(awk '$1 == "lxc.net.0.link" {print $3}' /var/lib/waydroid/lxc/waydroid/config || echo "waydroid0")
+net_link_key="lxc.net.0.link"
+case "$(lxc-info --version)" in [012].*) net_link_key="lxc.network.link" ;; esac
+vnic=$(awk "\$1 == \"$net_link_key\" {print \$3}" /var/lib/waydroid/lxc/waydroid/config)
+: ${vnic:=waydroid0}
 
 if [ "$vnic" != "waydroid0" ]; then
     echo "vnic is $vnic, bailing out"
@@ -29,20 +32,20 @@ LXC_IPV6_MASK=""
 LXC_IPV6_NETWORK=""
 LXC_IPV6_NAT="false"
 
-IPTABLES_BIN="$(which iptables-legacy)"
+IPTABLES_BIN="$(command -v iptables-legacy)"
 if [ ! -n "$IPTABLES_BIN" ]; then
-    IPTABLES_BIN="$(which iptables)"
+    IPTABLES_BIN="$(command -v iptables)"
 fi
-IP6TABLES_BIN="$(which ip6tables-legacy)"
+IP6TABLES_BIN="$(command -v ip6tables-legacy)"
 if [ ! -n "$IP6TABLES_BIN" ]; then
-    IP6TABLES_BIN="$(which ip6tables)"
+    IP6TABLES_BIN="$(command -v ip6tables)"
 fi
 
 use_nft() {
     [ -n "$NFT" ] && nft list ruleset > /dev/null 2>&1 && [ "$LXC_USE_NFT" = "true" ]
 }
 
-NFT="$(which nft)"
+NFT="$(command -v nft)"
 if ! use_nft; then
     use_iptables_lock="-w"
     $IPTABLES_BIN -w -L -n > /dev/null 2>&1 || use_iptables_lock=""
@@ -125,7 +128,7 @@ add rule ip lxc postrouting ip saddr ${LXC_NETWORK} ip daddr != ${LXC_NETWORK} c
 start() {
     [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
 
-    [ ! -f "${varrun}/network_up" ] || { echo "waydroid-net is already running"; exit 1; }
+    [ ! -f "${varrun}/network_up" ] || { echo "waydroid-net is already running"; exit 0; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         stop force || true
@@ -155,7 +158,7 @@ start() {
     # can't write its pid into, so we restorecon it (to var_run_t)
     if [ ! -d "${varrun}" ]; then
         mkdir -p "${varrun}"
-        if which restorecon >/dev/null 2>&1; then
+        if command -v restorecon >/dev/null 2>&1; then
             restorecon "${varrun}"
         fi
     fi

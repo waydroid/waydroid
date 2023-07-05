@@ -69,6 +69,10 @@ def init(args):
         dir = os.path.dirname(args.log)
         if os.path.exists(dir):
             setattr(args, "logfd", open(args.log, "a+"))
+            try:
+                os.chmod(args.log, 0o666)
+            except PermissionError:
+                pass
         else:
             setattr(args, "logfd", open(os.devnull, "a+"))
             if args.action != "init":

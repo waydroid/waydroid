@@ -2,7 +2,7 @@
 set -e
 
 configure() {
-	# Update configs
+    # Update configs
     waydroid upgrade -o
     waydroid init
 }

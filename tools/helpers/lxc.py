@@ -6,6 +6,7 @@ import re
 import logging
 import glob
 import shutil
+import time
 import platform
 import gbinder
 import tools.config
@@ -20,30 +21,33 @@ def get_lxc_version(args):
     else:
         return 0
 
+def add_node_entry(nodes, src, dist, mnt_type, options, check):
+    if check and not os.path.exists(src):
+        return False
+    entry = "lxc.mount.entry = "
+    entry += src + " "
+    if dist is None:
+        dist = src[1:]
+    entry += dist + " "
+    entry += mnt_type + " "
+    entry += options
+    nodes.append(entry)
+    return True
 
 def generate_nodes_lxc_config(args):
-    def make_entry(src, dist=None, mnt_type="none", options="bind,create=file,optional 0 0", check=True):
-        if check and not os.path.exists(src):
-            return False
-        entry = "lxc.mount.entry = "
-        entry += src + " "
-        if dist is None:
-            dist = src[1:]
-        entry += dist + " "
-        entry += mnt_type + " "
-        entry += options
-        nodes.append(entry)
-        return True
-
     nodes = []
+    def make_entry(src, dist=None, mnt_type="none", options="bind,create=file,optional 0 0", check=True):
+        return add_node_entry(nodes, src, dist, mnt_type, options, check)
+
     # Necessary dev nodes
     make_entry("tmpfs", "dev", "tmpfs", "nosuid 0 0", False)
     make_entry("/dev/zero")
     make_entry("/dev/null")
     make_entry("/dev/full")
-    make_entry("/dev/ashmem", check=False)
+    make_entry("/dev/ashmem")
     make_entry("/dev/fuse")
     make_entry("/dev/ion")
+    make_entry("/dev/tty")
     make_entry("/dev/char", options="bind,create=dir,optional 0 0")
 
     # Graphic dev nodes
@@ -52,7 +56,9 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/pvr_sync")
     make_entry("/dev/pmsg0")
     make_entry("/dev/dxg")
-    make_entry(tools.helpers.gpu.getDriNode(args), "dev/dri/renderD128")
+    render, card = tools.helpers.gpu.getDriNode(args)
+    make_entry(render, "dev/dri/renderD128")
+    make_entry(card, "dev/dri/card0")
 
     for n in glob.glob("/dev/fb*"):
         make_entry(n)
@@ -81,16 +87,9 @@ def generate_nodes_lxc_config(args):
     # Low memory killer sys node
     make_entry("/sys/module/lowmemorykiller", options="bind,create=dir,optional 0 0")
 
-    # Mount /data
-    make_entry("tmpfs", "mnt", "tmpfs", "mode=0755,uid=0,gid=1000", False)
-    make_entry(tools.config.defaults["data"], "data", options="bind 0 0", check=False)
-
     # Mount host permissions
     make_entry(tools.config.defaults["host_perms"],
                "vendor/etc/host-permissions", options="bind,optional 0 0")
-
-    # Recursive mount /run to provide necessary host sockets
-    make_entry("/run", options="rbind,create=dir 0 0")
 
     # Necessary sw_sync node for HWC
     make_entry("/dev/sw_sync")
@@ -113,20 +112,29 @@ def generate_nodes_lxc_config(args):
     make_entry("/mnt/wslg", "mnt_extra/wslg",
                options="rbind,create=dir,optional 0 0")
 
-    # var
-    make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
-    make_entry("/var/run", options="rbind,create=dir,optional 0 0")
-
-    # tmp
+    # Make a tmpfs at every possible rootfs mountpoint
     make_entry("tmpfs", "tmp", "tmpfs", "nodev 0 0", False)
-    for n in glob.glob("/tmp/run-*"):
-        make_entry(n, options="rbind,create=dir,optional 0 0")
+    make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
+    make_entry("tmpfs", "run", "tmpfs", "nodev 0 0", False)
 
     # NFC config
     make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
 
     return nodes
 
+LXC_APPARMOR_PROFILE = "lxc-waydroid"
+def get_apparmor_status(args):
+    enabled = False
+    if shutil.which("aa-enabled"):
+        enabled = (tools.helpers.run.user(args, ["aa-enabled", "--quiet"], check=False) == 0)
+    if not enabled and shutil.which("systemctl"):
+        enabled = (tools.helpers.run.user(args, ["systemctl", "is-active", "-q", "apparmor"], check=False) == 0)
+    try:
+        with open("/sys/kernel/security/apparmor/profiles", "r") as f:
+            enabled &= (LXC_APPARMOR_PROFILE in f.read())
+    except:
+        enabled = False
+    return enabled
 
 def set_lxc_config(args):
     lxc_path = tools.config.defaults["lxc"] + "/waydroid"
@@ -137,11 +145,11 @@ def set_lxc_config(args):
     seccomp_profile = tools.config.tools_src + "/data/configs/waydroid.seccomp"
 
     config_snippets = [ config_paths + "base" ]
-    # lxc v1 is a bit special because some options got renamed later
-    if lxc_ver == 1:
+    # lxc v1 and v2 are bit special because some options got renamed later
+    if lxc_ver <= 2:
         config_snippets.append(config_paths + "1")
     else:
-        for ver in range(2, 5):
+        for ver in range(3, 5):
             snippet = config_paths + str(ver)
             if lxc_ver >= ver and os.path.exists(snippet):
                 config_snippets.append(snippet)
@@ -154,6 +162,9 @@ def set_lxc_config(args):
     tools.helpers.run.user(args, command)
     command = ["cp", "-fpr", seccomp_profile, lxc_path + "/waydroid.seccomp"]
     tools.helpers.run.user(args, command)
+    if get_apparmor_status(args):
+        command = ["sed", "-i", "-E", "/lxc.aa_profile|lxc.apparmor.profile/ s/unconfined/{}/g".format(LXC_APPARMOR_PROFILE), lxc_path + "/config"]
+        tools.helpers.run.user(args, command)
 
     nodes = generate_nodes_lxc_config(args)
     config_nodes_tmp_path = args.work + "/config_nodes"
@@ -164,6 +175,43 @@ def set_lxc_config(args):
     command = ["mv", config_nodes_tmp_path, lxc_path]
     tools.helpers.run.user(args, command)
 
+    # Create empty file
+    open(os.path.join(lxc_path, "config_session"), mode="w").close()
+
+def generate_session_lxc_config(args, session):
+    nodes = []
+    def make_entry(src, dist=None, mnt_type="none", options="rbind,create=file 0 0"):
+        if any(x in src for x in ["\n", "\r"]):
+            logging.warning("User-provided mount path contains illegal character: " + src)
+            return False
+        if dist is None and (not os.path.exists(src) or
+                             str(os.stat(src).st_uid) != session["user_id"]):
+            logging.warning("User-provided mount path is not owned by user: " + src)
+            return False
+        return add_node_entry(nodes, src, dist, mnt_type, options, check=False)
+
+    # Make sure XDG_RUNTIME_DIR exists
+    if not make_entry("tmpfs", session["xdg_runtime_dir"], options="create=dir 0 0"):
+        raise OSError("Failed to create XDG_RUNTIME_DIR mount point")
+
+    wayland_socket = os.path.realpath(os.path.join(session["xdg_runtime_dir"], session["wayland_display"]))
+    if not make_entry(wayland_socket):
+        raise OSError("Failed to bind Wayland socket")
+
+    pulse_socket = os.path.join(session["pulse_runtime_path"], "native")
+    make_entry(pulse_socket)
+
+    if not make_entry(session["waydroid_data"], "data", options="rbind 0 0"):
+        raise OSError("Failed to bind userdata")
+
+    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+    config_nodes_tmp_path = args.work + "/config_session"
+    config_nodes = open(config_nodes_tmp_path, "w")
+    for node in nodes:
+        config_nodes.write(node + "\n")
+    config_nodes.close()
+    command = ["mv", config_nodes_tmp_path, lxc_path]
+    tools.helpers.run.user(args, command)
 
 def make_base_props(args):
     def find_hal(hardware):
@@ -198,7 +246,7 @@ def make_base_props(args):
         props.append("sys.use_memfd=true")
 
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
-    dri = tools.helpers.gpu.getDriNode(args)
+    dri, _ = tools.helpers.gpu.getDriNode(args)
 
     gralloc = find_hal("gralloc")
     if not gralloc:
@@ -250,7 +298,7 @@ def make_base_props(args):
 
     opengles = tools.helpers.props.host_get(args, "ro.opengles.version")
     if opengles == "":
-        opengles = "196608"
+        opengles = "196609"
     props.append("ro.opengles.version=" + opengles)
 
     if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
@@ -325,14 +373,31 @@ def setup_host_perms(args):
 
 def status(args):
     command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
-    out = subprocess.run(command, stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
-    os.chmod(args.log, 0o666)
-    return out
+    try:
+        return tools.helpers.run.user(args, command, output_return=True).strip()
+    except:
+        logging.info("Couldn't get LXC status. Assuming STOPPED.")
+        return "STOPPED"
+
+def wait_for_running(args):
+    lxc_status = status(args)
+    timeout = 10
+    while lxc_status != "RUNNING" and timeout > 0:
+        lxc_status = status(args)
+        logging.info(
+            "waiting {} seconds for container to start...".format(timeout))
+        timeout = timeout - 1
+        time.sleep(1)
+    if lxc_status != "RUNNING":
+        raise OSError("container failed to start")
 
 def start(args):
     command = ["lxc-start", "-P", tools.config.defaults["lxc"],
                "-F", "-n", "waydroid", "--", "/init"]
     tools.helpers.run.user(args, command, output="background")
+    wait_for_running(args)
+    # Workaround lxc-start changing stdout/stderr permissions to 700
+    os.chmod(args.log, 0o666)
 
 def stop(args):
     command = ["lxc-stop", "-P",
@@ -348,22 +413,41 @@ def unfreeze(args):
                tools.config.defaults["lxc"], "-n", "waydroid"]
     tools.helpers.run.user(args, command)
 
+ANDROID_ENV = {
+    "PATH": "/product/bin:/apex/com.android.runtime/bin:/apex/com.android.art/bin:/system_ext/bin:/system/bin:/system/xbin:/odm/bin:/vendor/bin:/vendor/xbin",
+    "ANDROID_ROOT": "/system",
+    "ANDROID_DATA": "/data",
+    "ANDROID_STORAGE": "/storage",
+    "ANDROID_ART_ROOT": "/apex/com.android.art",
+    "ANDROID_I18N_ROOT": "/apex/com.android.i18n",
+    "ANDROID_TZDATA_ROOT": "/apex/com.android.tzdata",
+    "ANDROID_RUNTIME_ROOT": "/apex/com.android.runtime",
+    "BOOTCLASSPATH": "/apex/com.android.art/javalib/core-oj.jar:/apex/com.android.art/javalib/core-libart.jar:/apex/com.android.art/javalib/core-icu4j.jar:/apex/com.android.art/javalib/okhttp.jar:/apex/com.android.art/javalib/bouncycastle.jar:/apex/com.android.art/javalib/apache-xml.jar:/system/framework/framework.jar:/system/framework/ext.jar:/system/framework/telephony-common.jar:/system/framework/voip-common.jar:/system/framework/ims-common.jar:/system/framework/framework-atb-backward-compatibility.jar:/apex/com.android.conscrypt/javalib/conscrypt.jar:/apex/com.android.media/javalib/updatable-media.jar:/apex/com.android.mediaprovider/javalib/framework-mediaprovider.jar:/apex/com.android.os.statsd/javalib/framework-statsd.jar:/apex/com.android.permission/javalib/framework-permission.jar:/apex/com.android.sdkext/javalib/framework-sdkextensions.jar:/apex/com.android.wifi/javalib/framework-wifi.jar:/apex/com.android.tethering/javalib/framework-tethering.jar"
+}
+
+def android_env_attach_options():
+    env = [k + "=" + v for k, v in ANDROID_ENV.items()]
+    return [x for var in env for x in ("--set-var", var)]
+
 def shell(args):
-    if status(args) != "RUNNING":
-        logging.error("WayDroid container is {}".format(status(args)))
+    state = status(args)
+    if state == "FROZEN":
+        unfreeze(args)
+    elif state != "RUNNING":
+        logging.error("WayDroid container is {}".format(state))
         return
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
-               "-n", "waydroid", "--"]
+               "-n", "waydroid", "--clear-env"]
+    command.extend(android_env_attach_options())
+    command.append("--")
     if args.COMMAND:
-        command.append(args.COMMAND)
+        command.extend(args.COMMAND)
     else:
         command.append("/system/bin/sh")
-    subprocess.run(command, env={"PATH": os.environ['PATH'] + ":/system/bin:/vendor/bin"})
+    subprocess.run(command)
+    if state == "FROZEN":
+        freeze(args)
 
 def logcat(args):
-    if status(args) != "RUNNING":
-        logging.error("WayDroid container is {}".format(status(args)))
-        return
-    command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
-               "-n", "waydroid", "--", "/system/bin/logcat"]
-    subprocess.run(command)
+    args.COMMAND = ["/system/bin/logcat"]
+    shell(args)
