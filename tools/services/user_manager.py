@@ -36,6 +36,7 @@ def start(args, session, unlocked_cb=None):
             lines.append("Categories=X-WayDroid-App;")
             lines.append("X-Purism-FormFactor=Workstation;Mobile;")
             lines.append("Actions=app_settings;")
+            lines.append("NoDisplay=true")
             lines.append("[Desktop Action app_settings]")
             lines.append("Name=App Settings")
             lines.append("Exec=waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:" + packageName)
