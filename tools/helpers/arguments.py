@@ -112,6 +112,12 @@ def arguments_shell(subparser):
     ret = subparser.add_parser("shell", help="run remote shell command")
     ret.add_argument('COMMAND', nargs='*', help="command to run")
     return ret
+    
+def arguments_force_debuggable(subparser):
+    ret = subparser.add_parser("make-debuggable", help="mark the given package as debuggable")
+    ret.add_argument("-D","--unsafe", action="store_true", help="disable the safety check that causes this command to exit if the package is not found (Not recommended!)")
+    ret.add_argument('PACKAGE', help="the package name of the app")
+    return ret
 
 def arguments_logcat(subparser):
     ret = subparser.add_parser("logcat", help="show android logcat")
@@ -153,6 +159,7 @@ def arguments():
     arguments_fullUI(sub)
     arguments_firstLaunch(sub)
     arguments_shell(sub)
+    arguments_force_debuggable(sub)
     arguments_logcat(sub)
 
     if argcomplete:

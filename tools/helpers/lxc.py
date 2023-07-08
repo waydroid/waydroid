@@ -11,6 +11,8 @@ import platform
 import gbinder
 import tools.config
 import tools.helpers.run
+import tools.helpers.ipc
+from tools.interfaces import IPlatform
 
 
 def get_lxc_version(args):
@@ -445,6 +447,46 @@ def shell(args):
     else:
         command.append("/system/bin/sh")
     subprocess.run(command)
+    if state == "FROZEN":
+        freeze(args)
+       
+def forcedebuggable(args):
+    state = status(args)
+    if state == "FROZEN":
+        unfreeze(args)
+    elif state != "RUNNING":
+        logging.error("WayDroid container is {}".format(state))
+        return
+    print("Forcing the package "+args.PACKAGE+" to be temporarily debuggable")
+    platformService = IPlatform.get_service(args)
+    if platformService:
+        appsList = platformService.getAppsInfo()
+        not_found_error = True
+        for app in appsList:
+            if args.PACKAGE==app["packageName"]:
+                print("which is an app called "+app["name"])
+                not_found_error = False
+                break
+        if not_found_error and not args.unsafe:
+            print("but no such app is found. Exiting...")
+            return
+        if not_found_error and args.unsafe:
+            print("but no such app is found. However, the attempt to list it as debuggable will be continued as the safety check is disabled with the --unsafe argument.")
+    else:
+        if args.unsafe:
+            logging.error("Failed to access IPlatform service. Cannot confirm a package with supplied name is installed. However, the attempt to list it as debuggable is continued as the safety check is disabled with the --unsafe argument.")
+        else:
+            logging.error("Failed to access IPlatform service. Cannot confirm a package with supplied name is installed. Exiting...")
+            return
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
+               "-n", "waydroid", "--clear-env"]
+    command.extend(android_env_attach_options())
+    command.append("--")
+    second_command = command.copy()
+    command.extend(["/system/bin/sed","-i","/^"+args.PACKAGE+"/s/ 0 / 1 /","/data/system/packages.list"])
+    second_command.extend(["/system/bin/sed","-i","s/<package name=\""+args.PACKAGE+"\"/<package name=\""+args.PACKAGE+"\" debuggable=\"1\"/g;","/data/system/packages.xml"])
+    subprocess.run(command)
+    subprocess.run(second_command)
     if state == "FROZEN":
         freeze(args)
 

@@ -130,6 +130,9 @@ def main():
                 actions.app_manager.showFullUI(args)
         elif args.action == "status":
             actions.status.print_status(args)
+        elif args.action == "make-debuggable":
+            actionNeedRoot(args.action)
+            helpers.lxc.forcedebuggable(args)
         elif args.action == "log":
             if args.clear_log:
                 helpers.run.user(args, ["truncate", "-s", "0", args.log])
