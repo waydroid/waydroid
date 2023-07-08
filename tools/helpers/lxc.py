@@ -12,7 +12,6 @@ import gbinder
 import tools.config
 import tools.helpers.run
 
-
 def get_lxc_version(args):
     if shutil.which("lxc-info") is not None:
         command = ["lxc-info", "--version"]
@@ -439,6 +438,36 @@ def shell(args):
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
                "-n", "waydroid", "--clear-env"]
     command.extend(android_env_attach_options())
+    if args.uid!=None:
+        command.append("--uid="+str(args.uid))
+    if args.gid!=None:
+        command.append("--gid="+str(args.gid))
+    elif args.uid!=None:
+        command.append("--gid="+str(args.uid))
+    if args.nolsm or args.allcaps or args.nocgroup:
+        elevatedprivs = "--elevated-privileges="
+        addpipe = 0
+        if args.nolsm:
+            if (addpipe == 1):
+                elevatedprivs+="|LSM"
+            else:
+                elevatedprivs+="LSM"
+            addpipe = 1
+        if args.allcaps:
+            if (addpipe == 1):
+                elevatedprivs+="|CAP"
+            else:
+                elevatedprivs+="CAP"
+            addpipe = 1
+        if args.nocgroup:
+            if (addpipe == 1):
+                elevatedprivs+="|CGROUP"
+            else:
+                elevatedprivs+="CGROUP"
+            addpipe = 1
+        command.append(elevatedprivs)
+    if args.context!=None and not args.nolsm:
+        command.append("--context="+args.context)
     command.append("--")
     if args.COMMAND:
         command.extend(args.COMMAND)
