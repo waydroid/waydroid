@@ -110,6 +110,11 @@ def arguments_firstLaunch(subparser):
 
 def arguments_shell(subparser):
     ret = subparser.add_parser("shell", help="run remote shell command")
+    ret.add_argument('COMMAND', nargs='*', help="command to run")
+    return ret
+    
+def arguments_shell2(subparser):
+    ret = subparser.add_parser("custom-shell", help="run remote shell command as an arbitrary user and group, and with arbitrary security context")
     ret.add_argument("-u", "--uid", help="the UID to run as (also sets GID to the same value if -g is not set)")
     ret.add_argument("-g", "--gid", help="the GID to run as")
     ret.add_argument("-s", "--context", help="transition to the specified SELinux or AppArmor security context. No-op if -L is supplied.")
@@ -159,6 +164,7 @@ def arguments():
     arguments_fullUI(sub)
     arguments_firstLaunch(sub)
     arguments_shell(sub)
+    arguments_shell2(sub)
     arguments_logcat(sub)
 
     if argcomplete:

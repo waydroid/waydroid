@@ -119,6 +119,9 @@ def main():
         elif args.action == "shell":
             actionNeedRoot(args.action)
             helpers.lxc.shell(args)
+        elif args.action == "custom-shell":
+            actionNeedRoot(args.action)
+            helpers.lxc.custom_shell(args)
         elif args.action == "logcat":
             actionNeedRoot(args.action)
             helpers.lxc.logcat(args)
