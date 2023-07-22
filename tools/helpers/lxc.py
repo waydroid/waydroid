@@ -438,25 +438,6 @@ def shell(args):
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
                "-n", "waydroid", "--clear-env"]
     command.extend(android_env_attach_options())
-    command.append("--")
-    if args.COMMAND:
-        command.extend(args.COMMAND)
-    else:
-        command.append("/system/bin/sh")
-    subprocess.run(command)
-    if state == "FROZEN":
-        freeze(args)
-        
-def custom_shell(args):
-    state = status(args)
-    if state == "FROZEN":
-        unfreeze(args)
-    elif state != "RUNNING":
-        logging.error("WayDroid container is {}".format(state))
-        return
-    command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
-               "-n", "waydroid", "--clear-env"]
-    command.extend(android_env_attach_options())
     if args.uid!=None:
         command.append("--uid="+str(args.uid))
     if args.gid!=None:
