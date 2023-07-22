@@ -467,10 +467,9 @@ def custom_shell(args):
         elevatedprivs = "--elevated-privileges="
         addpipe = 0
         if args.nolsm:
-            if (addpipe == 1):
-                elevatedprivs+="|LSM"
-            else:
-                elevatedprivs+="LSM"
+            if addpipe:
+                elevatedprivs+="|"
+            elevatedprivs+="LSM"
             addpipe = 1
         if args.allcaps:
             if (addpipe == 1):
