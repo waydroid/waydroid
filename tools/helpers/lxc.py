@@ -453,16 +453,14 @@ def shell(args):
             elevatedprivs+="LSM"
             addpipe = True
         if args.allcaps:
-            if (addpipe == 1):
-                elevatedprivs+="|CAP"
-            else:
-                elevatedprivs+="CAP"
+            if addpipe:
+                elevatedprivs+="|"
+            elevatedprivs+="CAP"
             addpipe = True
         if args.nocgroup:
-            if (addpipe == 1):
-                elevatedprivs+="|CGROUP"
-            else:
-                elevatedprivs+="CGROUP"
+            if addpipe:
+                elevatedprivs+="|"
+            elevatedprivs+="CGROUP"
             addpipe = True
         command.append(elevatedprivs)
     if args.context!=None and not args.nolsm:
