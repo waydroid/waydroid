@@ -465,24 +465,24 @@ def custom_shell(args):
         command.append("--gid="+str(args.uid))
     if args.nolsm or args.allcaps or args.nocgroup:
         elevatedprivs = "--elevated-privileges="
-        addpipe = 0
+        addpipe = False
         if args.nolsm:
             if addpipe:
                 elevatedprivs+="|"
             elevatedprivs+="LSM"
-            addpipe = 1
+            addpipe = True
         if args.allcaps:
             if (addpipe == 1):
                 elevatedprivs+="|CAP"
             else:
                 elevatedprivs+="CAP"
-            addpipe = 1
+            addpipe = True
         if args.nocgroup:
             if (addpipe == 1):
                 elevatedprivs+="|CGROUP"
             else:
                 elevatedprivs+="CGROUP"
-            addpipe = 1
+            addpipe = True
         command.append(elevatedprivs)
     if args.context!=None and not args.nolsm:
         command.append("--context="+args.context)
