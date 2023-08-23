@@ -23,7 +23,8 @@ Depends: ${misc:Depends},
          waydroid-sensors,
          python3-dbus,
          dbus,
-         policykit-1
+         policykit-1,
+	 iptables
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container.
