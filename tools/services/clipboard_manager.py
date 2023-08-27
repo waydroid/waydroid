@@ -37,7 +37,7 @@ def start(args):
         args.clipboard_manager = threading.Thread(target=service_thread)
         args.clipboard_manager.start()
     else:
-        logging.warning("Failed to start Clipboard manager service, check logs")
+        logging.warning("Skipping clipboard manager service because of missing pyclip package")
 
 def stop(args):
     global stopping
