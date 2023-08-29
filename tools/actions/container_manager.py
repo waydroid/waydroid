@@ -146,9 +146,20 @@ def do_start(args, session):
     if which("start"):
         command = ["start", "cgroup-lite"]
         tools.helpers.run.user(args, command, check=False)
+
+    # Keep schedtune around in case nesting is supported
     if os.path.ismount("/sys/fs/cgroup/schedtune"):
-        command = ["umount", "-l", "/sys/fs/cgroup/schedtune"]
-        tools.helpers.run.user(args, command, check=False)
+        try:
+            os.mkdir("/sys/fs/cgroup/schedtune/probe0")
+            os.mkdir("/sys/fs/cgroup/schedtune/probe0/probe1")
+        except:
+            command = ["umount", "-l", "/sys/fs/cgroup/schedtune"]
+            tools.helpers.run.user(args, command, check=False)
+        finally:
+            if os.path.exists("/sys/fs/cgroup/schedtune/probe0/probe1"):
+                os.rmdir("/sys/fs/cgroup/schedtune/probe0/probe1")
+            if os.path.exists("/sys/fs/cgroup/schedtune/probe0"):
+                os.rmdir("/sys/fs/cgroup/schedtune/probe0")
 
     #TODO: remove NFC hacks
     if which("stop"):
