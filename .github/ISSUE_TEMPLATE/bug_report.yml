@@ -75,7 +75,7 @@ body:
     id: bug-log
     attributes:
       label: "Logs (please upload as file)"
-      placeholder:"- Prop file, located at `/var/lib/waydroid/waydroid.prop`. In case that doesn't exist, use `/var/lib/waydroid/waydroid_base.prop` instead \
+      placeholder: "- Prop file, located at `/var/lib/waydroid/waydroid.prop`. In case that doesn't exist, use `/var/lib/waydroid/waydroid_base.prop` instead \
   
                    - Log file, located at `/var/lib/waydroid/waydroid.log` \
   
