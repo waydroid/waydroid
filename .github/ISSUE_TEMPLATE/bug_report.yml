@@ -1,15 +1,12 @@
 name: Bug Report
 description: "Create a report to help us improve."
 title: "[BUG]"
-labels: "bug"
 
 body:
   - type: markdown
     id: bug-info
     attributes:
-      value: "BUG Infomation"
-    validations:
-      required: true
+      value: "## BUG Infomation"
       
   - type: textarea
     id: bug-desc
