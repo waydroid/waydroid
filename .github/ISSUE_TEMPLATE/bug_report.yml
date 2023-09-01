@@ -83,4 +83,4 @@ body:
 
                    - Output of `dmesg`"
     validations:
-      required:true
+      required: true
