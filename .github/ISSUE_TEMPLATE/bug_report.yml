@@ -60,8 +60,9 @@ body:
   - type: textarea
     attributes:
       label: "Logs"
-      description: Attach the following files
+      description: Attach the following files while waydroid is running
       value: |
+        /var/lib/waydroid/waydroid.cfg
         /var/lib/waydroid/waydroid.prop
         /var/lib/waydroid/waydroid_base.prop
         /var/lib/waydroid/waydroid.log
