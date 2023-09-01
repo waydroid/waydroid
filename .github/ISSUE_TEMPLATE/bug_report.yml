@@ -25,37 +25,37 @@ body:
         - Linux Desktop
         - Linux Smartphone
         - Halium Smartphone
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: input
     attributes:
       label: Operating System
       placeholder: "Example: Ubuntu 20.04 amd64"
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: input
     attributes:
       label: Kernel version
       description: Output of `uname --kernel-release`
       placeholder: "Example: 5.19.0-38-generic"
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: input
     attributes:
       label: Desktop Environment
       placeholder: "Example: GNOME 40"
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: input
     attributes:
       label: GPU
       placeholder: "Example: AMD Radeon™ RX 5700"
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     attributes:
