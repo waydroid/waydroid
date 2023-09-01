@@ -1,0 +1,71 @@
+name: Bug Report
+description: "Create a report to help us improve."
+title: "[BUG]"
+
+body: 
+  - type: textarea
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is. Attach screenshots if useful.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Waydroid version
+      description: Output of `waydroid --version`
+      placeholder: "Example: 1.4.0"
+    validations:
+      required: true
+   
+  - type: dropdown
+    attributes:
+      label: Device
+      options:
+        - Linux Desktop
+        - Linux Smartphone
+        - Halium Smartphone
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Operating System
+      placeholder: "Example: Ubuntu 20.04 amd64"
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Kernel version
+      description: Output of `uname --kernel-release`
+      placeholder: "Example: 5.19.0-38-generic"
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Desktop Environment
+      placeholder: "Example: GNOME 40"
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: GPU
+      placeholder: "Example: AMD Radeon™ RX 5700"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Logs"
+      description: Attach the following files
+      value: |
+        /var/lib/waydroid/waydroid.prop
+        /var/lib/waydroid/waydroid_base.prop
+        /var/lib/waydroid/waydroid.log
+        `sudo waydroid logcat | tee logcat.txt`
+        `sudo dmesg | tee dmesg.txt`
+    validations:
+      required: true
