@@ -39,13 +39,14 @@ body:
     attributes:
       label: "Desktop (please complete the following information):"
       placeholder: "- OS: [e.g. Ubuntu 20.04 x64] \
- - GPU: [e.g. AMD Radeon™ RX 5700] \
+      
+                    - GPU: [e.g. AMD Radeon™ RX 5700] \
 
- - Kernel version: [e.g. Generic 5.4.x] \
+                    - Kernel version: [e.g. Generic 5.4.x] \
  
- - Host mesa version: [e.g. mesa 2.2] \
+                    - Host mesa version: [e.g. mesa 2.2] \
  
- - Desktop: [e.g. Gnome 40.x.x]"
+                    - Desktop: [e.g. Gnome 40.x.x]"
     validations:
       required: false
   - type: textarea
@@ -54,11 +55,11 @@ body:
       label: "Smartphone (please complete the following information):"
       placeholder: " - Device: [e.g. Pixel 3a] \
  
- - OS: [e.g. Ubuntu touch OTA19] \
+                     - OS: [e.g. Ubuntu touch OTA19] \
   
- - Mainline or Halium [e.g. Halium 9] \
+                     - Mainline or Halium [e.g. Halium 9] \
   
- - Kernel version: [e.g. 4.14.x]"
+                     - Kernel version: [e.g. 4.14.x]"
     validations:
       required: false
    
@@ -76,10 +77,10 @@ body:
     label: "Logs (please upload as file)"
      placeholder: "- Prop file, located at `/var/lib/waydroid/waydroid.prop`. In case that doesn't exist, use `/var/lib/waydroid/waydroid_base.prop` instead \
   
- - Log file, located at `/var/lib/waydroid/waydroid.log` \
+                   - Log file, located at `/var/lib/waydroid/waydroid.log` \
   
- - *Full* (not partial) output of `waydroid logcat` while Waydroid is running \
+                   - *Full* (not partial) output of `waydroid logcat` while Waydroid is running \
 
- - Output of `dmesg`"
+                   - Output of `dmesg`"
   validations:
     required: true
