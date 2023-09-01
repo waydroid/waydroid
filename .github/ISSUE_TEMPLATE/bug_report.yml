@@ -65,7 +65,7 @@ body:
         /var/lib/waydroid/waydroid.prop
         /var/lib/waydroid/waydroid_base.prop
         /var/lib/waydroid/waydroid.log
-        `sudo waydroid logcat | tee logcat.txt`
+        `sudo waydroid shell -- logcat -d | tee logcat.txt`
         `sudo dmesg | tee dmesg.txt`
     validations:
       required: true
