@@ -25,7 +25,7 @@ body:
       required: true
 
   - type: textarea
-    id: waydroid-env-info
+    id: waydroid-info
     attributes:
       label: "General information (please complete the following information):"
       placeholder: "- Waydroid tools Version [e.g. 1.1.0] \
@@ -35,7 +35,7 @@ body:
       required: true
    
   - type: textarea
-    id: desktop-env-info
+    id: desktop-info
     attributes:
       label: "Desktop (please complete the following information):"
       placeholder: "- OS: [e.g. Ubuntu 20.04 x64] \
@@ -50,7 +50,7 @@ body:
     validations:
       required: false
   - type: textarea
-    id: handset-env-info
+    id: handset-info
     attributes:
       label: "Smartphone (please complete the following information):"
       placeholder: " - Device: [e.g. Pixel 3a] \
