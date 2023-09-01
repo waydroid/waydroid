@@ -8,6 +8,7 @@ body:
     id: bug-info
     attributes:
       value: "BUG Infomation"
+      
   - type: textarea
     id: bug-desc
     attributes:
