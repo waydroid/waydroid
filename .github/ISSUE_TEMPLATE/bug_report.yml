@@ -62,7 +62,8 @@ body:
       label: "Logs"
       description: Attach the following files
       value: |
-        /var/lib/waydroid/waydroid.prop or /var/lib/waydroid/waydroid_base.prop
+        /var/lib/waydroid/waydroid.prop
+        /var/lib/waydroid/waydroid_base.prop
         /var/lib/waydroid/waydroid.log
         `sudo waydroid logcat | tee logcat.txt`
         `sudo dmesg | tee dmesg.txt`
