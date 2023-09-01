@@ -14,7 +14,7 @@ body:
     attributes:
       label: Waydroid version
       description: Output of `waydroid --version`
-      placeholder: Example: 1.4.0
+      placeholder: "Example: 1.4.0"
     validations:
       required: true
    
@@ -31,7 +31,7 @@ body:
   - type: input
     attributes:
       label: Operating System
-      placeholder: Example: Ubuntu 20.04 amd64
+      placeholder: "Example: Ubuntu 20.04 amd64"
       validations:
         required: true
 
@@ -39,21 +39,21 @@ body:
     attributes:
       label: Kernel version
       description: Output of `uname --kernel-release`
-      placeholder: Example: 5.19.0-38-generic
+      placeholder: "Example: 5.19.0-38-generic"
       validations:
         required: true
 
   - type: input
     attributes:
       label: Desktop Environment
-      placeholder: Example: GNOME 40
+      placeholder: "Example: GNOME 40"
       validations:
         required: true
 
   - type: input
     attributes:
       label: GPU
-      placeholder: Example: AMD Radeon™ RX 5700
+      placeholder: "Example: AMD Radeon™ RX 5700"
       validations:
         required: true
 
