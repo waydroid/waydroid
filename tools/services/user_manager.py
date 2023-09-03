@@ -76,7 +76,7 @@ def start(args, session, unlocked_cb=None):
                 os.mkdir(apps_dir)
                 os.chmod(apps_dir, 0o700)
             
-            if cfg["waydroid"].get("show_waydroid_apps") == "True":
+            if cfg["waydroid"].get("show_waydroid_apps", "True") == "True":
                 appsList = platformService.getAppsInfo()
                 for app in appsList:
                     makeDesktopFile(app)
@@ -97,7 +97,7 @@ def start(args, session, unlocked_cb=None):
             desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
             if mode == 0:
                 # Package added
-                if cfg["waydroid"].get("show_waydroid_apps") == "True":
+                if cfg["waydroid"].get("show_waydroid_apps", "True") == "True":
                     makeDesktopFile(appInfo)
             elif mode == 1:
                 if os.path.isfile(desktop_file_path):
