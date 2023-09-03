@@ -22,7 +22,8 @@ config_keys = ["arch",
                "system_datetime",
                "vendor_datetime",
                "suspend_action",
-               "mount_overlays"]
+               "mount_overlays",
+               "show_waydroid_apps"]
 
 # Config file/commandline default values
 # $WORK gets replaced with the actual value for args.work (which may be
@@ -39,6 +40,7 @@ defaults = {
     ],
     "suspend_action": "freeze",
     "mount_overlays": "True",
+    "show_waydroid_apps": "True",
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"
