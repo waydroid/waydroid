@@ -31,31 +31,33 @@ def add_service(args, enableNFC, enableBluetooth, suspend, reboot, upgrade):
             ret = enableNFC(arg1 != 0)
             local_response.append_int32(0)
             local_response.append_int32(ret)
-        if code == TRANSACTION_enableBluetooth:
+        elif code == TRANSACTION_enableBluetooth:
             status, arg1 = reader.read_int32()
             ret = enableBluetooth(arg1 != 0)
             local_response.append_int32(0)
             local_response.append_int32(ret)
-        if code == TRANSACTION_suspend:
+        elif code == TRANSACTION_suspend:
             suspend()
             local_response.append_int32(0)
-        if code == TRANSACTION_reboot:
+        elif code == TRANSACTION_reboot:
             reboot()
             local_response.append_int32(0)
-        if code == TRANSACTION_upgrade:
+        elif code == TRANSACTION_upgrade:
             arg1 = reader.read_string16()
             status, arg2 = reader.read_int32()
             arg3 = reader.read_string16()
             status, arg4 = reader.read_int32()
             upgrade(arg1, arg2, arg3, arg4)
             local_response.append_int32(0)
-        if code == TRANSACTION_upgrade2:
+        elif code == TRANSACTION_upgrade2:
             arg1 = reader.read_string16()
             status, arg2 = reader.read_int64()
             arg3 = reader.read_string16()
             status, arg4 = reader.read_int64()
             upgrade(arg1, arg2, arg3, arg4)
             local_response.append_int32(0)
+        else:
+            return local_response, -99999 # Some error unknown to binder to force a RemoteException
 
         return local_response, 0
 
