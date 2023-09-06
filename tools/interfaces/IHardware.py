@@ -12,6 +12,7 @@ TRANSACTION_enableBluetooth = 2
 TRANSACTION_suspend = 3
 TRANSACTION_reboot = 4
 TRANSACTION_upgrade = 5
+TRANSACTION_upgrade2 = 6
 
 def add_service(args, enableNFC, enableBluetooth, suspend, reboot, upgrade):
     helpers.drivers.loadBinderNodes(args)
@@ -46,6 +47,13 @@ def add_service(args, enableNFC, enableBluetooth, suspend, reboot, upgrade):
             status, arg2 = reader.read_int32()
             arg3 = reader.read_string16()
             status, arg4 = reader.read_int32()
+            upgrade(arg1, arg2, arg3, arg4)
+            local_response.append_int32(0)
+        if code == TRANSACTION_upgrade2:
+            arg1 = reader.read_string16()
+            status, arg2 = reader.read_int64()
+            arg3 = reader.read_string16()
+            status, arg4 = reader.read_int64()
             upgrade(arg1, arg2, arg3, arg4)
             local_response.append_int32(0)
 
