@@ -1,4 +1,4 @@
-profile android_app flags=(attach_disconnected, complain, mediate_deleted) {
+profile android_app flags=(attach_disconnected, mediate_deleted) {
   /** ix,
   /dev** rw,
   network,
@@ -49,6 +49,7 @@ profile android_app flags=(attach_disconnected, complain, mediate_deleted) {
   /data/dalvik-cache** r,
   /data/misc** r,
   /data/lineageos_updates** r,
+  /data/resource-cache** r,
   /apex** mr,
   /data/system_ce/** rw,
   /data/data/com.android** rw,
