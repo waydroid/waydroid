@@ -1,4 +1,5 @@
 profile android_app flags=(attach_disconnected, complain, mediate_deleted) {
+  #include <local/android_app>
   /** ix,
   /dev** rw,
   network,

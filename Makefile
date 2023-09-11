@@ -51,6 +51,10 @@ install:
 
 install_apparmor:
 	install -d $(INSTALL_APPARMOR_DIR) $(INSTALL_APPARMOR_DIR)/lxc
+	mkdir -p $(INSTALL_APPARMOR_DIR)/local/
+	touch $(INSTALL_APPARMOR_DIR)/local/adbd
+	touch $(INSTALL_APPARMOR_DIR)/local/android_app
+	touch $(INSTALL_APPARMOR_DIR)/local/lxc-waydroid
 	cp -f data/configs/apparmor_profiles/adbd $(INSTALL_APPARMOR_DIR)/adbd
 	cp -f data/configs/apparmor_profiles/android_app $(INSTALL_APPARMOR_DIR)/android_app
 	cp -f data/configs/apparmor_profiles/lxc-waydroid $(INSTALL_APPARMOR_DIR)/lxc/lxc-waydroid
