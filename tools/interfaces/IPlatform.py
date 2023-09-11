@@ -309,13 +309,17 @@ def get_service(args):
             return None
 
     tries = 1000
+    timestoattempt = tries
 
     remote, status = serviceManager.get_service_sync(SERVICE_NAME)
     while(not remote):
         if tries > 0:
             logging.warning(
-                "Failed to get service {}, trying again...".format(SERVICE_NAME))
-            time.sleep(1)
+                "Failed to get service {}, trying again (try #{}/{})...".format(SERVICE_NAME, timestoattempt - tries + 1, timestoattempt))
+            try:
+                time.sleep(1)
+            except KeyboardInterrupt:
+                return None
             remote, status = serviceManager.get_service_sync(SERVICE_NAME)
             tries = tries - 1
         else:
