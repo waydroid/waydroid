@@ -244,6 +244,10 @@ def make_base_props(args):
     if not os.path.exists("/dev/ashmem"):
         props.append("sys.use_memfd=true")
 
+# Added for security reasons
+    props.append("ro.adb.secure=1")
+
+
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
     dri, _ = tools.helpers.gpu.getDriNode(args)
 
@@ -260,6 +264,7 @@ def make_base_props(args):
             egl = "swiftshader"
         props.append("debug.stagefright.ccodec=0")
     props.append("ro.hardware.gralloc=" + gralloc)
+
 
     if egl != "":
         props.append("ro.hardware.egl=" + egl)
