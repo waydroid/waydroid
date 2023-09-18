@@ -476,4 +476,10 @@ def shell(args):
 
 def logcat(args):
     args.COMMAND = ["/system/bin/logcat"]
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
     shell(args)
