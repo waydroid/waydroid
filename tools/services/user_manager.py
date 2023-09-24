@@ -29,41 +29,39 @@ def start(args, session, unlocked_cb=None):
 
         desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
         if not os.path.exists(desktop_file_path):
-            lines = ["[Desktop Entry]", "Type=Application"]
-            lines.append("Name=" + appInfo["name"])
-            lines.append("Exec=waydroid app launch " + packageName)
-            lines.append("Icon=" + waydroid_data + "/icons/" + packageName + ".png")
-            lines.append("Categories=X-WayDroid-App;")
-            lines.append("X-Purism-FormFactor=Workstation;Mobile;")
-            lines.append("Actions=app_settings;")
-            lines.append("NoDisplay=true")
-            lines.append("[Desktop Action app_settings]")
-            lines.append("Name=App Settings")
-            lines.append("Exec=waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:" + packageName)
-            desktop_file = open(desktop_file_path, "w")
-            for line in lines:
-                desktop_file.write(line + "\n")
-            desktop_file.close()
-            os.chmod(desktop_file_path, 0o644)
+            with open(desktop_file_path, "w") as desktop_file:
+                desktop_file.write(f"""\
+[Desktop Entry]
+Type=Application
+Name={appInfo["name"]}
+Exec=waydroid app launch {packageName}
+Icon={waydroid_data}/icons/{packageName}.png
+Categories=X-WayDroid-App;
+X-Purism-FormFactor=Workstation;Mobile;
+Actions=app_settings;
+NoDisplay=true
+
+[Desktop Action app_settings]
+Name=App Settings
+Exec=waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:{packageName}
+""")
             return 0
 
     def makeWaydroidDesktopFile(hide):
         desktop_file_path = apps_dir + "/Waydroid.desktop"
         if os.path.isfile(desktop_file_path):
             os.remove(desktop_file_path)
-        lines = ["[Desktop Entry]", "Type=Application"]
-        lines.append("Name=Waydroid")
-        lines.append("Exec=waydroid show-full-ui")
-        lines.append("Categories=X-WayDroid-App;")
-        lines.append("X-Purism-FormFactor=Workstation;Mobile;")
-        if hide:
-            lines.append("NoDisplay=true")
-        lines.append("Icon=waydroid")
-        desktop_file = open(desktop_file_path, "w")
-        for line in lines:
-            desktop_file.write(line + "\n")
-        desktop_file.close()
-        os.chmod(desktop_file_path, 0o644)
+        with open(desktop_file_path, "w") as desktop_file:
+            desktop_file.write(f"""\
+[Desktop Entry]
+Type=Application
+Name=Waydroid
+Exec=waydroid show-full-ui
+Categories=X-WayDroid-App;
+X-Purism-FormFactor=Workstation;Mobile;
+Icon=waydroid
+NoDisplay={str(hide).lower()}
+""")
 
     def userUnlocked(uid):
         logging.info("Android with user {} is ready".format(uid))
@@ -73,16 +71,12 @@ def start(args, session, unlocked_cb=None):
         platformService = IPlatform.get_service(args)
         if platformService:
             if not os.path.exists(apps_dir):
-                os.mkdir(apps_dir)
-                os.chmod(apps_dir, 0o700)
+                os.mkdir(apps_dir, 0o700)
             appsList = platformService.getAppsInfo()
             for app in appsList:
                 makeDesktopFile(app)
             multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
-            if multiwin == "false":
-                makeWaydroidDesktopFile(False)
-            else:
-                makeWaydroidDesktopFile(True)
+            makeWaydroidDesktopFile(multiwin == "true")
         if unlocked_cb:
             unlocked_cb()
 
