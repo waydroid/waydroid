@@ -246,6 +246,7 @@ def make_base_props(args):
 
 # Added for security reasons
     props.append("ro.adb.secure=1")
+    props.append("ro.debuggable=0")
 
 
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
