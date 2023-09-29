@@ -43,6 +43,7 @@ Actions=app_settings;
 [Desktop Action app_settings]
 Name=App Settings
 Exec=waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:{packageName}
+Icon={waydroid_data}/icons/com.android.settings.png
 """)
             return 0
 
