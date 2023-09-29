@@ -1,5 +1,5 @@
-<!-- Copyright 2023 Waydroid -->
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2023 Waydroid -->
 <component type="desktop-application">
   <id>id.waydro.waydroid</id>
 
@@ -13,10 +13,9 @@
   <url type="homepage">https://waydro.id/</url>
   <url type="bugtracker">https://github.com/waydroid/waydroid/issues</url>
   <url type="faq">https://docs.waydro.id/faq</url>
-  <url type="help">https://matrix.to/#/#waydroid:mrcyjanek.net</url>
+  <url type="help">https://matrix.to/#/#waydroid:matrix.org</url>
   <url type="donation">https://opencollective.com/waydroid/donate</url>
-  <url type="translate">https://gaijinent.com/contacts</url>
-  <url type="contact">https://matrix.to/#/#waydroid:mrcyjanek.net</url>
+  <url type="contact">https://matrix.to/#/#waydroid:matrix.org</url>
 
   <supports>
     <control>pointing</control>
@@ -35,9 +34,6 @@
   <screenshots>
     <screenshot type="default">
       <image>https://waydro.id/assets/images/hero/main_landing.jpeg</image>
-    </screenshot>
-    <screenshot>
-      <image>https://waydro.id/assets/images/hero/Group%201.png</image>
     </screenshot>
     <screenshot>
       <image>https://waydro.id/assets/images/hero/clean_desktop.jpeg</image>
