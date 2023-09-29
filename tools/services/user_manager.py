@@ -13,6 +13,7 @@ stopping = False
 def start(args, session, unlocked_cb=None):
     waydroid_data = session["waydroid_data"]
     apps_dir = session["xdg_data_home"] + "/applications/"
+    cfg = tools.config.load(args)
 
     def makeDesktopFile(appInfo):
         if appInfo is None:
@@ -74,12 +75,16 @@ def start(args, session, unlocked_cb=None):
             if not os.path.exists(apps_dir):
                 os.mkdir(apps_dir)
                 os.chmod(apps_dir, 0o700)
-            appsList = platformService.getAppsInfo()
-            for app in appsList:
-                makeDesktopFile(app)
-            multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
-            if multiwin == "false":
-                makeWaydroidDesktopFile(False)
+            
+            if cfg["waydroid"].get("show_waydroid_apps", "True") == "True":
+                appsList = platformService.getAppsInfo()
+                for app in appsList:
+                    makeDesktopFile(app)
+                multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
+                if multiwin == "false":
+                    makeWaydroidDesktopFile(False)
+                else:
+                    makeWaydroidDesktopFile(True)
             else:
                 makeWaydroidDesktopFile(True)
         if unlocked_cb:
@@ -92,13 +97,17 @@ def start(args, session, unlocked_cb=None):
             desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
             if mode == 0:
                 # Package added
-                makeDesktopFile(appInfo)
+                if cfg["waydroid"].get("show_waydroid_apps", "True") == "True":
+                    makeDesktopFile(appInfo)
             elif mode == 1:
                 if os.path.isfile(desktop_file_path):
                     os.remove(desktop_file_path)
             else:
                 if os.path.isfile(desktop_file_path):
-                    if makeDesktopFile(appInfo) == -1:
+                    if cfg["waydroid"].get("show_waydroid_apps", "True") == "True":
+                        if makeDesktopFile(appInfo) == -1:
+                            os.remove(desktop_file_path)
+                    else:
                         os.remove(desktop_file_path)
 
     def service_thread():
