@@ -1,0 +1,1 @@
+/usr/lib/systemd/user/waydroid-notification-client.service /usr/lib/systemd/user/gnome-session.target.wants/waydroid-notification-client.service

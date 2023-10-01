@@ -1,0 +1,10 @@
+[Unit]
+Description=Waydroid Notification server
+After=waydroid-container.service
+
+[Service]
+BusName=id.waydro.Notification
+ExecStart=/usr/bin/waydroid notification_server start
+
+[Install]
+WantedBy=multi-user.target

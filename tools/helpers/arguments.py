@@ -71,6 +71,21 @@ def arguments_container(subparser):
     sub.add_parser("unfreeze", help="unfreeze container")
     return ret
 
+def arguments_notification_server(subparser):
+    ret = subparser.add_parser("notification_server", help="notification server controller")
+    sub = ret.add_subparsers(title="subaction", dest="subaction")
+    sub.add_parser("start", help="start notification server")
+    sub.add_parser("stop", help="stop notification server")
+    sub.add_parser("restart", help="restart notification server")
+    return ret
+
+def arguments_notification_client(subparser):
+    ret = subparser.add_parser("notification_client", help="notification client controller")
+    sub = ret.add_subparsers(title="subaction", dest="subaction")
+    sub.add_parser("start", help="start notification client")
+    sub.add_parser("stop", help="stop notification client")
+    return ret
+
 def arguments_app(subparser):
     ret = subparser.add_parser("app", help="applications controller")
     sub = ret.add_subparsers(title="subaction", dest="subaction")
@@ -154,6 +169,8 @@ def arguments():
     arguments_upgrade(sub)
     arguments_session(sub)
     arguments_container(sub)
+    arguments_notification_server(sub)
+    arguments_notification_client(sub)
     arguments_app(sub)
     arguments_prop(sub)
     arguments_fullUI(sub)

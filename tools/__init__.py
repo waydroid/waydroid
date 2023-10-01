@@ -3,7 +3,9 @@
 # PYTHON_ARGCOMPLETE_OK
 import sys
 import logging
+import subprocess
 import os
+import time
 import traceback
 import dbus.mainloop.glib
 import dbus
@@ -44,6 +46,7 @@ def main():
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         dbus.mainloop.glib.threads_init()
         dbus_name_scope = None
+        dbus_notification_scope = None
 
         if not actions.initializer.is_initialized(args) and \
                 args.action and args.action not in ("init", "first-launch", "log"):
@@ -91,6 +94,33 @@ def main():
                 actions.container_manager.freeze(args)
             elif args.subaction == "unfreeze":
                 actions.container_manager.unfreeze(args)
+            else:
+                logging.info(
+                    "Run waydroid {} -h for usage information.".format(args.action))
+
+        elif args.action == "notification_server":
+            actionNeedRoot(args.action)
+            if args.subaction == "start":
+                if dbus_notification_scope is None:
+                    try:
+                        dbus_notification_scope = dbus.service.BusName("id.waydro.Notification", dbus.SystemBus(), do_not_queue=True)
+                    except dbus.exceptions.NameExistsException:
+                        logging.info('LOG: WayDroid notification service is already running')
+                        return 1
+                    except dbus.exceptions.DBusException as e:
+                        print(f"An error occurred while creating the notification service: {e}")
+                        return 1
+                actions.notification_server.start(args)
+            elif args.subaction == "stop":
+                actions.notification_server.stop(args)
+            else:
+                logging.info(
+                    "Run waydroid {} -h for usage information.".format(args.action))
+        elif args.action == "notification_client":
+            if args.subaction == "start":
+                actions.notification_client.start(args)
+            elif args.subaction == "stop":
+                actions.notification_client.stop(args)
             else:
                 logging.info(
                     "Run waydroid {} -h for usage information.".format(args.action))
