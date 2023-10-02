@@ -74,7 +74,7 @@ def generate_nodes_lxc_config(args):
     if args.vendor_type != "MAINLINE":
         if not make_entry("/dev/hwbinder", "dev/host_hwbinder"):
             raise OSError('Binder node "hwbinder" of host not found')
-        make_entry("/vendor", "vendor_extra", options="bind,optional 0 0")
+        make_entry("/vendor", "vendor_extra", options="rbind,optional 0 0")
 
     # Necessary device nodes for adb
     make_entry("none", "dev/pts", "devpts", "defaults,mode=644,ptmxmode=666,create=dir 0 0", False)
