@@ -2,9 +2,12 @@
 set -e
 
 configure() {
-    # Update configs
-    waydroid upgrade -o
-    waydroid init
+    # If there is no supplied image don't do anything as
+    # we expect the user to do that manually
+    if [ -e /usr/share/waydroid-extra/images/system.img ]; then
+        waydroid init
+    fi
+    waydroid upgrade -o || true
 }
 
 case "$1" in
