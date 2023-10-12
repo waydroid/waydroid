@@ -81,6 +81,20 @@ def get(args):
             break
     remove_overlay(args)
 
+def validate(args, channel, image_zip):
+    # Verify that the zip comes from the channel
+    cfg = tools.config.load(args)
+    channel_url = cfg["waydroid"][channel]
+    channel_request = helpers.http.retrieve(channel_url)
+    if channel_request[0] != 200:
+        return False
+    channel_responses = json.loads(channel_request[1].decode('utf8'))["response"]
+    for build in channel_responses:
+        if sha256sum(image_zip) == build['id']:
+            return True
+    logging.warning(f"Could not verify the image {image_zip} against {channel_url}")
+    return False
+
 def replace(args, system_zip, system_time, vendor_zip, vendor_time):
     cfg = tools.config.load(args)
     args.images_path = cfg["waydroid"]["images_path"]
