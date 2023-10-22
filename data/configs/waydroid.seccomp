@@ -7,6 +7,7 @@ _sysctl
 kexec_file_load
 kexec_load
 reboot
+open_by_handle_at errno 38
 adjtimex errno 0
 clock_adjtime errno 0
 clock_adjtime64 errno 0
