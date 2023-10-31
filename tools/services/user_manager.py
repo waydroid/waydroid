@@ -14,40 +14,6 @@ def start(args, session, unlocked_cb=None):
     waydroid_data = session["waydroid_data"]
     apps_dir = session["xdg_data_home"] + "/applications/"
 
-    def makeMenuFiles():
-        home_directory = os.environ['HOME']
-        config_menus_dir = f'{home_directory}/.config/menus/applications-merged'
-        local_share_desktop_directories_dir = f'{home_directory}/.local/share/desktop-directories'
-        if not os.path.exists(config_menus_dir):
-            os.makedirs(config_menus_dir)
-        if not os.path.exists(local_share_desktop_directories_dir):
-            os.makedirs(local_share_desktop_directories_dir)
-
-        if not os.path.isfile(f'{config_menus_dir}/waydroid.menu'):
-            with open(f'{config_menus_dir}/waydroid.menu', 'w') as f:
-                lines = ['<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"\n']
-                lines.append('"http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">\n')
-                lines.append('<Menu>\n')
-                lines.append('\t<Name>Applications</Name>\n')
-                lines.append('\t<Menu>\n')
-                lines.append('\t\t<Name>Waydroid</Name>\n')
-                lines.append('\t\t<Directory>waydroid.directory</Directory>\n')
-                lines.append('\t\t<Include>\n')
-                lines.append('\t\t\t<Category>X-WayDroid-App</Category>\n')
-                lines.append('\t\t</Include>\n')
-                lines.append('\t</Menu>\n')
-                lines.append('</Menu>\n')
-                lines.append('</Menu>\n')
-                f.writelines(lines)
-
-        if not os.path.isfile(f'{local_share_desktop_directories_dir}/waydroid.directory'):
-            with open(f'{local_share_desktop_directories_dir}/waydroid.directory', 'w') as g:
-                lines = ['[Desktop Entry]\n']
-                lines.append('Name=Waydroid\n')
-                lines.append('Icon=waydroid\n')
-                lines.append('Type=Directory\n')
-                g.writelines(lines)
-
     def makeDesktopFile(appInfo):
         if appInfo is None:
             return -1
@@ -124,7 +90,6 @@ def start(args, session, unlocked_cb=None):
         if platformService:
             appInfo = platformService.getAppInfo(packageName)
             desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
-            makeMenuFiles()
             if mode == 0:
                 # Package added
                 makeDesktopFile(appInfo)
