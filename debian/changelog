@@ -1,3 +1,23 @@
+waydroid (1.4.2) bullseye; urgency=medium
+
+  * Allow running a shell command as an arbitrary user and group and with an arbitrary security context (#996)
+  * IHardware: Add new upgrade transaction capable of 64-bit timestamps
+  * interfaces: Return binder error when receiving an unknown transaction
+  * clipboard: change warning message to be less misleading
+  * container_manager: Keep schedtune cgroup around in case nesting is supported
+  * Allow local amendments to the AppArmor policy
+  * Fix issues with AppStream metadata
+  * Add iptables as Debian dependency
+  * user_manager: Respect user umask
+  * user_manager: Add icon to the app_settings action
+  * lxc: Recursively mount vendor_extra
+  * hardware_manager: Validate upgrade zips against the saved ota channel
+  * Block the "open_by_handle_at" system call
+  * Add an XDG menu directory (#1149)
+  * Upver to 1.4.2
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Tue, 31 Oct 2023 15:54:09 +0000
+
 waydroid (1.4.1) bullseye; urgency=medium
 
   * CI: Add ubuntu lunar
