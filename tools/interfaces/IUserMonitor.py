@@ -26,12 +26,14 @@ def add_service(args, userUnlocked, packageStateChanged):
             status, arg1 = reader.read_int32()
             userUnlocked(arg1)
             local_response.append_int32(0)
-        if code == TRANSACTION_packageStateChanged:
+        elif code == TRANSACTION_packageStateChanged:
             status, arg1 = reader.read_int32()
             arg2 = reader.read_string16()
             status, arg3 = reader.read_int32()
             packageStateChanged(arg1, arg2, arg3)
             local_response.append_int32(0)
+        else:
+            return local_response, -99999 # Some error unknown to binder to force a RemoteException
 
         return local_response, 0
 

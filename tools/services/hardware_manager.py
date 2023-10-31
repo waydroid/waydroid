@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
 import threading
+import os
 import tools.actions.container_manager
 import tools.actions.session_manager
 import tools.config
@@ -29,6 +30,12 @@ def start(args):
         helpers.lxc.start(args)
 
     def upgrade(system_zip, system_time, vendor_zip, vendor_time):
+        if os.path.exists(system_zip) and not helpers.images.validate(args, "system_ota", system_zip):
+            logging.warning("Not upgrading because system.img comes from an unverified source")
+            return
+        if os.path.exists(vendor_zip) and not helpers.images.validate(args, "vendor_ota", vendor_zip):
+            logging.warning("Not upgrading because vendor.img comes from an unverified source")
+            return
         helpers.lxc.stop(args)
         helpers.images.umount_rootfs(args)
         helpers.images.replace(args, system_zip, system_time,

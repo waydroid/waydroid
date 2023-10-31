@@ -1,4 +1,5 @@
 profile adbd flags=(attach_disconnected,mediate_deleted,complain) {
+  #include <local/adbd>
   /** ix,
   /dev** rw,
   network,

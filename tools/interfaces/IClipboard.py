@@ -26,10 +26,12 @@ def add_service(args, sendClipboardData, getClipboardData):
             arg1 = reader.read_string16()
             sendClipboardData(arg1)
             local_response.append_int32(0)
-        if code == TRANSACTION_getClipboardData:
+        elif code == TRANSACTION_getClipboardData:
             ret = getClipboardData()
             local_response.append_int32(0)
             local_response.append_string16(ret)
+        else:
+            return local_response, -99999 # Some error unknown to binder to force a RemoteException
 
         return local_response, 0
 

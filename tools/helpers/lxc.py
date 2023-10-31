@@ -12,7 +12,6 @@ import gbinder
 import tools.config
 import tools.helpers.run
 
-
 def get_lxc_version(args):
     if shutil.which("lxc-info") is not None:
         command = ["lxc-info", "--version"]
@@ -75,7 +74,7 @@ def generate_nodes_lxc_config(args):
     if args.vendor_type != "MAINLINE":
         if not make_entry("/dev/hwbinder", "dev/host_hwbinder"):
             raise OSError('Binder node "hwbinder" of host not found')
-        make_entry("/vendor", "vendor_extra", options="bind,optional 0 0")
+        make_entry("/vendor", "vendor_extra", options="rbind,optional 0 0")
 
     # Necessary device nodes for adb
     make_entry("none", "dev/pts", "devpts", "defaults,mode=644,ptmxmode=666,create=dir 0 0", False)
@@ -439,6 +438,33 @@ def shell(args):
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
                "-n", "waydroid", "--clear-env"]
     command.extend(android_env_attach_options())
+    if args.uid!=None:
+        command.append("--uid="+str(args.uid))
+    if args.gid!=None:
+        command.append("--gid="+str(args.gid))
+    elif args.uid!=None:
+        command.append("--gid="+str(args.uid))
+    if args.nolsm or args.allcaps or args.nocgroup:
+        elevatedprivs = "--elevated-privileges="
+        addpipe = False
+        if args.nolsm:
+            if addpipe:
+                elevatedprivs+="|"
+            elevatedprivs+="LSM"
+            addpipe = True
+        if args.allcaps:
+            if addpipe:
+                elevatedprivs+="|"
+            elevatedprivs+="CAP"
+            addpipe = True
+        if args.nocgroup:
+            if addpipe:
+                elevatedprivs+="|"
+            elevatedprivs+="CGROUP"
+            addpipe = True
+        command.append(elevatedprivs)
+    if args.context!=None and not args.nolsm:
+        command.append("--context="+args.context)
     command.append("--")
     if args.COMMAND:
         command.extend(args.COMMAND)
@@ -450,4 +476,10 @@ def shell(args):
 
 def logcat(args):
     args.COMMAND = ["/system/bin/logcat"]
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
     shell(args)

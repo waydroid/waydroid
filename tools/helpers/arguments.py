@@ -110,6 +110,12 @@ def arguments_firstLaunch(subparser):
 
 def arguments_shell(subparser):
     ret = subparser.add_parser("shell", help="run remote shell command")
+    ret.add_argument("-u", "--uid", help="the UID to run as (also sets GID to the same value if -g is not set)")
+    ret.add_argument("-g", "--gid", help="the GID to run as")
+    ret.add_argument("-s", "--context", help="transition to the specified SELinux or AppArmor security context. No-op if -L is supplied.")
+    ret.add_argument("-L", "--nolsm", action="store_true", help="tell LXC not to perform security domain transition related to mandatory access control (e.g. SELinux, AppArmor). If this option is supplied, LXC won't apply a container-wide seccomp filter to the executed program. This is a dangerous option that can result in leaking privileges to the container!!!")
+    ret.add_argument("-C", "--allcaps", action="store_true", help="tell LXC not to drop capabilities. This is a dangerous option that can result in leaking privileges to the container!!!")
+    ret.add_argument("-G", "--nocgroup", action="store_true", help="tell LXC not to switch to the container cgroup. This is a dangerous option that can result in leaking privileges to the container!!!")
     ret.add_argument('COMMAND', nargs='*', help="command to run")
     return ret
 

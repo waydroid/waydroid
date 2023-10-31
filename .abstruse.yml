@@ -14,6 +14,8 @@ matrix:
    image: mrcyjanek/waydroid:jammy
  - env: DISTRO=focal
    image: mrcyjanek/waydroid:focal
+ - env: DISTRO=mantic
+   image: mrcyjanek/waydroid:mantic
 script:
  - apt update
  - build_changelog
