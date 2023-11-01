@@ -49,10 +49,14 @@ Icon={waydroid_data}/icons/com.android.settings.png
 
     def makeWaydroidDesktopFile(hide):
         desktop_file_path = apps_dir + "/Waydroid.desktop"
-        if os.path.isfile(desktop_file_path):
-            os.remove(desktop_file_path)
-        with open(desktop_file_path, "w") as desktop_file:
-            desktop_file.write(f"""\
+        # If the user has set the desktop file as read-only, we won't replace it
+        if not os.access(desktop_file_path, os.W_OK):
+            logging.info(f"Desktop file '{desktop_file_path}' is not writeable, not updating it")
+        else:
+            if os.path.isfile(desktop_file_path):
+                os.remove(desktop_file_path)
+            with open(desktop_file_path, "w") as desktop_file:
+                desktop_file.write(f"""\
 [Desktop Entry]
 Type=Application
 Name=Waydroid
