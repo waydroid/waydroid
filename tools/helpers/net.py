@@ -31,6 +31,6 @@ def get_device_ip_address():
 
     try:
         with open(lease_file) as f:
-            return re.search("(\d{1,3}\.){3}\d{1,3}\s", f.read()).group().strip()
+            return re.search(r"(\d{1,3}\.){3}\d{1,3}\s", f.read()).group().strip()
     except:
         pass
