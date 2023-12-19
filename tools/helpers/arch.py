@@ -19,11 +19,14 @@ def host():
                      " architecture is not supported")
 
 def maybe_remap(target):
-    if target == "x86_64":
+    if target.startswith("x86"):
         with open("/proc/cpuinfo") as f:
-            if "sse4_2" not in f.read():
-                logging.info("x86_64 CPU does not support SSE4.2, falling back to x86...")
-                return "x86"
+            cpuinfo = f.read()
+        if "ssse3" not in cpuinfo:
+            raise ValueError("x86/x86_64 CPU must support SSSE3!")
+        if target == "x86_64" and "sse4_2" not in cpuinfo:
+            logging.info("x86_64 CPU does not support SSE4.2, falling back to x86...")
+            return "x86"
     elif target == "arm64" and platform.architecture()[0] == "32bit":
         return "arm"
 
