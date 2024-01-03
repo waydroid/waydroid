@@ -47,7 +47,7 @@ def upgrade(args):
         if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
             helpers.images.get(args)
         else:
-            logging.info("Upgrade refused because a pre-installed image is detected at {}.".format(args.images_path))
+            logging.info("Upgrade refused because Waydroid was configured to load pre-installed image from {}.".format(args.images_path))
     helpers.drivers.probeAshmemDriver(args)
     helpers.lxc.setup_host_perms(args)
     helpers.lxc.set_lxc_config(args)
