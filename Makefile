@@ -4,18 +4,19 @@ USE_SYSTEMD ?= 1
 USE_DBUS_ACTIVATION ?= 1
 USE_NFTABLES ?= 0
 
+SYSCONFDIR := /etc
 WAYDROID_DIR := $(PREFIX)/lib/waydroid
 BIN_DIR := $(PREFIX)/bin
 APPS_DIR := $(PREFIX)/share/applications
 APPS_DIRECTORY_DIR := $(PREFIX)/share/desktop-directories
-APPS_MENU_DIR := /etc/xdg/menus/applications-merged
+APPS_MENU_DIR := $(SYSCONFDIR)/xdg/menus/applications-merged
 METAINFO_DIR := $(PREFIX)/share/metainfo
 ICONS_DIR := $(PREFIX)/share/icons
 SYSD_DIR := $(PREFIX)/lib/systemd/system
 SYSD_USER_DIR := $(PREFIX)/lib/systemd/user
 DBUS_DIR := $(PREFIX)/share/dbus-1
 POLKIT_DIR := $(PREFIX)/share/polkit-1
-APPARMOR_DIR := /etc/apparmor.d
+APPARMOR_DIR := $(SYSCONFDIR)/apparmor.d
 
 INSTALL_WAYDROID_DIR := $(DESTDIR)$(WAYDROID_DIR)
 INSTALL_BIN_DIR := $(DESTDIR)$(BIN_DIR)
