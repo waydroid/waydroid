@@ -140,7 +140,7 @@ def set_lxc_config(args):
     lxc_ver = get_lxc_version(args)
     if lxc_ver == 0:
         raise OSError("LXC is not installed")
-    config_paths = tools.config.tools_src + "/data/configs/config_"
+    config_paths = tools.config.tools_src + "/data/configs/lxc.d/config_"
     seccomp_profile = tools.config.tools_src + "/data/configs/waydroid.seccomp"
 
     config_snippets = [ config_paths + "base" ]
