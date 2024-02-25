@@ -162,7 +162,8 @@ def mount_rootfs(args, images_dir, session):
                                                tools.config.defaults["rootfs"]],
                                     tools.config.defaults["rootfs"],
                                     upper_dir=tools.config.defaults["overlay_rw"] + "/system",
-                                    work_dir=tools.config.defaults["overlay_work"] + "/system")
+                                    work_dir=tools.config.defaults["overlay_work"] + "/system",
+                                    readonly=(cfg["waydroid"]["overlays_readonly"] == "True"))
         except RuntimeError:
             cfg["waydroid"]["mount_overlays"] = "False"
             tools.config.save(args, cfg)
@@ -175,7 +176,8 @@ def mount_rootfs(args, images_dir, session):
                                            tools.config.defaults["rootfs"] + "/vendor"],
                                     tools.config.defaults["rootfs"] + "/vendor",
                                     upper_dir=tools.config.defaults["overlay_rw"] + "/vendor",
-                                    work_dir=tools.config.defaults["overlay_work"] + "/vendor")
+                                    work_dir=tools.config.defaults["overlay_work"] + "/vendor",
+                                    readonly=(cfg["waydroid"]["overlays_readonly"] == "True"))
 
     for egl_path in ["/vendor/lib/egl", "/vendor/lib64/egl"]:
         if os.path.isdir(egl_path):
