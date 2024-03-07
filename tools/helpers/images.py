@@ -122,10 +122,10 @@ def make_prop(args, cfg, full_props_path):
     add_prop("waydroid.host.uid", "user_id")
     add_prop("waydroid.host.gid", "group_id")
     add_prop("waydroid.host_data_path", "waydroid_data")
-    add_prop("waydroid.xdg_runtime_dir", "xdg_runtime_dir")
-    add_prop("waydroid.pulse_runtime_path", "pulse_runtime_path")
-    add_prop("waydroid.wayland_display", "wayland_display")
     add_prop("waydroid.background_start", "background_start")
+    props.append("waydroid.xdg_runtime_dir=" + tools.config.defaults["container_xdg_runtime_dir"])
+    props.append("waydroid.pulse_runtime_path=" + tools.config.defaults["container_pulse_runtime_path"])
+    props.append("waydroid.wayland_display=" + tools.config.defaults["container_wayland_display"])
     if which("waydroid-sensord") is None:
         props.append("waydroid.stub_sensors_hal=1")
     dpi = cfg["lcd_density"]

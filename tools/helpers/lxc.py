@@ -190,15 +190,18 @@ def generate_session_lxc_config(args, session):
         return add_node_entry(nodes, src, dist, mnt_type, options, check=False)
 
     # Make sure XDG_RUNTIME_DIR exists
-    if not make_entry("tmpfs", session["xdg_runtime_dir"], options="create=dir 0 0"):
+    if not make_entry("tmpfs", tools.config.defaults["container_xdg_runtime_dir"], options="create=dir 0 0"):
         raise OSError("Failed to create XDG_RUNTIME_DIR mount point")
 
-    wayland_socket = os.path.realpath(os.path.join(session["xdg_runtime_dir"], session["wayland_display"]))
-    if not make_entry(wayland_socket):
+    wayland_host_socket = os.path.realpath(os.path.join(session["xdg_runtime_dir"], session["wayland_display"]))
+    wayland_container_socket = os.path.realpath(os.path.join(tools.config.defaults["container_xdg_runtime_dir"], tools.config.defaults["container_wayland_display"]))
+    if not make_entry(wayland_host_socket, wayland_container_socket[1:]):
         raise OSError("Failed to bind Wayland socket")
 
-    pulse_socket = os.path.join(session["pulse_runtime_path"], "native")
-    make_entry(pulse_socket)
+    # Make sure PULSE_RUNTIME_DIR exists
+    pulse_host_socket = os.path.join(session["pulse_runtime_path"], "native")
+    pulse_container_socket = os.path.join(tools.config.defaults["container_pulse_runtime_path"], "native")
+    make_entry(pulse_host_socket, pulse_container_socket[1:])
 
     if not make_entry(session["waydroid_data"], "data", options="rbind 0 0"):
         raise OSError("Failed to bind userdata")
