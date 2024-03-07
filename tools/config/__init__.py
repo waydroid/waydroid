@@ -41,6 +41,8 @@ defaults = {
     "suspend_action": "freeze",
     "mount_overlays": "True",
     "auto_adb": "True",
+    "container_xdg_runtime_dir": "/run/xdg",
+    "container_wayland_display": "wayland-0",
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"
@@ -50,6 +52,7 @@ defaults["overlay_work"] = defaults["work"] + "/overlay_work"
 defaults["data"] = defaults["work"] + "/data"
 defaults["lxc"] = defaults["work"] + "/lxc"
 defaults["host_perms"] = defaults["work"] + "/host-permissions"
+defaults["container_pulse_runtime_path"] = defaults["container_xdg_runtime_dir"] + "/pulse"
 
 session_defaults = {
     "user_name": pwd.getpwuid(os.getuid()).pw_name,
