@@ -25,18 +25,18 @@ LXC_DHCP_MAX="253"
 LXC_DHCP_CONFILE=""
 LXC_DHCP_PING="true"
 LXC_DOMAIN=""
-LXC_USE_NFT="false"
+LXC_USE_NFT="true"
 
 LXC_IPV6_ADDR=""
 LXC_IPV6_MASK=""
 LXC_IPV6_NETWORK=""
 LXC_IPV6_NAT="false"
 
-IPTABLES_BIN="$(command -v iptables-legacy)"
+IPTABLES_BIN=
 if [ ! -n "$IPTABLES_BIN" ]; then
     IPTABLES_BIN="$(command -v iptables)"
 fi
-IP6TABLES_BIN="$(command -v ip6tables-legacy)"
+IP6TABLES_BIN=
 if [ ! -n "$IP6TABLES_BIN" ]; then
     IP6TABLES_BIN="$(command -v ip6tables)"
 fi
@@ -45,7 +45,7 @@ use_nft() {
     [ -n "$NFT" ] && nft list ruleset > /dev/null 2>&1 && [ "$LXC_USE_NFT" = "true" ]
 }
 
-NFT="$(command -v nft)"
+NFT=
 if ! use_nft; then
     use_iptables_lock="-w"
     $IPTABLES_BIN -w -L -n > /dev/null 2>&1 || use_iptables_lock=""
