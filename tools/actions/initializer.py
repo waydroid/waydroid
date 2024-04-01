@@ -23,6 +23,8 @@ def get_vendor_type(args):
     ret = "MAINLINE"
     if vndk_str != "":
         vndk = int(vndk_str)
+        if vndk > 31:
+            vndk -= 1 # 12L -> Halium 12
         if vndk > 19:
             ret = "HALIUM_" + str(vndk - 19)
 
