@@ -49,6 +49,10 @@ class DbusContainerManager(dbus.service.Object):
     def Screen(self):
         screen(self.args)
 
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='b')
+    def isAsleep(self):
+        return is_asleep(self.args)
+
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='a{ss}')
     def GetSession(self):
         try:
@@ -261,3 +265,8 @@ def screen(args):
     status = helpers.lxc.status(args)
     if status == "RUNNING":
         helpers.lxc.screen_toggle(args)
+
+def is_asleep(args):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        return helpers.lxc.sleep_status()

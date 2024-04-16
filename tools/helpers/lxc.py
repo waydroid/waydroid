@@ -484,6 +484,29 @@ def screen_toggle(args):
     args.context = None
     shell(args)
 
+def sleep_status():
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+              android_env_attach_options() + ["--", "dumpsys", "power"]
+
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        logging.info("Failed to check sleep status")
+        return False
+
+    lines = result.stdout.split('\n')
+    for line in lines:
+        if 'mWakefulness=' in line:
+            wakefulness = line.split('mWakefulness=')[1].strip()
+            if wakefulness == "Awake":
+                return False
+            elif wakefulness == "Asleep":
+                return True
+            else:
+                return False
+            break
+    else:
+        return False
+
 def logcat(args):
     args.COMMAND = ["/system/bin/logcat"]
     args.uid = None
