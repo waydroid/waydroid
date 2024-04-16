@@ -39,7 +39,6 @@ Icon={waydroid_data}/icons/{packageName}.png
 Categories=X-WayDroid-App;
 X-Purism-FormFactor=Workstation;Mobile;
 Actions=app_settings;
-NoDisplay=true
 
 [Desktop Action app_settings]
 Name=App Settings
