@@ -27,6 +27,9 @@ def start(args, session, unlocked_cb=None):
 
         packageName = appInfo["packageName"]
 
+        if packageName == "com.android.documentsui" or packageName == "com.android.inputmethod.latin":
+            return -1
+
         desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
         if not os.path.exists(desktop_file_path):
             with open(desktop_file_path, "w") as desktop_file:
@@ -51,6 +54,10 @@ Icon={waydroid_data}/icons/com.android.settings.png
         desktop_file_path = apps_dir + "/Waydroid.desktop"
         if os.path.isfile(desktop_file_path):
             os.remove(desktop_file_path)
+
+        # FuriOS: we are not using this
+        return -1
+
         with open(desktop_file_path, "w") as desktop_file:
             desktop_file.write(f"""\
 [Desktop Entry]
