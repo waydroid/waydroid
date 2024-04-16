@@ -474,6 +474,16 @@ def shell(args):
     if state == "FROZEN":
         freeze(args)
 
+def screen_toggle(args):
+    args.COMMAND = ['input', 'keyevent', '26']
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
+    shell(args)
+
 def logcat(args):
     args.COMMAND = ["/system/bin/logcat"]
     args.uid = None

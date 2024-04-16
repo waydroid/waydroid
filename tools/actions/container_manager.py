@@ -45,6 +45,10 @@ class DbusContainerManager(dbus.service.Object):
     def Unfreeze(self):
         unfreeze(self.args)
 
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    def Screen(self):
+        screen(self.args)
+
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='a{ss}')
     def GetSession(self):
         try:
@@ -252,3 +256,8 @@ def unfreeze(args):
         helpers.lxc.unfreeze(args)
         while helpers.lxc.status(args) == "FROZEN":
             pass
+
+def screen(args):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        helpers.lxc.screen_toggle(args)
