@@ -27,10 +27,11 @@ def start(args, session, unlocked_cb=None):
 
         packageName = appInfo["packageName"]
 
+        hide = False
         # FuriOS: don't add an icon for default apps such as documents, settings or microG
         if packageName == "com.android.documentsui" or packageName == "com.android.inputmethod.latin" \
             or packageName == "com.android.settings" or packageName == "com.google.android.gms":
-            return -1
+            hide = True
 
         desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
         if not os.path.exists(desktop_file_path):
@@ -44,6 +45,7 @@ Icon={waydroid_data}/icons/{packageName}.png
 Categories=X-WayDroid-App;
 X-Purism-FormFactor=Workstation;Mobile;
 Actions=app_settings;
+NoDisplay={str(hide).lower()}
 
 [Desktop Action app_settings]
 Name=App Settings
