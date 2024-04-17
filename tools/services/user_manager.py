@@ -27,7 +27,9 @@ def start(args, session, unlocked_cb=None):
 
         packageName = appInfo["packageName"]
 
-        if packageName == "com.android.documentsui" or packageName == "com.android.inputmethod.latin":
+        # FuriOS: don't add an icon for default apps such as documents, settings or microG
+        if packageName == "com.android.documentsui" or packageName == "com.android.inputmethod.latin" \
+            or packageName == "com.android.settings" or packageName == "com.google.android.gms":
             return -1
 
         desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
