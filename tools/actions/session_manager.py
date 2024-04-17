@@ -72,7 +72,7 @@ def start(args, unlocked_cb=None, background=True):
             dpi = "0"
     session["lcd_density"] = dpi
 
-    session["background_start"] = "true" if background else "false"
+    session["background_start"] = "true"
 
     mainloop = GLib.MainLoop()
 
