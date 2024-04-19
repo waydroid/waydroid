@@ -50,6 +50,7 @@ install:
 		cp systemd/waydroid-container.service $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-notification-server.service $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-notification-client.service $(INSTALL_SYSD_USER_DIR); \
+		cp systemd/waydroid-session.service $(INSTALL_SYSD_USER_DIR); \
 	fi
 	if [ $(USE_NFTABLES) = 1 ]; then \
 		sed '/LXC_USE_NFT=/ s/false/true/' -i $(INSTALL_WAYDROID_DIR)/data/scripts/waydroid-net.sh; \

@@ -1,0 +1,9 @@
+[Unit]
+Description=Android session autostart
+After=sm.puri.Phosh.service
+ConditionPathExists=|/home/droidian/.android_enable
+ConditionPathExists=|/home/furios/.android_enable
+
+[Service]
+Type=simple
+ExecStart=-/usr/bin/waydroid session start
