@@ -61,6 +61,9 @@ session_defaults = {
     "xdg_runtime_dir": str(os.environ.get('XDG_RUNTIME_DIR')),
     "wayland_display": str(os.environ.get('WAYLAND_DISPLAY')),
     "pulse_runtime_path": str(os.environ.get('PULSE_RUNTIME_PATH')),
+    "container_xdg_runtime_dir": "/waydroid/xdg",
+    "container_wayland_display": "wayland-0",
+    "container_pulse_runtime_path": "None",
     "state": "STOPPED",
     "lcd_density": "0",
     "background_start": "true"
@@ -70,6 +73,8 @@ session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + \
     "/waydroid/data"
 if session_defaults["pulse_runtime_path"] == "None":
     session_defaults["pulse_runtime_path"] = session_defaults["xdg_runtime_dir"] + "/pulse"
+if session_defaults["container_pulse_runtime_path"] == "None":
+    session_defaults["container_pulse_runtime_path"] = session_defaults["container_xdg_runtime_dir"] + "/pulse"
 
 channels_defaults = {
     "config_path": "/usr/share/waydroid-extra/channels.cfg",
