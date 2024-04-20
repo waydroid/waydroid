@@ -1,7 +1,13 @@
 [Desktop Entry]
-Type=Application
-Name=Waydroid
+Actions=Shutdown
+Categories=X-WayDroid-App;
 Exec=waydroid first-launch
 Icon=waydroid
-Categories=X-WayDroid-App;
+Name=Waydroid
+Type=Application
 X-Purism-FormFactor=Workstation;Mobile;
+
+[Desktop Action Shutdown]
+Exec=bash -c '(waydroid status|grep RUNNING) && if ! (pkexec waydroid shell svc power shutdown && waydroid session stop) ; then notify-send -i waydroid -a Waydroid '\\''Session has failed to shutdown !'\\'';fi'
+Icon=waydroid
+Name=Waydroid shutdown
