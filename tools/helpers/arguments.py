@@ -26,9 +26,9 @@ def arguments_init(subparser):
     ret.add_argument("-f", "--force", action="store_true",
                      help="re-initialize configs and images")
     ret.add_argument("-c", "--system_channel",
-                     help="custom system channel (options: OTA channel URL; default is Official OTA server)")
+                     help="custom system channel (options: OTA channel URL; default is Official OTA server; **NOTE:** the default doesn't work on Fedora, the option must be set explicitly)")
     ret.add_argument("-v", "--vendor_channel",
-                     help="custom vendor channel (options: OTA channel URL; default is Official OTA server)")
+                     help="custom vendor channel (options: OTA channel URL; default is Official OTA server; **NOTE:** the default doesn't work on Fedora, the option must be set explicitly)")
     ret.add_argument("-r", "--rom_type",
                      help="rom type (options: \"lineage\", \"bliss\" or OTA channel URL; default is LineageOS)")
     ret.add_argument("-s", "--system_type",
