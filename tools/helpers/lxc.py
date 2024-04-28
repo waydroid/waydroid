@@ -507,6 +507,23 @@ def sleep_status():
     else:
         return False
 
+def open_app_present():
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+              android_env_attach_options() + ["--", "dumpsys", "window", "windows"]
+
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        logging.info("Failed to check open app presence")
+        return False
+
+    target_lines = re.findall(".*mInputMethodTarget.*", result.stdout)
+
+    for line in target_lines:
+        if "com.android.launcher" in line:
+            return False
+
+    return True
+
 def logcat(args):
     args.COMMAND = ["/system/bin/logcat"]
     args.uid = None
