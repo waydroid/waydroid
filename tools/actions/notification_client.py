@@ -14,6 +14,8 @@ from tools.actions import app_manager
 
 main_loop = None
 
+pkg_name = ""
+
 def stop_main_loop():
     global main_loop
     if main_loop:
@@ -23,6 +25,7 @@ def stop_main_loop():
 
 def on_action_invoked(notification, action_key):
     args = None
+    global pkg_name
     if action_key == 'open':
         args = helpers.arguments()
         args.cache = {}
@@ -31,11 +34,13 @@ def on_action_invoked(notification, action_key):
         args.log = args.work + "/waydroid.log"
         args.sudo_timer = True
         args.timeout = 1800
-        app_manager.showFullUI(args)
+        args.PACKAGE = f"{pkg_name}"
+        app_manager.launch(args)
 
 def on_new_message(package_name, count):
     # logging.info(f"Received new message notification: packagename = {package_name}, count = {count}")
 
+    global pkg_name
     args = None
     app_name_dict = {}
     try:
@@ -58,6 +63,7 @@ def on_new_message(package_name, count):
             appsList = platformService.getAppsInfo()
             app_name_dict = {app['packageName']: app['name'] for app in appsList}
             app_name = app_name_dict.get(package_name)
+            pkg_name = package_name
             notify_send(app_name, count)
         else:
             logging.error("Failed to access IPlatform service")
