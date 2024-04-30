@@ -15,6 +15,7 @@ from tools.actions import app_manager
 main_loop = None
 
 pkg_name = ""
+app_notifications = {}
 
 def stop_main_loop():
     global main_loop
@@ -82,7 +83,11 @@ def notify_send(app_name, count):
     notifications = dbus.Interface(notification_service, dbus_interface='org.freedesktop.Notifications')
     notifications.connect_to_signal("ActionInvoked", on_action_invoked)
 
-    notifications.Notify(
+    if app_name in app_notifications:
+        notif_id = app_notifications[app_name]['id']
+        notifications.CloseNotification(notif_id)
+
+    new_notif_id = notifications.Notify(
         app_name,
         0,
         "/usr/share/icons/hicolor/512x512/apps/waydroid.png",
@@ -92,6 +97,8 @@ def notify_send(app_name, count):
         {'urgency': 1},
         5000
     )
+
+    app_notifications[app_name] = {'id': new_notif_id, 'count': count}
 
     GLib.timeout_add_seconds(3, stop_main_loop)
     main_loop = GLib.MainLoop()
