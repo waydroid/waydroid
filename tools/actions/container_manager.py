@@ -151,6 +151,15 @@ def do_start(args, session):
 
     # Sensors
     if which("waydroid-sensord"):
+        try:
+            proc = subprocess.Popen(['pgrep', '-f', "waydroid-sensord"], stdout=subprocess.PIPE)
+            stdout, _ = proc.communicate()
+
+            for pid in stdout.decode().strip().split():
+                subprocess.run(['kill', pid])
+        except Exception:
+            pass
+
         tools.helpers.run.user(
             args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
 
