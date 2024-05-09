@@ -2,7 +2,7 @@ import glob
 import os
 import tools.helpers.props
 
-unsupported = ["nvidia", "nouveau"]
+unsupported = ["nvidia"]
 
 def getKernelDriver(args, dev):
     return tools.helpers.props.file_get(args, "/sys/class/drm/{}/device/uevent".format(dev), "DRIVER")
@@ -29,6 +29,7 @@ def getVulkanDriver(args, dev):
         "msm": "freedreno",
         "msm_dpu": "freedreno",
         "vc4": "broadcom",
+        "nouveau": "nouveau",
     }
     kernel_driver = getKernelDriver(args, dev)
     if kernel_driver in mapping:
