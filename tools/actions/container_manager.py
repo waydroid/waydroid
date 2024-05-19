@@ -306,3 +306,8 @@ def open_app_present(args):
     status = helpers.lxc.status(args)
     if status == "RUNNING":
         return helpers.lxc.open_app_present()
+
+def remove_app(args, packageName):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        helpers.lxc.remove_app(args, packageName)

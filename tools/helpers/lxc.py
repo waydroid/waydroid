@@ -507,6 +507,17 @@ def sleep_status():
     else:
         return False
 
+def remove_app(args, packageName):
+    args.COMMAND = ['pm', 'uninstall', packageName]
+
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
+    shell(args)
+
 def open_app_present():
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
               android_env_attach_options() + ["--", "dumpsys", "window", "windows"]
