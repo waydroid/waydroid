@@ -51,7 +51,8 @@ def remove(args):
         if platformService:
             ret = platformService.removeApp(args.PACKAGE)
             if ret != 0:
-                logging.error("Failed to uninstall package: {}".format(args.PACKAGE))
+                logging.error("Failed to uninstall package: {} using IPlatform, falling back to container manager".format(args.PACKAGE))
+                cm.RemoveApp(args.PACKAGE)
         else:
             logging.error("Failed to access IPlatform service")
 
