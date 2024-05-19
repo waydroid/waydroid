@@ -475,7 +475,12 @@ def shell(args):
         freeze(args)
 
 def screen_toggle(args):
-    args.COMMAND = ['input', 'keyevent', '26']
+    screen_state = sleep_status()
+    if screen_state:
+        args.COMMAND = ['input', 'keyevent', '224']  # key_wakeup
+    else:
+        args.COMMAND = ['input', 'keyevent', '223']  # key_sleep
+
     args.uid = None
     args.gid = None
     args.nolsm = None
