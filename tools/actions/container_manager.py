@@ -66,16 +66,34 @@ class DbusContainerManager(dbus.service.Object):
         except AttributeError:
             return {}
 
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='')
+    def RemoveApp(self, packageName):
+        remove_app(self.args, packageName)
+
+    @dbus.service.method("id.waydro.ContainerManager", out_signature='')
+    def MountSharedFolder(self):
+        guest_dir = self.args.session['waydroid_data'] + '/media/0/Host'
+        host_dir = self.args.session['host_user'] + '/Android'
+        helpers.mount.bind(self.args, guest_dir, host_dir)
+        chmod(self.args, host_dir, "777")
+
+    @dbus.service.method("id.waydro.ContainerManager", out_signature='')
+    def UnmountSharedFolder(self):
+        host_dir = self.args.session['host_user'] + '/Android'
+        if helpers.mount.ismount(host_dir):
+            helpers.mount.umount_all(self.args, host_dir)
+            os.rmdir(host_dir)
+
 def service(args, looper):
     dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
 
-def set_permissions(args, perm_list=None, mode="777"):
-    def chmod(path, mode):
-        if os.path.exists(path):
-            command = ["chmod", mode, "-R", path]
-            tools.helpers.run.user(args, command, check=False)
+def chmod(args, path, mode):
+    if os.path.exists(path):
+        command = ["chmod", mode, "-R", path]
+        tools.helpers.run.user(args, command, check=False)
 
+def set_permissions(args, perm_list=None, mode="777"):
     # Nodes list
     if not perm_list:
         perm_list = [
@@ -104,7 +122,7 @@ def set_permissions(args, perm_list=None, mode="777"):
         perm_list.extend(glob.glob("/dev/video*"))
 
     for path in perm_list:
-        chmod(path, mode)
+        chmod(args, path, mode)
 
 def start(args):
     try:
