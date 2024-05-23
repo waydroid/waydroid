@@ -26,6 +26,23 @@ class DbusSessionManager(dbus.service.Object):
         do_stop(self.args, self.looper)
         stop_container(quit_session=False)
 
+    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
+    def VendorType(self):
+        cfg = tools.config.load(self.args)
+        return cfg["waydroid"]["vendor_type"]
+
+    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
+    def IpAddress(self):
+        ip_address = tools.helpers.net.get_device_ip_address()
+        return ip_address if ip_address else "UNKNOWN"
+
+    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
+    def LineageVersion(self):
+        full_version = tools.helpers.props.get(self.args, "ro.lineage.display.version")
+        version_parts = full_version.split('-')
+        version = '-'.join(version_parts[:2])
+        return version
+
 def service(args, looper):
     dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
     looper.run()
