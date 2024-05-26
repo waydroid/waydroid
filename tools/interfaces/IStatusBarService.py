@@ -11,6 +11,8 @@ SERVICE_NAME = "statusbar"
 
 TRANSACTION_expand = 1
 TRANSACTION_collapse = 2
+TRANSACTION_shutdown = 37
+TRANSACTION_restart = 39
 
 class IStatusBarService:
     def __init__(self, remote):
@@ -33,6 +35,32 @@ class IStatusBarService:
         request = self.client.new_request()
         reply, status = self.client.transact_sync_reply(
             TRANSACTION_collapse, request)
+
+        if status:
+            logging.error("Sending reply failed")
+        else:
+            reader = reply.init_reader()
+            status, exception = reader.read_int32()
+            if exception != 0:
+                logging.error("Failed with code: {}".format(exception))
+
+    def shutdown(self):
+        request = self.client.new_request()
+        reply, status = self.client.transact_sync_reply(
+            TRANSACTION_shutdown, request)
+
+        if status:
+            logging.error("Sending reply failed")
+        else:
+            reader = reply.init_reader()
+            status, exception = reader.read_int32()
+            if exception != 0:
+                logging.error("Failed with code: {}".format(exception))
+
+    def restart(self):
+        request = self.client.new_request()
+        reply, status = self.client.transact_sync_reply(
+            TRANSACTION_restart, request)
 
         if status:
             logging.error("Sending reply failed")
