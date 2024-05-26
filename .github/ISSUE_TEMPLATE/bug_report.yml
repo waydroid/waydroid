@@ -52,6 +52,13 @@ body:
 
   - type: input
     attributes:
+      label: Window Manager / Windowing System
+      placeholder: "Example: Xorg 21.1.13 / X11"
+    validations:
+      required: true
+
+  - type: input
+    attributes:
       label: GPU
       placeholder: "Example: AMD Radeon™ RX 5700"
     validations:
