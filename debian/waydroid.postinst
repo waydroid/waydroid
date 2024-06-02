@@ -5,7 +5,7 @@ configure() {
     # If there is no supplied image don't do anything as
     # we expect the user to do that manually
     if [ -e /usr/share/waydroid-extra/images/system.img ]; then
-        waydroid init
+        waydroid init || true
     fi
     waydroid upgrade -o || true
 }
