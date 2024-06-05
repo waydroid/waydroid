@@ -43,6 +43,32 @@ class DbusSessionManager(dbus.service.Object):
         version = '-'.join(version_parts[:2])
         return version
 
+    @dbus.service.method("id.waydro.SessionManager", in_signature='s', out_signature='')
+    def RemoveApp(self, packageName):
+        tools.helpers.ipc.DBusContainerService().RemoveApp(packageName)
+
+    @dbus.service.method("id.waydro.SessionManager", in_signature='s', out_signature='')
+    def InstallApp(self, packagePath):
+        prop_file_path = '/var/lib/waydroid/waydroid.prop'
+        waydroid_host_data_path = None
+        with open(prop_file_path, 'r') as file:
+            for line in file:
+                if line.startswith('waydroid.host_data_path'):
+                    key, value = line.split('=', 1)
+                    waydroid_host_data_path = value.strip()
+                    break
+
+        if waydroid_host_data_path is None:
+            return
+
+        tmp_dir = waydroid_host_data_path + "/waydroid_tmp"
+        if not os.path.exists(tmp_dir):
+            os.makedirs(tmp_dir)
+
+        shutil.copyfile(packagePath, tmp_dir + "/base.apk")
+        tools.helpers.ipc.DBusContainerService().InstallBaseApk()
+        os.remove(tmp_dir + "/base.apk")
+
 def service(args, looper):
     dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
     looper.run()
