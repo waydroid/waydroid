@@ -6,4 +6,5 @@ ConditionPathExists=|/home/furios/.android_enable
 
 [Service]
 Type=simple
+ExecStartPre=-/usr/bin/waydroid session stop
 ExecStart=-/usr/bin/waydroid session start
