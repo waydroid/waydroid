@@ -84,6 +84,14 @@ class DbusContainerManager(dbus.service.Object):
             helpers.mount.umount_all(self.args, host_dir)
             os.rmdir(host_dir)
 
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    def NfcToggle(self):
+        nfc_toggle(self.args)
+
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='b')
+    def GetNfcStatus(self):
+        return nfc_status(self.args)
+
 def service(args, looper):
     dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
@@ -311,3 +319,13 @@ def remove_app(args, packageName):
     status = helpers.lxc.status(args)
     if status == "RUNNING":
         helpers.lxc.remove_app(args, packageName)
+
+def nfc_toggle(args):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        helpers.lxc.toggle_nfc(args)
+
+def nfc_status(args):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        return helpers.lxc.nfc_status()

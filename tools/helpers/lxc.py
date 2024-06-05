@@ -540,6 +540,44 @@ def open_app_present():
 
     return True
 
+def toggle_nfc(args):
+    nfc_state = nfc_status()
+    if nfc_state:
+        args.COMMAND = ['service', 'call', 'nfc', '7']  # stop
+    else:
+        args.COMMAND = ['service', 'call', 'nfc', '8']  # start
+
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
+    shell(args)
+
+def nfc_status():
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+              android_env_attach_options() + ["--", "dumpsys", "nfc"]
+
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        logging.info("Failed to check nfc status")
+        return False
+
+    lines = result.stdout.split('\n')
+    for line in lines:
+        if 'mState=' in line:
+            state = line.split('mState=')[1].strip()
+            if state == "off" or state == "turning off":
+                return False
+            elif state == "on" or state == "turning on":
+                return True
+            else:
+                return False
+            break
+    else:
+        return False
+
 def logcat(args):
     args.COMMAND = ["/system/bin/logcat"]
     args.uid = None
