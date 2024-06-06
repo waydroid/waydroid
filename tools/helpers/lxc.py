@@ -512,6 +512,17 @@ def sleep_status():
     else:
         return False
 
+def install_base_apk(args):
+    args.COMMAND = ['pm', 'install', '/data/waydroid_tmp/base.apk']
+
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
+    shell(args)
+
 def remove_app(args, packageName):
     args.COMMAND = ['pm', 'uninstall', packageName]
 
