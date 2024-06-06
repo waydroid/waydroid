@@ -587,7 +587,7 @@ def nfc_status():
                 return False
             break
     else:
-        return False
+        return True # on startup we don't have indication, but its true
 
 def logcat(args):
     args.COMMAND = ["/system/bin/logcat"]
