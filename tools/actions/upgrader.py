@@ -12,8 +12,6 @@ def get_config(args):
     args.arch = cfg["waydroid"]["arch"]
     args.images_path = cfg["waydroid"]["images_path"]
     args.vendor_type = cfg["waydroid"]["vendor_type"]
-    args.system_ota = cfg["waydroid"]["system_ota"]
-    args.vendor_ota = cfg["waydroid"]["vendor_ota"]
     args.session = None
 
 def migration(args):
