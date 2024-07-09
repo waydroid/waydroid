@@ -27,6 +27,7 @@ def getVulkanDriver(args, dev):
         "radeon": "radeon",
         "panfrost": "panfrost",
         "msm": "freedreno",
+        "msm_dpu": "freedreno",
         "vc4": "broadcom",
     }
     kernel_driver = getKernelDriver(args, dev)
