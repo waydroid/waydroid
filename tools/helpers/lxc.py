@@ -598,3 +598,20 @@ def logcat(args):
     args.nocgroup = None
     args.context = None
     shell(args)
+
+def force_finish_setup(args):
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
+
+    args.COMMAND = ['settings', 'put', 'secure', 'user_setup_complete', '1']
+    shell(args)
+
+    args.COMMAND = ['settings', 'put', 'global', 'device_provisioned', '1']
+    shell(args)
+
+    args.COMMAND = ['settings', 'put', 'global', 'setup_wizard_has_run', '1']
+    shell(args)

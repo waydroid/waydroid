@@ -96,6 +96,10 @@ class DbusContainerManager(dbus.service.Object):
     def GetNfcStatus(self):
         return nfc_status(self.args)
 
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    def ForceFinishSetup(self):
+        force_finish_setup(self.args)
+
 def service(args, looper):
     dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
@@ -338,3 +342,8 @@ def nfc_status(args):
     status = helpers.lxc.status(args)
     if status == "RUNNING":
         return helpers.lxc.nfc_status()
+
+def force_finish_setup(args):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        return helpers.lxc.force_finish_setup(args)

@@ -5,6 +5,7 @@ import os
 import threading
 import tools.config
 import tools.helpers.net
+from tools.helpers import ipc
 from tools.interfaces import IUserMonitor
 from tools.interfaces import IPlatform
 
@@ -90,6 +91,9 @@ NoDisplay={str(hide).lower()}
             makeWaydroidDesktopFile(multiwin == "true")
         if unlocked_cb:
             unlocked_cb()
+
+        cm = ipc.DBusContainerService()
+        cm.ForceFinishSetup()
 
     def packageStateChanged(mode, packageName, uid):
         platformService = IPlatform.get_service(args)
