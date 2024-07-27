@@ -63,7 +63,6 @@ session_defaults = {
     "lcd_density": "0",
     "background_start": "true"
 }
-session_defaults["config_path"] = defaults["work"] + "/session.cfg"
 session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + \
     "/waydroid/data"
 if session_defaults["pulse_runtime_path"] == "None":
