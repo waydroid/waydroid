@@ -59,6 +59,10 @@ def setup_config(args):
     if not args.system_type:
         args.system_type = channels_cfg["channels"]["system_type"]
 
+    if not args.system_channel or not args.vendor_channel:
+        logging.error("ERROR: You must provide 'System OTA' and 'Vendor OTA' URLs.")
+        return False
+
     args.system_ota = args.system_channel + "/" + args.rom_type + \
         "/waydroid_" + args.arch + "/" + args.system_type + ".json"
     system_request = helpers.http.retrieve(args.system_ota)
@@ -101,6 +105,7 @@ def setup_config(args):
     cfg["waydroid"]["vndbinder"] = args.VNDBINDER_DRIVER
     cfg["waydroid"]["hwbinder"] = args.HWBINDER_DRIVER
     tools.config.save(args, cfg)
+    return True
 
 def init(args):
     if not is_initialized(args) or args.force:
@@ -109,7 +114,8 @@ def init(args):
             initializer_service = tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer")
         except dbus.DBusException:
             pass
-        setup_config(args)
+        if not setup_config(args):
+            return
         status = "STOPPED"
         if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
             status = helpers.lxc.status(args)
