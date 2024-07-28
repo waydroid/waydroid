@@ -183,20 +183,6 @@ def do_start(args, session):
                "/data/scripts/waydroid-net.sh", "start"]
     tools.helpers.run.user(args, command)
 
-    # Sensors
-    if which("waydroid-sensord"):
-        try:
-            proc = subprocess.Popen(['pgrep', '-f', "waydroid-sensord"], stdout=subprocess.PIPE)
-            stdout, _ = proc.communicate()
-
-            for pid in stdout.decode().strip().split():
-                subprocess.run(['kill', pid])
-        except Exception:
-            pass
-
-        tools.helpers.run.user(
-            args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
-
     # Cgroup hacks
     if which("start"):
         command = ["start", "cgroup-lite"]
