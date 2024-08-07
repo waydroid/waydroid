@@ -1,3 +1,23 @@
+waydroid (1.4.3) bullseye; urgency=medium
+
+  * update regex for deprecation warning
+  * Add SSSE3 CPU check for arch x86/x86_64
+  * Make adb auto-connection opt-out
+  * upgrader: Clarify refused upgrade message
+  * Add sysconfdir to Makefile defaulting to /etc
+  * Don't change user-defined desktop files for Waydroid when they're set as read-only
+  * Ensure default umask to avoid surprises with file permissions.
+  * initializer: Fix Halium version VNDK detection logic for 12L+
+  * Add msm_dpu driver for freedreno
+  * Re-enable nouveau and nvk
+  * Remove unused session.cfg config
+  * Use synthetic paths for host sockets
+  * Bail out if system_channel or vendor_channel are empty
+  * user_manager: Restore desktop-file creation the first time
+  * Upver to 1.4.3
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Wed, 07 Aug 2024 22:58:54 +0200
+
 waydroid (1.4.2) bullseye; urgency=medium
 
   * Allow running a shell command as an arbitrary user and group and with an arbitrary security context (#996)
