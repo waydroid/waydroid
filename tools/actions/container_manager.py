@@ -100,6 +100,14 @@ class DbusContainerManager(dbus.service.Object):
     def ForceFinishSetup(self):
         force_finish_setup(self.args)
 
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='')
+    def ClearAppData(self, packageName):
+        clear_app_data(self.args, packageName)
+
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='')
+    def KillApp(self, packageName):
+        kill_app(self.args, packageName)
+
 def service(args, looper):
     dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
@@ -333,3 +341,13 @@ def force_finish_setup(args):
     status = helpers.lxc.status(args)
     if status == "RUNNING":
         return helpers.lxc.force_finish_setup(args)
+
+def clear_app_data(args, packageName):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        return helpers.lxc.clear_app_data(args, packageName)
+
+def kill_app(args, packageName):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        return helpers.lxc.kill_app(args, packageName)

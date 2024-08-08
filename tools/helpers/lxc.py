@@ -615,3 +615,23 @@ def force_finish_setup(args):
 
     args.COMMAND = ['settings', 'put', 'global', 'setup_wizard_has_run', '1']
     shell(args)
+
+def clear_app_data(args, package_name):
+    args.COMMAND = ['pm', 'clear', package_name]
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
+    shell(args)
+
+def kill_app(args, package_name):
+    args.COMMAND = ['am', 'force-stop', package_name]
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
+    shell(args)
