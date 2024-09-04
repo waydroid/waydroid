@@ -35,19 +35,36 @@ def setup_config(args):
     args.arch = helpers.arch.host()
     cfg["waydroid"]["arch"] = args.arch
 
+    args.vendor_type = get_vendor_type(args)
+    cfg["waydroid"]["vendor_type"] = args.vendor_type
+
+    helpers.drivers.setupBinderNodes(args)
+    cfg["waydroid"]["binder"] = args.BINDER_DRIVER
+    cfg["waydroid"]["vndbinder"] = args.VNDBINDER_DRIVER
+    cfg["waydroid"]["hwbinder"] = args.HWBINDER_DRIVER
+
+    has_preinstalled_images = False
     preinstalled_images_paths = tools.config.defaults["preinstalled_images_paths"]
-    if not args.images_path:
-        for preinstalled_images in preinstalled_images_paths:
-            if os.path.isdir(preinstalled_images):
-                if os.path.isfile(preinstalled_images + "/system.img") and os.path.isfile(preinstalled_images + "/vendor.img"):
-                    args.images_path = preinstalled_images
-                    break
-                else:
-                    logging.warning("Found directory {} but missing system or vendor image, ignoring...".format(preinstalled_images))
+    for preinstalled_images in preinstalled_images_paths:
+        if os.path.isdir(preinstalled_images):
+            if os.path.isfile(preinstalled_images + "/system.img") and os.path.isfile(preinstalled_images + "/vendor.img"):
+                has_preinstalled_images = True
+                args.images_path = preinstalled_images
+                break
+            else:
+                logging.warning("Found directory {} but missing system or vendor image, ignoring...".format(preinstalled_images))
 
     if not args.images_path:
         args.images_path = tools.config.defaults["images_path"]
     cfg["waydroid"]["images_path"] = args.images_path
+
+    if has_preinstalled_images:
+        cfg["waydroid"]["system_ota"] = args.system_ota = "None"
+        cfg["waydroid"]["vendor_ota"] = args.vendor_ota = "None"
+        cfg["waydroid"]["system_datetime"] = tools.config.defaults["system_datetime"]
+        cfg["waydroid"]["vendor_datetime"] = tools.config.defaults["vendor_datetime"]
+        tools.config.save(args, cfg)
+        return True
 
     channels_cfg = tools.config.load_channels()
     if not args.system_channel:
@@ -67,11 +84,8 @@ def setup_config(args):
         "/waydroid_" + args.arch + "/" + args.system_type + ".json"
     system_request = helpers.http.retrieve(args.system_ota)
     if system_request[0] != 200:
-        if args.images_path not in preinstalled_images_paths:
-            raise ValueError(
-                "Failed to get system OTA channel: {}, error: {}".format(args.system_ota, system_request[0]))
-        else:
-            args.system_ota = "None"
+        raise ValueError(
+            "Failed to get system OTA channel: {}, error: {}".format(args.system_ota, system_request[0]))
 
     device_codename = helpers.props.host_get(args, "ro.product.device")
     args.vendor_type = None
@@ -85,12 +99,8 @@ def setup_config(args):
             break
 
     if not args.vendor_type:
-        if args.images_path not in preinstalled_images_paths:
-            raise ValueError(
-                "Failed to get vendor OTA channel: {}".format(vendor_ota))
-        else:
-            args.vendor_ota = "None"
-            args.vendor_type = get_vendor_type(args)
+        raise ValueError(
+            "Failed to get vendor OTA channel: {}".format(vendor_ota))
 
     if args.system_ota != cfg["waydroid"].get("system_ota"):
         cfg["waydroid"]["system_datetime"] = tools.config.defaults["system_datetime"]
@@ -100,10 +110,6 @@ def setup_config(args):
     cfg["waydroid"]["vendor_type"] = args.vendor_type
     cfg["waydroid"]["system_ota"] = args.system_ota
     cfg["waydroid"]["vendor_ota"] = args.vendor_ota
-    helpers.drivers.setupBinderNodes(args)
-    cfg["waydroid"]["binder"] = args.BINDER_DRIVER
-    cfg["waydroid"]["vndbinder"] = args.VNDBINDER_DRIVER
-    cfg["waydroid"]["hwbinder"] = args.HWBINDER_DRIVER
     tools.config.save(args, cfg)
     return True
 
