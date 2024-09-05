@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Quit Waydroid
+Exec=waydroid session stop
+Icon=waydroid
+Categories=X-WayDroid-App;
+X-Purism-FormFactor=Workstation;Mobile;
