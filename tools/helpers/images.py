@@ -1,102 +1,11 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
-import zipfile
-import json
-import hashlib
 import shutil
 import os
 import tools.config
 from tools import helpers
 from shutil import which
-
-def sha256sum(filename):
-    h = hashlib.sha256()
-    b = bytearray(128*1024)
-    mv = memoryview(b)
-    with open(filename, 'rb', buffering=0) as f:
-        for n in iter(lambda: f.readinto(mv), 0):
-            h.update(mv[:n])
-    return h.hexdigest()
-
-
-def get(args):
-    cfg = tools.config.load(args)
-    system_ota = cfg["waydroid"]["system_ota"]
-    system_request = helpers.http.retrieve(system_ota)
-    if system_request[0] != 200:
-        raise ValueError(
-            "Failed to get system OTA channel: {}, error: {}".format(args.system_ota, system_request[0]))
-    system_responses = json.loads(system_request[1].decode('utf8'))["response"]
-    if len(system_responses) < 1:
-        raise ValueError("No images found on system channel")
-
-    for system_response in system_responses:
-        if system_response['datetime'] > int(cfg["waydroid"]["system_datetime"]):
-            images_zip = helpers.http.download(
-                args, system_response['url'], system_response['filename'], cache=False)
-            logging.info("Validating system image")
-            if sha256sum(images_zip) != system_response['id']:
-                try:
-                    os.remove(images_zip)
-                except:
-                    pass
-                raise ValueError("Downloaded system image hash doesn't match, expected: {}".format(
-                    system_response['id']))
-            logging.info("Extracting to " + args.images_path)
-            with zipfile.ZipFile(images_zip, 'r') as zip_ref:
-                zip_ref.extractall(args.images_path)
-            cfg["waydroid"]["system_datetime"] = str(system_response['datetime'])
-            tools.config.save(args, cfg)
-            os.remove(images_zip)
-            break
-
-    vendor_ota = cfg["waydroid"]["vendor_ota"]
-    vendor_request = helpers.http.retrieve(vendor_ota)
-    if vendor_request[0] != 200:
-        raise ValueError(
-            "Failed to get vendor OTA channel: {}, error: {}".format(vendor_ota, vendor_request[0]))
-    vendor_responses = json.loads(vendor_request[1].decode('utf8'))["response"]
-    if len(vendor_responses) < 1:
-        raise ValueError("No images found on vendor channel")
-
-    for vendor_response in vendor_responses:
-        if vendor_response['datetime'] > int(cfg["waydroid"]["vendor_datetime"]):
-            images_zip = helpers.http.download(
-                args, vendor_response['url'], vendor_response['filename'], cache=False)
-            logging.info("Validating vendor image")
-            if sha256sum(images_zip) != vendor_response['id']:
-                try:
-                    os.remove(images_zip)
-                except:
-                    pass
-                raise ValueError("Downloaded vendor image hash doesn't match, expected: {}".format(
-                    vendor_response['id']))
-            logging.info("Extracting to " + args.images_path)
-            with zipfile.ZipFile(images_zip, 'r') as zip_ref:
-                zip_ref.extractall(args.images_path)
-            cfg["waydroid"]["vendor_datetime"] = str(vendor_response['datetime'])
-            tools.config.save(args, cfg)
-            os.remove(images_zip)
-            break
-    remove_overlay(args)
-
-def replace(args, system_zip, system_time, vendor_zip, vendor_time):
-    cfg = tools.config.load(args)
-    args.images_path = cfg["waydroid"]["images_path"]
-    if os.path.exists(system_zip):
-        with zipfile.ZipFile(system_zip, 'r') as zip_ref:
-            zip_ref.extractall(args.images_path)
-        os.remove(system_zip)
-        cfg["waydroid"]["system_datetime"] = str(system_time)
-        tools.config.save(args, cfg)
-    if os.path.exists(vendor_zip):
-        with zipfile.ZipFile(vendor_zip, 'r') as zip_ref:
-            zip_ref.extractall(args.images_path)
-        os.remove(vendor_zip)
-        cfg["waydroid"]["vendor_datetime"] = str(vendor_time)
-        tools.config.save(args, cfg)
-    remove_overlay(args)
 
 def remove_overlay(args):
     if os.path.isdir(tools.config.defaults["overlay_rw"]):

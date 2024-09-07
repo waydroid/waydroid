@@ -49,17 +49,9 @@ def main():
         dbus_notification_scope = None
 
         if not actions.initializer.is_initialized(args) and \
-                args.action and args.action not in ("init", "first-launch", "log"):
-            if args.wait_for_init:
-                try:
-                    dbus_name_scope = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
-                    actions.wait_for_init(args)
-                except dbus.exceptions.NameExistsException:
-                    print('ERROR: WayDroid service is already awaiting initialization')
-                    return 1
-            else:
-                print('ERROR: WayDroid is not initialized, run "waydroid init"')
-                return 0
+                args.action and args.action not in ("init", "log"):
+            print('ERROR: WayDroid is not initialized, run "waydroid init"')
+            return 0
 
         # Initialize or require config
         if args.action == "init":
@@ -154,10 +146,6 @@ def main():
             helpers.lxc.logcat(args)
         elif args.action == "show-full-ui":
             actions.app_manager.showFullUI(args)
-        elif args.action == "first-launch":
-            actions.remote_init_client(args)
-            if actions.initializer.is_initialized(args):
-                actions.app_manager.showFullUI(args)
         elif args.action == "status":
             actions.status.print_status(args)
         elif args.action == "log":

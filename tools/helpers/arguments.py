@@ -25,14 +25,6 @@ def arguments_init(subparser):
                              " /var/lib/waydroid/images)")
     ret.add_argument("-f", "--force", action="store_true",
                      help="re-initialize configs and images")
-    ret.add_argument("-c", "--system_channel",
-                     help="custom system channel (options: OTA channel URL; default is Official OTA server)")
-    ret.add_argument("-v", "--vendor_channel",
-                     help="custom vendor channel (options: OTA channel URL; default is Official OTA server)")
-    ret.add_argument("-r", "--rom_type",
-                     help="rom type (options: \"lineage\", \"bliss\" or OTA channel URL; default is LineageOS)")
-    ret.add_argument("-s", "--system_type",
-                     help="system type (options: VANILLA, FOSS or GAPPS; default is VANILLA)")
     return ret
 
 def arguments_status(subparser):
@@ -119,10 +111,6 @@ def arguments_fullUI(subparser):
     ret = subparser.add_parser("show-full-ui", help="show android full screen in window")
     return ret
 
-def arguments_firstLaunch(subparser):
-    ret = subparser.add_parser("first-launch", help="initialize waydroid and start it")
-    return ret
-
 def arguments_shell(subparser):
     ret = subparser.add_parser("shell", help="run remote shell command")
     ret.add_argument("-u", "--uid", help="the UID to run as (also sets GID to the same value if -g is not set)")
@@ -173,8 +161,7 @@ def arguments():
     arguments_notification_client(sub)
     arguments_app(sub)
     arguments_prop(sub)
-    arguments_fullUI(sub)
-    arguments_firstLaunch(sub)
+#    arguments_fullUI(sub)
     arguments_shell(sub)
     arguments_logcat(sub)
 

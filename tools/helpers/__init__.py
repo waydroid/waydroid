@@ -7,7 +7,6 @@ import tools.helpers.lxc
 import tools.helpers.images
 import tools.helpers.drivers
 import tools.helpers.mount
-import tools.helpers.http
 import tools.helpers.ipc
 import tools.helpers.gpu
 import tools.helpers.protocol

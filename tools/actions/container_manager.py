@@ -200,10 +200,7 @@ def do_start(args, session):
         tools.helpers.run.user(args, command, check=False)
 
     #TODO: remove NFC hacks
-    if which("stop"):
-        command = ["stop", "nfcd"]
-        tools.helpers.run.user(args, command, check=False)
-    elif which("systemctl") and (tools.helpers.run.user(args, ["systemctl", "is-active", "-q", "nfcd"], check=False) == 0):
+    if which("systemctl") and (tools.helpers.run.user(args, ["systemctl", "is-active", "-q", "nfcd"], check=False) == 0):
         command = ["systemctl", "stop", "nfcd"]
         tools.helpers.run.user(args, command, check=False)
 
@@ -243,11 +240,7 @@ def stop(args, quit_session=True):
                    "/data/scripts/waydroid-net.sh", "stop"]
         tools.helpers.run.user(args, command, check=False)
 
-        #TODO: remove NFC hacks
-        if which("start"):
-            command = ["start", "nfcd"]
-            tools.helpers.run.user(args, command, check=False)
-        elif which("systemctl") and (tools.helpers.run.user(args, ["systemctl", "is-enabled", "-q", "nfcd"], check=False) == 0):
+        if which("systemctl") and (tools.helpers.run.user(args, ["systemctl", "is-enabled", "-q", "nfcd"], check=False) == 0):
             command = ["systemctl", "start", "nfcd"]
             tools.helpers.run.user(args, command, check=False)
 

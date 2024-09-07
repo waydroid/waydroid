@@ -29,14 +29,7 @@ def start(args):
         helpers.lxc.start(args)
 
     def upgrade(system_zip, system_time, vendor_zip, vendor_time):
-        helpers.lxc.stop(args)
-        helpers.images.umount_rootfs(args)
-        helpers.images.replace(args, system_zip, system_time,
-                               vendor_zip, vendor_time)
-        args.session["background_start"] = "false"
-        helpers.images.mount_rootfs(args, args.images_path, args.session)
-        helpers.protocol.set_aidl_version(args)
-        helpers.lxc.start(args)
+        pass
 
     def service_thread():
         while not stopping:

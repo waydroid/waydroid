@@ -14,17 +14,6 @@ def get_config(args):
     args.vendor_type = cfg["waydroid"]["vendor_type"]
     args.session = None
 
-def migration(args):
-    try:
-        old_ver = tools.helpers.props.file_get(args, args.work + "/waydroid_base.prop", "waydroid.tools_version")
-        if versiontuple(old_ver) <= versiontuple("1.3.4"):
-            chmod_paths = ["cache_http", "host-permissions", "lxc", "images", "rootfs", "data", "waydroid_base.prop", "waydroid.prop", "waydroid.cfg"]
-            tools.helpers.run.user(args, ["chmod", "-R", "g-w,o-w"] + [os.path.join(args.work, f) for f in chmod_paths], check=False)
-            tools.helpers.run.user(args, ["chmod", "g-w,o-w", args.work], check=False)
-            os.remove(os.path.join(args.work, "session.cfg"))
-    except:
-        pass
-
 def upgrade(args):
     get_config(args)
     status = "STOPPED"
@@ -39,13 +28,7 @@ def upgrade(args):
         except Exception as e:
             logging.debug(e)
             tools.actions.container_manager.stop(args)
-    migration(args)
     helpers.drivers.loadBinderNodes(args)
-    if not args.offline:
-        if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
-            helpers.images.get(args)
-        else:
-            logging.info("Upgrade refused because a pre-installed image is detected at {}.".format(args.images_path))
     helpers.drivers.probeAshmemDriver(args)
     helpers.lxc.setup_host_perms(args)
     helpers.lxc.set_lxc_config(args)
