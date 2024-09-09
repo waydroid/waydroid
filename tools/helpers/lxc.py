@@ -251,6 +251,31 @@ def make_base_props(args):
     props.append("ro.adb.secure=1")
     props.append("ro.debuggable=0")
 
+    # SELinux
+    props.append("ro.boot.selinux=enforcing")
+    props.append("ro.boot.veritymode=enforcing")
+    props.append("ro.build.selinux=1")
+
+    # Device state
+    props.append("vendor.boot.vbmeta.device_state=locked")
+    props.append("ro.boot.verifiedbootstate=green")
+    props.append("ro.boot.flash.locked=1")
+    props.append("ro.boot.warranty_bit=0")
+    props.append("ro.warranty_bit=0")
+    props.append("ro.secure=1")
+    props.append("ro.vendor.boot.warranty_bit=0")
+    props.append("ro.vendor.warranty_bit=0")
+    props.append("vendor.boot.vbmeta.device_state=locked")
+    props.append("vendor.boot.verifiedbootstate=green")
+
+    # Build tags
+    props.append("ro.build.tags=release-keys")
+    props.append("ro.odm.build.tags=release-keys")
+    props.append("ro.system.build.tags=release-keys")
+    props.append("ro.system_ext.build.tags=release-keys")
+    props.append("ro.vendor.build.tags=release-keys")
+    props.append("ro.vendor_dlkm.build.tags=release-keys")
+
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
     dri, _ = tools.helpers.gpu.getDriNode(args)
 
