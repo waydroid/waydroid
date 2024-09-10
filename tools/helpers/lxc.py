@@ -242,6 +242,16 @@ def make_base_props(args):
         except:
             return False
 
+    def append_override_device_props(props):
+        try:
+            override_file = "/usr/lib/furios/device/android_override.prop"
+            if os.path.exists(override_file):
+                with open(override_file, 'r') as override:
+                    for prop in override:
+                        props.append(prop.strip())
+        except Exception as e:
+            logging.error(f"Failed to read device override props: {e}")
+
     props = []
 
     if not os.path.exists("/dev/ashmem"):
@@ -361,6 +371,8 @@ def make_base_props(args):
             if (k+"=") in elem:
                 props.pop(idx)
         props.append(k+"="+v)
+
+    append_override_device_props(props)
 
     base_props = open(args.work + "/waydroid_base.prop", "w")
     for prop in props:
