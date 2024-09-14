@@ -9,6 +9,7 @@ import shutil
 import tools.config
 import tools.helpers.ipc
 from tools import services
+from tools.interfaces import IPlatform
 import dbus
 import dbus.service
 import dbus.exceptions
@@ -68,6 +69,26 @@ class DbusSessionManager(dbus.service.Object):
         shutil.copyfile(packagePath, tmp_dir + "/base.apk")
         tools.helpers.ipc.DBusContainerService().InstallBaseApk()
         os.remove(tmp_dir + "/base.apk")
+
+    @dbus.service.method("id.waydro.SessionManager", in_signature='s', out_signature='s')
+    def NameToPackageName(self, appName):
+        platformService = IPlatform.get_service(self.args)
+        if platformService:
+            appsList = platformService.getAppsInfo()
+            for app in appsList:
+                if appName == app["name"]:
+                    return app["packageName"]
+        return ""
+
+    @dbus.service.method("id.waydro.SessionManager", in_signature='s', out_signature='s')
+    def PackageNameToName(self, packageName):
+        platformService = IPlatform.get_service(self.args)
+        if platformService:
+            appsList = platformService.getAppsInfo()
+            for app in appsList:
+                if packageName == app["packageName"]:
+                    return app["name"]
+        return ""
 
 def service(args, looper):
     dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
