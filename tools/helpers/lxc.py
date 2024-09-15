@@ -105,6 +105,7 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/MTK_SMI")
     make_entry("/dev/mdp_sync")
     make_entry("/dev/mtk_cmdq")
+    make_entry("/dev/mtk_mdp")
 
     # WSLg
     make_entry("tmpfs", "mnt_extra", "tmpfs", "nodev 0 0", False)

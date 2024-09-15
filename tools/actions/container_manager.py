@@ -132,6 +132,7 @@ def set_permissions(args, perm_list=None, mode="777"):
             "/dev/MTK_SMI",
             "/dev/mdp_sync",
             "/dev/mtk_cmdq",
+            "/dev/mtk_mdp",
 
             # Graphics
             "/dev/dri",
