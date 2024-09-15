@@ -90,6 +90,22 @@ class DbusSessionManager(dbus.service.Object):
                     return app["name"]
         return ""
 
+    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='as')
+    def GetAllNames(self):
+        platformService = IPlatform.get_service(self.args)
+        if platformService:
+            appsList = platformService.getAppsInfo()
+            return [app["name"] for app in appsList]
+        return []
+
+    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='as')
+    def GetAllPackageNames(self):
+        platformService = IPlatform.get_service(self.args)
+        if platformService:
+            appsList = platformService.getAppsInfo()
+            return [app["packageName"] for app in appsList]
+        return []
+
 def service(args, looper):
     dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
     looper.run()
