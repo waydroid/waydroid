@@ -120,6 +120,9 @@ def generate_nodes_lxc_config(args):
     # NFC config
     make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
 
+    # DBus system bus for AIDL radio
+    make_entry("/var/run/dbus", "var", options="rbind,optional 0 0")
+
     return nodes
 
 LXC_APPARMOR_PROFILE = "lxc-waydroid"
@@ -286,6 +289,9 @@ def make_base_props(args):
     props.append("ro.system_ext.build.tags=release-keys")
     props.append("ro.vendor.build.tags=release-keys")
     props.append("ro.vendor_dlkm.build.tags=release-keys")
+
+    # AIDL radio prop
+    props.append("furios-aidl-radio.start=1")
 
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
     dri, _ = tools.helpers.gpu.getDriNode(args)
