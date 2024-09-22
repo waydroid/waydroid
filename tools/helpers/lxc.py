@@ -680,3 +680,13 @@ def kill_app(args, package_name):
     args.nocgroup = None
     args.context = None
     shell(args)
+
+def kill_pid(args, pid):
+    args.COMMAND = ['kill', '-9', pid]
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
+    shell(args)
