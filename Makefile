@@ -12,7 +12,8 @@ APPS_DIRECTORY_DIR := $(PREFIX)/share/desktop-directories
 APPS_MENU_DIR := $(SYSCONFDIR)/xdg/menus/applications-merged
 METAINFO_DIR := $(PREFIX)/share/metainfo
 ICONS_DIR := $(PREFIX)/share/icons
-SYSD_DIR := $(PREFIX)/lib/systemd/system
+SYSD_SYSTEM_DIR := $(PREFIX)/lib/systemd/system
+SYSD_USER_DIR := $(PREFIX)/lib/systemd/user
 DBUS_DIR := $(PREFIX)/share/dbus-1
 POLKIT_DIR := $(PREFIX)/share/polkit-1
 APPARMOR_DIR := $(SYSCONFDIR)/apparmor.d
@@ -24,7 +25,8 @@ INSTALL_APPS_DIRECTORY_DIR := $(DESTDIR)$(APPS_DIRECTORY_DIR)
 INSTALL_APPS_MENU_DIR := $(DESTDIR)$(APPS_MENU_DIR)
 INSTALL_METAINFO_DIR := $(DESTDIR)$(METAINFO_DIR)
 INSTALL_ICONS_DIR := $(DESTDIR)$(ICONS_DIR)
-INSTALL_SYSD_DIR := $(DESTDIR)$(SYSD_DIR)
+INSTALL_SYSD_SYSTEM_DIR := $(DESTDIR)$(SYSD_SYSTEM_DIR)
+INSTALL_SYSD_USER_DIR := $(DESTDIR)$(SYSD_USER_DIR)
 INSTALL_DBUS_DIR := $(DESTDIR)$(DBUS_DIR)
 INSTALL_POLKIT_DIR := $(DESTDIR)$(POLKIT_DIR)
 INSTALL_APPARMOR_DIR := $(DESTDIR)$(APPARMOR_DIR)
@@ -50,8 +52,10 @@ install:
 		cp dbus/id.waydro.Container.service $(INSTALL_DBUS_DIR)/system-services/; \
 	fi
 	if [ $(USE_SYSTEMD) = 1 ]; then \
-		install -d $(INSTALL_SYSD_DIR); \
-		cp systemd/waydroid-container.service $(INSTALL_SYSD_DIR); \
+		install -d $(INSTALL_SYSD_SYSTEM_DIR); \
+		install -d $(INSTALL_SYSD_USER_DIR); \
+		cp systemd/waydroid-container.service $(INSTALL_SYSD_SYSTEM_DIR); \
+		cp systemd/waydroid-session.service $(INSTALL_SYSD_USER_DIR); \
 	fi
 	if [ $(USE_NFTABLES) = 1 ]; then \
 		sed '/LXC_USE_NFT=/ s/false/true/' -i $(INSTALL_WAYDROID_DIR)/data/scripts/waydroid-net.sh; \
