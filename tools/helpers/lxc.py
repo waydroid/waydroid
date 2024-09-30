@@ -690,3 +690,13 @@ def kill_pid(args, pid):
     args.nocgroup = None
     args.context = None
     shell(args)
+
+def setprop(args, propname, propvalue):
+    args.COMMAND = ['setprop', propname, propvalue]
+    args.uid = None
+    args.gid = None
+    args.nolsm = None
+    args.allcaps = None
+    args.nocgroup = None
+    args.context = None
+    shell(args)

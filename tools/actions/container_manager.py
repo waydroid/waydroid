@@ -112,6 +112,10 @@ class DbusContainerManager(dbus.service.Object):
     def KillPid(self, pid):
         kill_pid(self.args, pid)
 
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='ss', out_signature='')
+    def Setprop(self, propname, propvalue):
+        setprop(self.args, propname, propvalue)
+
 def service(args, looper):
     dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
@@ -354,3 +358,8 @@ def kill_pid(args, pid):
     status = helpers.lxc.status(args)
     if status == "RUNNING":
         return helpers.lxc.kill_pid(args, pid)
+
+def setprop(args, propname, propvalue):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        return helpers.lxc.setprop(args, propname, propvalue)
