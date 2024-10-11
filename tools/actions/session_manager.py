@@ -13,7 +13,7 @@ from tools.interfaces import IPlatform
 import dbus
 import dbus.service
 import dbus.exceptions
-from gi.repository import GLib
+from gi.repository import GLib, Gio
 import copy
 
 class DbusSessionManager(dbus.service.Object):
@@ -26,6 +26,7 @@ class DbusSessionManager(dbus.service.Object):
     def Stop(self):
         do_stop(self.args, self.looper)
         stop_container(quit_session=False)
+        restart_gnss()
 
     @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
     def VendorType(self):
@@ -209,4 +210,13 @@ def stop_container(quit_session):
     try:
         tools.helpers.ipc.DBusContainerService().Stop(quit_session)
     except dbus.DBusException:
+        pass
+
+def restart_gnss():
+    try:
+        location_settings = Gio.Settings.new("org.gnome.system.location")
+        location_settings['enabled'] = False
+        time.sleep(0.5)
+        location_settings['enabled'] = True
+    except Exception:
         pass
