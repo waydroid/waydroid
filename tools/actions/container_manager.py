@@ -22,6 +22,15 @@ class DbusContainerManager(dbus.service.Object):
         self.looper = looper
         dbus.service.Object.__init__(self, bus, object_path)
 
+    @dbus.service.method(dbus_interface='org.freedesktop.DBus.Properties', in_signature='s', out_signature='a{sv}')
+    def GetAll(self, interface_name):
+        if interface_name != "id.waydro.ContainerManager":
+            return {}
+
+        session = self.GetSession()
+        # Convert each string value to variant
+        return dict((k, dbus.String(v, variant_level=1)) for k, v in session.items())
+
     @dbus.service.method("id.waydro.ContainerManager", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
     def Start(self, session, sender, conn):
         dbus_info = dbus.Interface(conn.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False), "org.freedesktop.DBus")
