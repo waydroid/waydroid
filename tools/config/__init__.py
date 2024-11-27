@@ -66,6 +66,8 @@ session_defaults = {
     "pulse_runtime_path": str(os.environ.get('PULSE_RUNTIME_PATH')),
     "state": "STOPPED",
     "lcd_density": "0",
+    "width": "0",
+    "height": "0",
     "background_start": "true"
 }
 session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + \

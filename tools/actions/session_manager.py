@@ -1,5 +1,6 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
+import subprocess
 import logging
 import os
 import time
@@ -169,6 +170,10 @@ def start(args, unlocked_cb=None, background=True):
 
     session["background_start"] = "true"
 
+    width, height = get_display_override()
+    session["width"] = width
+    session["height"] = height
+
     mainloop = GLib.MainLoop()
 
     def sigint_handler(data):
@@ -220,3 +225,22 @@ def restart_gnss():
         location_settings['enabled'] = True
     except Exception:
         pass
+
+def get_display_override():
+    try:
+        xdg_getinfo = "/usr/libexec/xdg-toplevel-getinfo"
+        if not os.path.exists(xdg_getinfo):
+            return "0", "0"
+
+        output = subprocess.check_output([xdg_getinfo], text=True).strip()
+        if not 'x' in output:
+            return "0", "0"
+
+        width, height = map(int, output.split('x'))
+        if width <= 0 or height <= 0:
+            return "0", "0"
+
+        return str(width), str(height)
+    except Exception as e:
+        logging.error(f"Failed to read display override info: {e}")
+    return "0", "0"

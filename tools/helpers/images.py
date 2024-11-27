@@ -41,6 +41,14 @@ def make_prop(args, cfg, full_props_path):
     if dpi != "0":
         props.append("ro.sf.lcd_density=" + dpi)
 
+    width = cfg["width"]
+    if width != "0":
+        props.append("waydroid.display_width_override=" + width)
+
+    height = cfg["height"]
+    if height != "0":
+        props.append("waydroid.display_height_override=" + height)
+
     final_props = open(full_props_path, "w")
     for prop in props:
         final_props.write(prop + "\n")
