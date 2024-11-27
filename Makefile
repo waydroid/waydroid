@@ -47,7 +47,6 @@ install:
 	mv $(INSTALL_WAYDROID_DIR)/data/*.metainfo.xml $(INSTALL_METAINFO_DIR)
 	cp dbus/id.waydro.Container.conf $(INSTALL_DBUS_DIR)/system.d/
 	cp dbus/id.waydro.Notification.conf $(INSTALL_DBUS_DIR)/system.d/
-	cp dbus/id.waydro.Container.policy $(INSTALL_POLKIT_DIR)/actions/
 	if [ $(USE_DBUS_ACTIVATION) = 1 ]; then \
 		install -d $(INSTALL_DBUS_DIR)/system-services; \
 		cp dbus/id.waydro.Container.service $(INSTALL_DBUS_DIR)/system-services/; \

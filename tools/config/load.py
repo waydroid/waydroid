@@ -31,23 +31,3 @@ def load(args):
     # no default values for property override
 
     return cfg
-
-def load_channels():
-    config_path = tools.config.channels_defaults["config_path"]
-    cfg = configparser.ConfigParser()
-    if os.path.isfile(config_path):
-        cfg.read(config_path)
-
-    if "channels" not in cfg:
-        cfg["channels"] = {}
-
-    for key in tools.config.channels_defaults:
-        if key in tools.config.channels_config_keys and key not in cfg["channels"]:
-            cfg["channels"][key] = str(tools.config.channels_defaults[key])
-
-        if key not in tools.config.channels_config_keys and key in cfg["channels"]:
-            logging.debug("Ignored unconfigurable and possibly outdated"
-                          " default value from config: {}".format(cfg['channels'][key]))
-            del cfg["channels"][key]
-
-    return cfg

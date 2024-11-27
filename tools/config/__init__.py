@@ -6,7 +6,7 @@ import pwd
 #
 # Exported functions
 #
-from tools.config.load import load, load_channels
+from tools.config.load import load
 from tools.config.save import save
 
 #
@@ -19,8 +19,6 @@ tools_src = os.path.normpath(os.path.realpath(__file__) + "/../../..")
 config_keys = ["arch",
                "images_path",
                "vendor_type",
-               "system_datetime",
-               "vendor_datetime",
                "suspend_action",
                "mount_overlays",
                "auto_adb"]
@@ -32,8 +30,6 @@ defaults = {
     "arch": "arm64",
     "work": "/var/lib/waydroid",
     "vendor_type": "MAINLINE",
-    "system_datetime": "0",
-    "vendor_datetime": "0",
     "preinstalled_images_paths": [
         "/etc/waydroid-extra/images",
         "/usr/share/waydroid-extra/images",
@@ -74,15 +70,3 @@ session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + \
     "/waydroid/data"
 if session_defaults["pulse_runtime_path"] == "None":
     session_defaults["pulse_runtime_path"] = session_defaults["xdg_runtime_dir"] + "/pulse"
-
-channels_defaults = {
-    "config_path": "/usr/share/waydroid-extra/channels.cfg",
-    "system_channel": "https://ota.waydro.id/system",
-    "vendor_channel": "https://ota.waydro.id/vendor",
-    "rom_type": "lineage",
-    "system_type": "VANILLA"
-}
-channels_config_keys = ["system_channel",
-                        "vendor_channel",
-                        "rom_type",
-                        "system_type"]

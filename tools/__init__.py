@@ -167,7 +167,6 @@ def main():
             logging.getLogger().setLevel(logging.DEBUG)
 
         logging.info("ERROR: " + str(e))
-        logging.info("See also: <https://github.com/waydroid>")
         logging.debug(traceback.format_exc())
 
         # Hints about the log file (print to stdout only)
