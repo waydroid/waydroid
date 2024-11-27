@@ -24,7 +24,8 @@ Depends: ${misc:Depends},
          python3-dbus,
          dbus,
          polkitd | policykit-1,
-	 iptables
+	 iptables,
+         libglib2.0-bin,
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container.
