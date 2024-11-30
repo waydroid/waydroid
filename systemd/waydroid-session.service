@@ -8,5 +8,5 @@ ConditionPathExists=|/home/furios/.android_enable
 Type=simple
 ExecStartPre=-/usr/bin/waydroid session stop
 ExecStartPre=-/usr/bin/gdbus wait -e org.gnome.SessionManager
-ExecStartPre=/usr/bin/sleep 5
+ExecStartPre=/usr/bin/sleep 15
 ExecStart=-/usr/bin/waydroid session start
