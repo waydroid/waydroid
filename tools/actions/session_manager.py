@@ -21,13 +21,15 @@ class DbusSessionManager(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
         self.args = args
         self.looper = looper
+        self.initial_gnss_status = get_gnss_status()
+        set_gnss_status(True)
         dbus.service.Object.__init__(self, bus, object_path)
 
     @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='')
     def Stop(self):
         do_stop(self.args, self.looper)
         stop_container(quit_session=False)
-        restart_gnss()
+        restart_gnss(self.initial_gnss_status)
 
     @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
     def VendorType(self):
@@ -217,12 +219,30 @@ def stop_container(quit_session):
     except dbus.DBusException:
         pass
 
-def restart_gnss():
+def restart_gnss(enabled):
+    try:
+        if enabled:
+            location_settings = Gio.Settings.new("org.gnome.system.location")
+            location_settings['enabled'] = False
+            time.sleep(0.5)
+            location_settings['enabled'] = True
+        else:
+            location_settings = Gio.Settings.new("org.gnome.system.location")
+            location_settings['enabled'] = False
+    except Exception:
+        pass
+
+def get_gnss_status():
     try:
         location_settings = Gio.Settings.new("org.gnome.system.location")
-        location_settings['enabled'] = False
-        time.sleep(0.5)
-        location_settings['enabled'] = True
+        return location_settings['enabled']
+    except Exception:
+        return True
+
+def set_gnss_status(enabled):
+    try:
+        location_settings = Gio.Settings.new("org.gnome.system.location")
+        location_settings['enabled'] = enabled
     except Exception:
         pass
 
