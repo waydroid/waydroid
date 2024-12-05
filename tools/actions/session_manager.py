@@ -124,6 +124,28 @@ class DbusSessionManager(dbus.service.Object):
         if platformService:
             platformService.setprop(propname, propvalue)
 
+    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='aa{sv}')
+    def GetAppsInfo(self):
+        platformService = IPlatform.get_service(self.args)
+        if platformService:
+            apps_list = platformService.getAppsInfo()
+            apps = []
+
+            for app in apps_list:
+                app = {
+                    'name': dbus.String(app['name']),
+                    'packageName': dbus.String(app['packageName']),
+                    'versionName': dbus.String(app['versionName']),
+                    'action': dbus.String(app['action']),
+                    'launchIntent': dbus.String(app['launchIntent']),
+                    'componentPackageName': dbus.String(app['componentPackageName']),
+                    'componentClassName': dbus.String(app['componentClassName']),
+                    'categories': dbus.Array([dbus.String(cat) for cat in app['categories']], signature='s')
+                }
+                apps.append(dbus.Dictionary(app, signature='sv'))
+            return apps
+        return []
+
 def service(args, looper):
     dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
     looper.run()
