@@ -3,11 +3,17 @@
 
 import re
 import time
+import socket
 import logging
 import threading
 import subprocess
 import dbus
 import dbus.service
+
+NETLINK_KOBJECT_UEVENT = 15
+BUFFER_SIZE = 4096
+
+ROOTFS_PATH = '/var/lib/waydroid/rootfs'
 
 running = False
 loop_thread = None
@@ -30,6 +36,35 @@ class INotification(dbus.service.Object):
     def DeleteMessage(self, msg_hash):
         pass
 
+def is_mounted(path):
+    with open('/proc/mounts', 'r') as f:
+        for line in f:
+            if path in line.split():
+                return True
+    return False
+
+def monitor_mounts():
+    sock = socket.socket(socket.AF_NETLINK, socket.SOCK_DGRAM, NETLINK_KOBJECT_UEVENT)
+    sock.bind((0, -1))
+
+    try:
+        while True:
+            data = sock.recv(BUFFER_SIZE)
+            messages = data.decode('utf-8', errors='ignore').split('\0')
+            event_info = {}
+            for message in messages:
+                if '=' in message:
+                    key, value = message.split('=', 1)
+                    event_info[key] = value
+
+            if event_info.get("SUBSYSTEM") == "block" and event_info.get("ACTION") in {"add", "remove", "change"}:
+                if is_mounted(ROOTFS_PATH):
+                    break
+    except Exception:
+        pass
+    finally:
+        sock.close()
+
 def get_notifications(_old_notification):
     notifications = {}
     old_notifications = {}
@@ -51,6 +86,9 @@ def get_notifications(_old_notification):
     logging.info("Starting notification server service")
 
     while running:
+        if not is_mounted(ROOTFS_PATH):
+            monitor_mounts()
+
         notification_process = subprocess.Popen(notification_command, stdout=subprocess.PIPE,
                                                 stderr=subprocess.PIPE)
         notification_stdout, notification_stderr = notification_process.communicate()
