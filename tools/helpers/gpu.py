@@ -4,6 +4,9 @@ import tools.helpers.props
 
 unsupported = ["nvidia"]
 
+def getMinor(args, dev):
+    return tools.helpers.props.file_get(args, "/sys/class/drm/{}/uevent".format(dev), "MINOR")
+
 def getKernelDriver(args, dev):
     return tools.helpers.props.file_get(args, "/sys/class/drm/{}/device/uevent".format(dev), "DRIVER")
 
@@ -32,6 +35,16 @@ def getVulkanDriver(args, dev):
         "nouveau": "nouveau",
     }
     kernel_driver = getKernelDriver(args, dev)
+
+    if kernel_driver == "i915":
+        try:
+            gen = tools.helpers.run.user(args,["awk", "/^graphics version:|^gen:/ {print $NF}",
+                "/sys/kernel/debug/dri/{}/i915_capabilities".format(getMinor(args, dev))], output_return=True)
+            if int(gen) < 9:
+                return "intel_hasvk"
+        except:
+            pass
+
     if kernel_driver in mapping:
         return mapping[kernel_driver]
     return ""
