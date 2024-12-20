@@ -1,0 +1,8 @@
+[Unit]
+Description=Waydroid Session
+
+[Service]
+ExecStart=/usr/bin/waydroid session start
+
+[Install]
+WantedBy=multi-user.target
