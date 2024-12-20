@@ -99,25 +99,45 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
     prefix = prefix.replace("/", "_")
     path = (args.work + "/cache_http/" + prefix + "_" +
             hashlib.sha256(url.encode("utf-8")).hexdigest())
+    start_pos = 0
     if os.path.exists(path):
         if cache:
             return path
-        tools.helpers.run.user(args, ["rm", path])
+        start_pos = os.path.getsize(path)
 
     # Download the file
     logging.log(loglevel, "Downloading " + url)
     try:
-        with urllib.request.urlopen(url) as response:
-            with open(path, "wb") as handle:
+        headers = {}
+        if start_pos > 0:
+            headers["range"] = f"bytes={start_pos}-"
+        request = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(request) as response:
+            if response.status == 200:
+                mode = "wb"
+                expected_size = response.headers["content-length"]
+            elif response.status == 206:
+                mode = "ab"
+                content_range = response.headers["content-range"]
+                if content_range.startswith(f"bytes {start_pos}-"):
+                    expected_size = content_range.split("/")[-1]
+                else:
+                    raise Exception(f"unexpected Content-Range ({content_range})")
+            else:
+                raise Exception(f"unexpected status ({response.status})")
+
+            with open(path, mode) as handle:
                 # adding daemon=True will kill this thread if main thread is killed
                 # else progress_bar will continue to show even if user cancels download by ctrl+c
-                threading.Thread(target=progress, args=(response.headers.get('content-length'), path), daemon=True).start()
+                threading.Thread(target=progress, args=(expected_size, path), daemon=True).start()
                 shutil.copyfileobj(response, handle)
-    # Handle 404
+    # Handle 404 and 416
     except urllib.error.HTTPError as e:
         if e.code == 404 and allow_404:
             logging.warning("WARNING: file not found: " + url)
             return None
+        if e.code == 416 and e.headers["content-length"] == f"bytes */{start_pos}":
+            return path
         raise
     downloadEnded = True
 
