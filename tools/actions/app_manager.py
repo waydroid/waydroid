@@ -4,6 +4,7 @@ import logging
 import os
 import shutil
 import time
+import subprocess
 import tools.config
 import tools.helpers.props
 import tools.helpers.ipc
@@ -68,8 +69,11 @@ def maybeLaunchLater(args, launchNow):
             logging.error("Failed to unfreeze container. Trying to launch anyways...")
         launchNow()
     except dbus.DBusException:
-        logging.error("Starting waydroid session")
-        tools.actions.session_manager.start(args, launchNow, background=False)
+        if shutil.which("dex") is not None and os.path.exists("/usr/share/applications/gnome-waydroid-panel.desktop"):
+            subprocess.run(["dex", "/usr/share/applications/gnome-waydroid-panel.desktop"], stdout=subprocess.PIPE)
+        else:
+            logging.error("Starting waydroid session")
+            tools.actions.session_manager.start(args, launchNow, background=False)
 
 def launch(args):
     def justLaunch():
