@@ -26,6 +26,7 @@ Depends: ${misc:Depends},
          polkitd | policykit-1,
 	 iptables,
          libglib2.0-bin,
+         wl-clipboard,
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container.

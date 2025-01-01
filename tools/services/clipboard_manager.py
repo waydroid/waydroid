@@ -3,41 +3,29 @@
 import logging
 import threading
 from tools.interfaces import IClipboard
-
-try:
-    import pyclip
-    canClip = True
-except Exception as e:
-    logging.debug(str(e))
-    canClip = False
+from tools.helpers import WaylandClipboardHandler
 
 stopping = False
+clipboard_handler = None
 
 def start(args):
-    def sendClipboardData(value):
-        try:
-            pyclip.copy(value)
-        except Exception as e:
-            logging.debug(str(e))
-
-    def getClipboardData():
-        try:
-            return pyclip.paste()
-        except Exception as e:
-            logging.debug(str(e))
-        return ""
-
     def service_thread():
-        while not stopping:
-            IClipboard.add_service(args, sendClipboardData, getClipboardData)
+        global clipboard_handler
+        try:
+            clipboard_handler = WaylandClipboardHandler()
+            while not stopping:
+                IClipboard.add_service(
+                    args,
+                    clipboard_handler.copy,
+                    clipboard_handler.paste
+                )
+        except Exception as e:
+            logging.debug(f"Clipboard service error: {str(e)}")
 
-    if canClip:
-        global stopping
-        stopping = False
-        args.clipboard_manager = threading.Thread(target=service_thread)
-        args.clipboard_manager.start()
-    else:
-        logging.warning("Skipping clipboard manager service because of missing pyclip package")
+    global stopping
+    stopping = False
+    args.clipboard_manager = threading.Thread(target=service_thread)
+    args.clipboard_manager.start()
 
 def stop(args):
     global stopping
