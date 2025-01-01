@@ -240,13 +240,11 @@ def do_start(args, session):
     helpers.protocol.set_aidl_version(args)
 
     helpers.lxc.start(args)
-    services.hardware_manager.start(args)
 
     args.session = session
 
 def stop(args, quit_session=True):
     try:
-        services.hardware_manager.stop(args)
         status = helpers.lxc.status(args)
         if status != "STOPPED":
             helpers.lxc.stop(args)
