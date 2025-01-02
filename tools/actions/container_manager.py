@@ -125,6 +125,10 @@ class DbusContainerManager(dbus.service.Object):
     def Setprop(self, propname, propvalue):
         setprop(self.args, propname, propvalue)
 
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='s')
+    def Getprop(self, propname):
+        return getprop(self.args, propname)
+
 def service(args, looper):
     dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
@@ -370,3 +374,8 @@ def setprop(args, propname, propvalue):
     status = helpers.lxc.status(args)
     if status == "RUNNING":
         return helpers.lxc.setprop(args, propname, propvalue)
+
+def getprop(args, propname):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        return helpers.lxc.getprop(propname)

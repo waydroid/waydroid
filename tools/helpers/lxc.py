@@ -700,3 +700,13 @@ def setprop(args, propname, propvalue):
     args.nocgroup = None
     args.context = None
     shell(args)
+
+def getprop(propname):
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+              android_env_attach_options() + ["--", "getprop", propname]
+
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode != 0:
+        logging.info(f"Failed to getprop {propname}")
+        return ""
+    return result.stdout.strip()
