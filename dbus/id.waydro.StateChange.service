@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=id.waydro.StateChange
+Exec=/usr/lib/waydroid -w statechange start
+User=root
+SystemdService=waydroid-statechange-server.service

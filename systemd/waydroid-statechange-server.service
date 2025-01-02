@@ -1,0 +1,10 @@
+[Unit]
+Description=Waydroid state change server
+After=waydroid-container.service
+
+[Service]
+BusName=id.waydro.StateChange
+ExecStart=/usr/bin/waydroid statechange_server start
+
+[Install]
+WantedBy=multi-user.target

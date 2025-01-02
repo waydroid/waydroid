@@ -47,6 +47,7 @@ def main():
         dbus.mainloop.glib.threads_init()
         dbus_name_scope = None
         dbus_notification_scope = None
+        dbus_statechange_scope = None
 
         if not actions.initializer.is_initialized(args) and \
                 args.action and args.action not in ("init", "log"):
@@ -105,6 +106,24 @@ def main():
                 actions.notification_server.start(args)
             elif args.subaction == "stop":
                 actions.notification_server.stop(args)
+            else:
+                logging.info(
+                    "Run waydroid {} -h for usage information.".format(args.action))
+        elif args.action == "statechange_server":
+            actionNeedRoot(args.action)
+            if args.subaction == "start":
+                if dbus_notification_scope is None:
+                    try:
+                        dbus_notification_scope = dbus.service.BusName("id.waydro.StateChange", dbus.SystemBus(), do_not_queue=True)
+                    except dbus.exceptions.NameExistsException:
+                        logging.info('LOG: WayDroid state change service is already running')
+                        return 1
+                    except dbus.exceptions.DBusException as e:
+                        print(f"An error occurred while creating the state change service: {e}")
+                        return 1
+                actions.statechange_server.start(args)
+            elif args.subaction == "stop":
+                actions.statechange_server.stop(args)
             else:
                 logging.info(
                     "Run waydroid {} -h for usage information.".format(args.action))

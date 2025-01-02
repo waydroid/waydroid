@@ -43,6 +43,7 @@ install:
 	mv $(INSTALL_WAYDROID_DIR)/data/*.directory $(INSTALL_APPS_DIRECTORY_DIR)
 	cp dbus/id.waydro.Container.conf $(INSTALL_DBUS_DIR)/system.d/
 	cp dbus/id.waydro.Notification.conf $(INSTALL_DBUS_DIR)/system.d/
+	cp dbus/id.waydro.StateChange.conf $(INSTALL_DBUS_DIR)/system.d/
 	if [ $(USE_DBUS_ACTIVATION) = 1 ]; then \
 		install -d $(INSTALL_DBUS_DIR)/system-services; \
 		cp dbus/id.waydro.Container.service $(INSTALL_DBUS_DIR)/system-services/; \
@@ -53,6 +54,7 @@ install:
 		cp systemd/waydroid-container.service $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-notification-server.service $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-notification-client.service $(INSTALL_SYSD_USER_DIR); \
+		cp systemd/waydroid-statechange-server.service $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-session.service $(INSTALL_SYSD_USER_DIR); \
 	fi
 	if [ $(USE_NFTABLES) = 1 ]; then \

@@ -78,6 +78,13 @@ def arguments_notification_client(subparser):
     sub.add_parser("stop", help="stop notification client")
     return ret
 
+def arguments_statechange_server(subparser):
+    ret = subparser.add_parser("statechange_server", help="statechange server controller")
+    sub = ret.add_subparsers(title="subaction", dest="subaction")
+    sub.add_parser("start", help="start state change server")
+    sub.add_parser("stop", help="stop state change server")
+    return ret
+
 def arguments_app(subparser):
     ret = subparser.add_parser("app", help="applications controller")
     sub = ret.add_subparsers(title="subaction", dest="subaction")
@@ -159,6 +166,7 @@ def arguments():
     arguments_container(sub)
     arguments_notification_server(sub)
     arguments_notification_client(sub)
+    arguments_statechange_server(sub)
     arguments_app(sub)
     arguments_prop(sub)
 #    arguments_fullUI(sub)
