@@ -8,6 +8,7 @@ import glob
 import signal
 import sys
 import uuid
+import threading
 import tools.config
 from tools import helpers
 from tools import services
@@ -128,6 +129,25 @@ class DbusContainerManager(dbus.service.Object):
     @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='s')
     def Getprop(self, propname):
         return getprop(self.args, propname)
+
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='s', async_callbacks=('reply_handler', 'error_handler'))
+    def WatchProp(self, propname, reply_handler, error_handler):
+        """
+        Asynchronously handles a long-running or blocking watch_prop call
+        without blocking the main loop.
+        """
+
+        def worker():
+            try:
+                result = watch_prop(self.args, propname)
+                reply_handler(result)
+            except Exception as e:
+                logging.exception("Error in WatchProp thread")
+                error_handler(str(e))
+
+        t = threading.Thread(target=worker)
+        t.daemon = True
+        t.start()
 
 def service(args, looper):
     dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
@@ -379,3 +399,8 @@ def getprop(args, propname):
     status = helpers.lxc.status(args)
     if status == "RUNNING":
         return helpers.lxc.getprop(propname)
+
+def watch_prop(args, propname):
+    status = helpers.lxc.status(args)
+    if status == "RUNNING":
+        return helpers.lxc.watch_prop(propname)

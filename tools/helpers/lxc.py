@@ -710,3 +710,16 @@ def getprop(propname):
         logging.info(f"Failed to getprop {propname}")
         return ""
     return result.stdout.strip()
+
+def watch_prop(propname):
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+              android_env_attach_options() + ["--", "propwatch", propname]
+
+    try:
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            logging.info(f"Failed to watch the prop {propname}")
+            return ""
+        return result.stdout.strip()
+    except Exception as e:
+        logging.error(f"Failed to watch the prop {propname}: {e}")
