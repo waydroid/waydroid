@@ -57,26 +57,6 @@ Icon={waydroid_data}/icons/com.android.settings.png
 """)
             return 0
 
-    def makeWaydroidDesktopFile(hide):
-        desktop_file_path = apps_dir + "/Waydroid.desktop"
-        if os.path.isfile(desktop_file_path):
-            os.remove(desktop_file_path)
-
-        # FuriOS: we are not using this
-        return -1
-
-        with open(desktop_file_path, "w") as desktop_file:
-            desktop_file.write(f"""\
-[Desktop Entry]
-Type=Application
-Name=Waydroid
-Exec=waydroid show-full-ui
-Categories=X-WayDroid-App;
-X-Purism-FormFactor=Workstation;Mobile;
-Icon=waydroid
-NoDisplay={str(hide).lower()}
-""")
-
     def userUnlocked(uid):
         cfg = tools.config.load(args)
         logging.info("Android with user {} is ready".format(uid))
@@ -92,7 +72,6 @@ NoDisplay={str(hide).lower()}
             for app in appsList:
                 makeDesktopFile(app)
             multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
-            makeWaydroidDesktopFile(multiwin == "true")
         if unlocked_cb:
             unlocked_cb()
 
