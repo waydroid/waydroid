@@ -28,13 +28,19 @@ def start(args, session, unlocked_cb=None):
 
         packageName = appInfo["packageName"]
 
-        hide = False
-        # FuriOS: don't add an icon for default apps such as documents, settings or microG
-        if packageName == "com.android.documentsui" or packageName == "com.android.inputmethod.latin" \
-            or packageName == "com.android.settings" or packageName == "com.google.android.gms" \
-            or packageName == "org.lineageos.jelly" or packageName == "org.lineageos.aperture" \
-            or packageName == "com.android.messaging" or packageName == "com.android.dialer":
-            hide = True
+        HIDDEN_PACKAGES = [
+            "com.android.documentsui",
+            "com.android.inputmethod.latin",
+            "com.android.settings",
+            "com.google.android.gms",
+            "org.lineageos.jelly",
+            "org.lineageos.aperture",
+            "com.android.messaging",
+            "com.android.dialer",
+            "io.furios.launcher"
+        ]
+
+        hide = packageName in HIDDEN_PACKAGES
 
         desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
         if not os.path.exists(desktop_file_path):
