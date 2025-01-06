@@ -280,10 +280,6 @@ def stop(args, quit_session=True):
                    "/data/scripts/waydroid-net.sh", "stop"]
         tools.helpers.run.user(args, command, check=False)
 
-        if which("systemctl") and (tools.helpers.run.user(args, ["systemctl", "is-enabled", "-q", "nfcd"], check=False) == 0):
-            command = ["systemctl", "start", "nfcd"]
-            tools.helpers.run.user(args, command, check=False)
-
         # Sensors
         if which("waydroid-sensord"):
             command = ["pidof", "waydroid-sensord"]
@@ -300,6 +296,10 @@ def stop(args, quit_session=True):
             helpers.mount.umount_all(args, tools.config.defaults["data"])
         except:
             pass
+
+        if which("systemctl") and (tools.helpers.run.user(args, ["systemctl", "is-enabled", "-q", "nfcd"], check=False) == 0):
+            command = ["systemctl", "start", "nfcd"]
+            tools.helpers.run.user(args, command, check=False)
 
         if "session" in args:
             if quit_session:
