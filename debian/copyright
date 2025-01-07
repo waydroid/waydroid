@@ -1,13 +1,15 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: waydroid
-Source: https://github.com/waydroid/waydroid
+Source: https://github.com/furilabs/waydroid
 
 Files: *
 Copyright: 2021 Erfan Abdi <erfangplus@gmail.com>
+           2023-2024 Bardia Moshiri <bardia@furilabs.com>
 License: GPL-3+
 
 Files: debian/*
 Copyright: 2021 Erfan Abdi <erfangplus@gmail.com>
+           2023-2024 Bardia Moshiri <bardia@furilabs.com>
 License: BSD-3-clause
 
 License: GPL-3+
