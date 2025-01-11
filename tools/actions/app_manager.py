@@ -9,7 +9,6 @@ import tools.config
 import tools.helpers.props
 import tools.helpers.ipc
 from tools.interfaces import IPlatform
-from tools.interfaces import IStatusBarService
 import dbus
 
 def install(args):
@@ -127,12 +126,6 @@ def showFullUI(args):
         if platformService:
             platformService.setprop("waydroid.active_apps", "Waydroid")
             platformService.settingsPutString(2, "policy_control", "null*")
-            # HACK: Refresh display contents
-            statusBarService = IStatusBarService.get_service(args)
-            if statusBarService:
-                statusBarService.expand()
-                time.sleep(0.5)
-                statusBarService.collapse()
         else:
             logging.error("Failed to access IPlatform service")
     maybeLaunchLater(args, justShow)
