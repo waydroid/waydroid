@@ -280,14 +280,6 @@ def stop(args, quit_session=True):
                    "/data/scripts/waydroid-net.sh", "stop"]
         tools.helpers.run.user(args, command, check=False)
 
-        # Sensors
-        if which("waydroid-sensord"):
-            command = ["pidof", "waydroid-sensord"]
-            pid = tools.helpers.run.user(args, command, check=False, output_return=True).strip()
-            if pid:
-                command = ["kill", "-9", pid]
-                tools.helpers.run.user(args, command, check=False)
-
         # Umount rootfs
         helpers.images.umount_rootfs(args)
 
