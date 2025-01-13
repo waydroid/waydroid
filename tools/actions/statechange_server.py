@@ -32,6 +32,7 @@ class StateChangeInterface(dbus.service.Object):
         self.monitor_thread = None
         self.package_monitor_thread = None
         self.clipboard_monitor_thread = None
+        self.gnss_monitor_thread = None
         self.stop_monitoring = False
         self.current_watch_process = None
 
@@ -48,6 +49,11 @@ class StateChangeInterface(dbus.service.Object):
     @dbus.service.signal(dbus_interface='id.waydro.StateChange', signature='s')
     def sendClipboardData(self, content):
         logging.info(f"Signal: sendClipboardData emitted: content={content}")
+        pass
+
+    @dbus.service.signal(dbus_interface='id.waydro.StateChange', signature='b')
+    def gnssStateChanged(self, state):
+        logging.info(f"Signal: gnssStateChanged emitted: state={state}")
         pass
 
     def propwatch(self, propname):
@@ -114,14 +120,59 @@ class StateChangeInterface(dbus.service.Object):
             except Exception as e:
                 logging.error(f"Error monitoring clipboard: {e}")
 
+    def monitor_gnss_state(self):
+        initial_state = helpers.lxc.getprop("furios.gnss.active")
+
+        try:
+            if initial_state:
+                initial_state = bool(int(initial_state))
+            else:
+                logging.error("initial GNSS state is an empty string, defaulting to false")
+                initial_state = False
+        except Exception as e:
+            logging.error(f"Failed to convert initial state to boolean: {e}")
+            initial_state = False
+
+        while not self.stop_monitoring and running:
+            try:
+                new_state = self.propwatch("furios.gnss.active")
+
+                try:
+                    if new_state:
+                        new_state = bool(int(new_state))
+                    else:
+                        # give it one more shot, perhaps a false alarm from propwatch
+                        state = helpers.lxc.getprop("furios.gnss.active")
+                        if state:
+                            new_state = bool(int(state))
+                        else:
+                            logging.error("new GNSS state is an empty string, defaulting to false")
+                            new_state = False
+                except Exception as e:
+                    logging.error(f"Failed to convert new state to boolean: {e}")
+                    new_state = False
+
+                if new_state != initial_state:
+                    self.gnssStateChanged(new_state)
+                    initial_state = new_state
+                if not self.is_rootfs_mounted():
+                    logging.info("Rootfs unmounted in GNSS monitor")
+                    break
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                logging.error(f"Error monitoring gnss state: {e}")
+
     def start_watchers(self):
         if self.package_monitor_thread and self.package_monitor_thread.is_alive():
             return
 
         self.package_monitor_thread = threading.Thread(target=self.monitor_package_state)
         self.clipboard_monitor_thread = threading.Thread(target=self.monitor_clipboard)
+        self.gnss_monitor_thread = threading.Thread(target=self.monitor_gnss_state)
         self.package_monitor_thread.start()
         self.clipboard_monitor_thread.start()
+        self.gnss_monitor_thread.start()
 
     def stop_watchers(self):
         self.stop_monitoring = True
@@ -133,6 +184,10 @@ class StateChangeInterface(dbus.service.Object):
         if self.clipboard_monitor_thread and self.clipboard_monitor_thread.is_alive():
             self.clipboard_monitor_thread.join(timeout=2)
             self.clipboard_monitor_thread = None
+
+        if self.gnss_monitor_thread and self.gnss_monitor_thread.is_alive():
+            self.gnss_monitor_thread.join(timeout=2)
+            self.gnss_monitor_thread = None
 
         self.stop_monitoring = False
 
