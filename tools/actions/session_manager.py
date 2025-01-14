@@ -21,15 +21,12 @@ class DbusSessionManager(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
         self.args = args
         self.looper = looper
-        self.initial_gnss_status = get_gnss_status()
-        set_gnss_status(True)
         dbus.service.Object.__init__(self, bus, object_path)
 
     @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='')
     def Stop(self):
         do_stop(self.args, self.looper)
         stop_container(quit_session=False)
-        restart_gnss(self.initial_gnss_status)
 
     @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
     def VendorType(self):
