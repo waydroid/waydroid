@@ -1,3 +1,5 @@
+# Copyright 2025Bardia Moshiri
+# SPDX-License-Identifier: GPL-3.0-or-later
 import socket
 import subprocess
 import threading
@@ -60,11 +62,15 @@ class StateChangeInterface(dbus.service.Object):
         command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env", "--", "propwatch", propname]
         try:
             self.current_watch_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
-            result = self.current_watch_process.stdout.readline().strip()
-            return result
+            if self.current_watch_process and self.current_watch_process.stdout:
+                result = self.current_watch_process.stdout.readline().strip()
+                return result
+            else:
+                logging.error(f"Failed to watch the prop {propname}: Process or stdout is None")
+                return None
         except Exception as e:
             logging.error(f"Failed to watch the prop {propname}: {e}")
-            return ""
+            return None
         finally:
             if self.current_watch_process:
                 self.current_watch_process.terminate()
@@ -81,25 +87,40 @@ class StateChangeInterface(dbus.service.Object):
         initial_name = helpers.lxc.getprop("furios.android.package.name")
         while not self.stop_monitoring and running:
             try:
+                if not self.is_rootfs_mounted():
+                    logging.info("Rootfs unmounted in package monitor")
+                    break
+
+
                 new_name = self.propwatch("furios.android.package.name")
+                if new_name is None:
+                    time.sleep(5)
+                    continue
+
                 if new_name and new_name != initial_name:
                     action = helpers.lxc.getprop("furios.android.package.action")
                     uid = int(helpers.lxc.getprop("furios.android.package.uid"))
                     self.packageStateChanged(int(action), new_name, int(uid))
                     initial_name = new_name
-                if not self.is_rootfs_mounted():
-                    logging.info("Rootfs unmounted in package monitor")
-                    break
             except KeyboardInterrupt:
                 break
             except Exception as e:
                 logging.error(f"Error monitoring package state: {e}")
+                time.sleep(5)
 
     def monitor_clipboard(self):
         initial_count = helpers.lxc.getprop("furios.android.clipboard.count")
         while not self.stop_monitoring and running:
             try:
+                if not self.is_rootfs_mounted():
+                    logging.info("Rootfs unmounted in clipboard monitor")
+                    break
+
                 new_count = self.propwatch("furios.android.clipboard.count")
+                if new_count is None:
+                    time.sleep(5)
+                    continue
+
                 if new_count and new_count != "0" and new_count != initial_count:
                     host_data_path = helpers.lxc.getprop("waydroid.host_data_path")
                     clipboard_path = os.path.join(host_data_path, "clipboard", "clipboard")
@@ -112,13 +133,11 @@ class StateChangeInterface(dbus.service.Object):
                         except Exception as e:
                             logging.error(f"Error reading clipboard file: {e}")
                     initial_count = new_count
-                if not self.is_rootfs_mounted():
-                    logging.info("Rootfs unmounted in clipboard monitor")
-                    break
             except KeyboardInterrupt:
                 break
             except Exception as e:
                 logging.error(f"Error monitoring clipboard: {e}")
+                time.sleep(5)
 
     def monitor_gnss_state(self):
         initial_state = helpers.lxc.getprop("furios.gnss.active")
@@ -135,7 +154,14 @@ class StateChangeInterface(dbus.service.Object):
 
         while not self.stop_monitoring and running:
             try:
+                if not self.is_rootfs_mounted():
+                    logging.info("Rootfs unmounted in GNSS monitor")
+                    break
+
                 new_state = self.propwatch("furios.gnss.active")
+                if new_state is None:
+                    time.sleep(5)
+                    continue
 
                 try:
                     if new_state:
@@ -155,13 +181,11 @@ class StateChangeInterface(dbus.service.Object):
                 if new_state != initial_state:
                     self.gnssStateChanged(new_state)
                     initial_state = new_state
-                if not self.is_rootfs_mounted():
-                    logging.info("Rootfs unmounted in GNSS monitor")
-                    break
             except KeyboardInterrupt:
                 break
             except Exception as e:
                 logging.error(f"Error monitoring gnss state: {e}")
+                time.sleep(5)
 
     def start_watchers(self):
         if self.package_monitor_thread and self.package_monitor_thread.is_alive():
