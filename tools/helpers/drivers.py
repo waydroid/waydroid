@@ -169,7 +169,7 @@ def setupBinderNodes(args):
             raise OSError('Binder node "hwbinder" for waydroid not found')
 
 def loadBinderNodes(args):
-    cfg = tools.config.load(args)
+    cfg = tools.config.load(args.config)
     args.BINDER_DRIVER = cfg["waydroid"]["binder"]
     args.VNDBINDER_DRIVER = cfg["waydroid"]["vndbinder"]
     args.HWBINDER_DRIVER = cfg["waydroid"]["hwbinder"]
