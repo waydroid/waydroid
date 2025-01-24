@@ -1,4 +1,4 @@
-# Copyright 2025Bardia Moshiri
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
 import socket
 import subprocess
@@ -31,6 +31,7 @@ def signal_handler(signum, frame):
 class StateChangeInterface(dbus.service.Object):
     def __init__(self, bus_name):
         super().__init__(bus_name, '/id/waydro/StateChange')
+        self.composer_monitor_thread = None
         self.monitor_thread = None
         self.package_monitor_thread = None
         self.clipboard_monitor_thread = None
@@ -90,7 +91,6 @@ class StateChangeInterface(dbus.service.Object):
                 if not self.is_rootfs_mounted():
                     logging.info("Rootfs unmounted in package monitor")
                     break
-
 
                 new_name = self.propwatch("furios.android.package.name")
                 if new_name is None:
@@ -174,6 +174,7 @@ class StateChangeInterface(dbus.service.Object):
                         else:
                             logging.error("new GNSS state is an empty string, defaulting to false")
                             new_state = False
+                            time.sleep(2)
                 except Exception as e:
                     logging.error(f"Failed to convert new state to boolean: {e}")
                     new_state = False
@@ -185,6 +186,46 @@ class StateChangeInterface(dbus.service.Object):
                 break
             except Exception as e:
                 logging.error(f"Error monitoring gnss state: {e}")
+                time.sleep(5)
+
+    def monitor_composer(self):
+        initial_state = helpers.lxc.getprop("init.svc.vendor.hwcomposer-2-1")
+        while not self.stop_monitoring and running:
+            try:
+                if not self.is_rootfs_mounted():
+                    logging.info("Rootfs unmounted in composer monitor")
+                    break
+
+                new_state = self.propwatch("init.svc.vendor.hwcomposer-2-1")
+                if new_state is None:
+                    time.sleep(5)
+                    continue
+
+                if new_state and new_state != initial_state and new_state == "running":
+                    time.sleep(5)
+                    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env", "--", "lshal", "-i", "2>/dev/null", "|", "grep", "vendor.waydroid.display@1.0::IWaydroidDisplay/default"]
+                    result = ''
+
+                    current_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+                    if current_process and current_process.stdout:
+                        result = current_process.stdout.readline().strip()
+                    else:
+                        logging.error(f"Failed to get waydroid display: Process or stdout is None")
+
+                    if result and result == 'vendor.waydroid.display@1.0::IWaydroidDisplay/default':
+                        logging.info("vendor.hwcomposer-2-1 is up with all interfaces")
+                        break
+                    else:
+                        pid = helpers.lxc.getprop("init.svc_debug_pid.vendor.hwcomposer-2-1")
+                        if pid:
+                            logging.info(f"vendor.hwcomposer-2-1 is stuck. killing pid {pid}")
+                            command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env", "--", "kill", "-9", f"{pid}"]
+                            subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+                        break
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                logging.error(f"Error monitoring composer state: {e}")
                 time.sleep(5)
 
     def start_watchers(self):
@@ -244,12 +285,19 @@ class StateChangeInterface(dbus.service.Object):
                     self.userUnlocked(0)
                     self.start_watchers()
                 else:
+                    self.composer_monitor_thread = threading.Thread(target=self.monitor_composer)
+                    self.composer_monitor_thread.start()
                     logging.info("Waiting for user unlock")
                     while running and self.is_rootfs_mounted():
                         result = self.propwatch("furios.android.userunlocked")
                         if result == "true":
                             logging.info("User unlocked")
                             self.userUnlocked(0)
+
+                            if self.composer_monitor_thread and self.composer_monitor_thread.is_alive():
+                                self.composer_monitor_thread.join(timeout=2)
+                                self.composer_monitor_thread = None
+
                             self.start_watchers()
                             break
 
