@@ -146,7 +146,12 @@ def get_vendor_type(args):
     if vndk_str != "":
         vndk = int(vndk_str)
         if vndk > 19:
-            ret = "HALIUM_" + str(vndk - 19)
+            halium_ver = vndk - 19
+            if vndk > 31:
+                halium_ver -= 1 # 12L -> Halium 12
+            ret = "HALIUM_" + str(halium_ver)
+            if vndk == 32:
+                ret += "L"
 
     return ret
 
