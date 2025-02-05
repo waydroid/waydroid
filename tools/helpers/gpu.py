@@ -39,7 +39,7 @@ def getVulkanDriver(args, dev):
     if kernel_driver == "i915":
         try:
             gen = tools.helpers.run.user(args,["awk", "/^graphics version:|^gen:/ {print $NF}",
-                "/sys/kernel/debug/dri/{}/i915_capabilities".format(getMinor(args, dev))], output_return=True)
+                "/sys/kernel/debug/dri/{}/i915_capabilities".format(getMinor(args, dev))], output_return=True, check=False)
             if int(gen) < 9:
                 return "intel_hasvk"
         except:
