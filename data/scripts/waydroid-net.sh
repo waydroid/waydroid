@@ -33,11 +33,11 @@ LXC_IPV6_NETWORK=""
 LXC_IPV6_NAT="false"
 
 IPTABLES_BIN="$(command -v iptables-legacy)"
-if [ ! -n "$IPTABLES_BIN" ]; then
+if [ -z "$IPTABLES_BIN" ]; then
     IPTABLES_BIN="$(command -v iptables)"
 fi
 IP6TABLES_BIN="$(command -v ip6tables-legacy)"
-if [ ! -n "$IP6TABLES_BIN" ]; then
+if [ -z "$IP6TABLES_BIN" ]; then
     IP6TABLES_BIN="$(command -v ip6tables)"
 fi
 
@@ -83,19 +83,27 @@ start_ipv6() {
     fi
 }
 
+toggle_iptables_rules () {
+    A=${1:-A}
+    I=${1:-I}
+
+    if [ -n "$LXC_IPV6_ARG" ] && [ "$LXC_IPV6_NAT" = "true" ]; then
+        $IP6TABLES_BIN $use_iptables_lock -t nat -$A POSTROUTING -s ${LXC_IPV6_NETWORK} ! -d ${LXC_IPV6_NETWORK} -j MASQUERADE
+    fi
+    $IPTABLES_BIN $use_iptables_lock -$I INPUT -i ${LXC_BRIDGE} -p udp --dport 67 -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -$I INPUT -i ${LXC_BRIDGE} -p tcp --dport 67 -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -$I INPUT -i ${LXC_BRIDGE} -p udp --dport 53 -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -$I INPUT -i ${LXC_BRIDGE} -p tcp --dport 53 -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -$I FORWARD -i ${LXC_BRIDGE} -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -$I FORWARD -o ${LXC_BRIDGE} -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -t nat -$A POSTROUTING -s ${LXC_NETWORK} ! -d ${LXC_NETWORK} -j MASQUERADE
+    $IPTABLES_BIN $use_iptables_lock -t mangle -$A POSTROUTING -o ${LXC_BRIDGE} -p udp -m udp --dport 68 -j CHECKSUM --checksum-fill
+}
+
 start_iptables() {
     start_ipv6
-    if [ -n "$LXC_IPV6_ARG" ] && [ "$LXC_IPV6_NAT" = "true" ]; then
-        $IP6TABLES_BIN $use_iptables_lock -t nat -A POSTROUTING -s ${LXC_IPV6_NETWORK} ! -d ${LXC_IPV6_NETWORK} -j MASQUERADE
-    fi
-    $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p udp --dport 67 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p tcp --dport 67 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p udp --dport 53 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p tcp --dport 53 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -I FORWARD -i ${LXC_BRIDGE} -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -I FORWARD -o ${LXC_BRIDGE} -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -t nat -A POSTROUTING -s ${LXC_NETWORK} ! -d ${LXC_NETWORK} -j MASQUERADE
-    $IPTABLES_BIN $use_iptables_lock -t mangle -A POSTROUTING -o ${LXC_BRIDGE} -p udp -m udp --dport 68 -j CHECKSUM --checksum-fill
+
+    toggle_iptables_rules
 }
 
 start_nftables() {
@@ -210,17 +218,7 @@ start() {
 }
 
 stop_iptables() {
-    $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p udp --dport 67 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p tcp --dport 67 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p udp --dport 53 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p tcp --dport 53 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -D FORWARD -i ${LXC_BRIDGE} -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -D FORWARD -o ${LXC_BRIDGE} -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -t nat -D POSTROUTING -s ${LXC_NETWORK} ! -d ${LXC_NETWORK} -j MASQUERADE
-    $IPTABLES_BIN $use_iptables_lock -t mangle -D POSTROUTING -o ${LXC_BRIDGE} -p udp -m udp --dport 68 -j CHECKSUM --checksum-fill
-    if [ "$LXC_IPV6_NAT" = "true" ]; then
-        $IP6TABLES_BIN $use_iptables_lock -t nat -D POSTROUTING -s ${LXC_IPV6_NETWORK} ! -d ${LXC_IPV6_NETWORK} -j MASQUERADE
-    fi
+    toggle_iptables_rules D
 }
 
 stop_nftables() {
