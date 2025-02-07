@@ -68,7 +68,11 @@ NoDisplay={str(hide).lower()}
 """)
 
     def userUnlocked(uid):
-        cfg = tools.config.load(args)
+        cfg = tools.config.load(args.config)
+        user_config_file = str(tools.config.session_defaults["xdg_config_home"] + "/waydroid/waydroid.cfg")
+        if os.path.exists(user_config_file):
+            cfg.update(tools.config.load(user_config_file))
+
         logging.info("Android with user {} is ready".format(uid))
 
         if cfg["waydroid"]["auto_adb"] == "True":
@@ -79,8 +83,9 @@ NoDisplay={str(hide).lower()}
             if not os.path.exists(apps_dir):
                 os.mkdir(apps_dir, 0o700)
             appsList = platformService.getAppsInfo()
-            for app in appsList:
-                makeDesktopFile(app)
+            if cfg["properties"]["create_desktop_entry"] == "True":
+                for app in appsList:
+                    makeDesktopFile(app)
             multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
             makeWaydroidDesktopFile(multiwin == "true")
         if unlocked_cb:
@@ -93,7 +98,8 @@ NoDisplay={str(hide).lower()}
             desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
             if mode == 0:
                 # Package added
-                makeDesktopFile(appInfo)
+                if cfg["properties"]["create_desktop_entry"] == "True":
+                    makeDesktopFile(appInfo)
             elif mode == 1:
                 if os.path.isfile(desktop_file_path):
                     os.remove(desktop_file_path)
