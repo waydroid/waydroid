@@ -191,12 +191,13 @@ def set_permissions(args, perm_list=None, mode="777"):
             "/dev/mtk_mdp",
 
             # Graphics
-            "/dev/dri",
             "/dev/graphics",
             "/dev/pvr_sync",
             "/dev/ion",
         ]
 
+        # DRM render nodes
+        perm_list.extend(glob.glob("/dev/dri/renderD*"))
         # Framebuffers
         perm_list.extend(glob.glob("/dev/fb*"))
         # Videos
