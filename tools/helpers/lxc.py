@@ -55,9 +55,8 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/pvr_sync")
     make_entry("/dev/pmsg0")
     make_entry("/dev/dxg")
-    render, card = tools.helpers.gpu.getDriNode(args)
+    render, _ = tools.helpers.gpu.getDriNode(args)
     make_entry(render, "dev/dri/renderD128")
-    make_entry(card, "dev/dri/card0")
 
     for n in glob.glob("/dev/fb*"):
         make_entry(n)
