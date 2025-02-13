@@ -472,7 +472,12 @@ def shell(args):
         command.extend(args.COMMAND)
     else:
         command.append("/system/bin/sh")
-    subprocess.run(command)
+
+    try:
+        subprocess.run(command)
+    except KeyboardInterrupt:
+        pass
+
     if state == "FROZEN":
         freeze(args)
 
