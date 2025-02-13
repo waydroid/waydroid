@@ -1,10 +1,12 @@
+# Copyright 2025 Bardia Moshiri
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import gbinder
 import logging
 import time
 from tools import helpers
 from gi.repository import GLib
 import signal
-
 
 INTERFACE = "lineageos.waydroid.IPlatform"
 SERVICE_NAME = "waydroidplatform"

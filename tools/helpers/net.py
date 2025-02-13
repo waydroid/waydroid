@@ -1,5 +1,7 @@
 # Copyright 2023 Maximilian Wende
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 from shutil import which
 import tools.helpers.run
 import logging

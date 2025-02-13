@@ -1,12 +1,13 @@
 # Copyright 2021 Oliver Smith
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 from shutil import which
 import subprocess
 import logging
 import os
 import tools.helpers.run
 from tools.interfaces import IPlatform
-
 
 def host_get(args, prop):
     if which("getprop") is not None:

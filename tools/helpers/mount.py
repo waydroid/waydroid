@@ -1,9 +1,10 @@
 # Copyright 2021 Oliver Smith
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 import os
 import tools.helpers.run
 from tools.helpers.version import versiontuple, kernel_version
-
 
 def ismount(folder):
     """
@@ -19,7 +20,6 @@ def ismount(folder):
             if words[0] == folder:
                 return True
     return False
-
 
 def bind(args, source, destination, create_folders=True, umount=False):
     """
@@ -50,7 +50,6 @@ def bind(args, source, destination, create_folders=True, umount=False):
     if not ismount(destination):
         raise RuntimeError("Mount failed: " + source + " -> " + destination)
 
-
 def bind_file(args, source, destination, create_folders=False):
     """
     Mount a file with the --bind option, and create the destination file,
@@ -72,7 +71,6 @@ def bind_file(args, source, destination, create_folders=False):
     # Mount
     tools.helpers.run.user(args, ["mount", "-o", "bind", source,
                                 destination])
-
 
 def umount_all_list(prefix, source="/proc/mounts"):
     """
@@ -97,7 +95,6 @@ def umount_all_list(prefix, source="/proc/mounts"):
                 ret.append(mountpoint)
     ret.sort(reverse=True)
     return ret
-
 
 def umount_all(args, folder):
     """

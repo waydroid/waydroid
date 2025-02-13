@@ -1,3 +1,6 @@
+# Copyright 2025 Bardia Moshiri
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from tools import helpers
 import tools.config
 import logging

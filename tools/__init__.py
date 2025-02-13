@@ -1,6 +1,8 @@
 # Copyright 2021 Oliver Smith
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
 # PYTHON_ARGCOMPLETE_OK
+
 import sys
 import logging
 import subprocess
@@ -15,7 +17,6 @@ from . import actions
 from . import config
 from . import helpers
 from .helpers import logging as tools_logging
-
 
 def main():
     def actionNeedRoot(action):

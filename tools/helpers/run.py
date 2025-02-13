@@ -1,8 +1,9 @@
 # Copyright 2021 Oliver Smith
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 import shlex
 import tools.helpers.run_core
-
 
 def flat_cmd(cmd, working_dir=None, env={}):
     """
@@ -32,7 +33,6 @@ def flat_cmd(cmd, working_dir=None, env={}):
 
     return ret
 
-
 def user(args, cmd, working_dir=None, output="log", output_return=False,
          check=None, env={}, sudo=False):
     """
@@ -57,7 +57,6 @@ def user(args, cmd, working_dir=None, output="log", output_return=False,
         cmd = ["sh", "-c", flat_cmd(cmd, env=env)]
     return tools.helpers.run_core.core(args, msg, cmd, working_dir, output,
                                      output_return, check, sudo)
-
 
 def root(args, cmd, working_dir=None, output="log", output_return=False,
          check=None, env={}):

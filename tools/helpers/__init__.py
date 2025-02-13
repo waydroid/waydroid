@@ -1,5 +1,7 @@
 # Copyright 2021 Oliver Smith
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 from tools.helpers.arguments import arguments
 from tools.helpers.wayland_clipboard import WaylandClipboardHandler
 import tools.helpers.arch

@@ -1,4 +1,4 @@
-# Copyright 2023 Bardia Moshiri
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging

@@ -1,8 +1,10 @@
+# Copyright 2025 Bardia Moshiri
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 import gbinder
 import logging
 from tools import helpers
 from gi.repository import GLib
-
 
 INTERFACE = "lineageos.waydroid.IClipboard"
 SERVICE_NAME = "waydroidclipboard"

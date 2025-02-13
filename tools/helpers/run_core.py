@@ -1,5 +1,7 @@
 # Copyright 2021 Oliver Smith
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 import fcntl
 import logging
 import selectors
@@ -13,7 +15,6 @@ import tools.helpers.run
 """ For a detailed description of all output modes, read the description of
     core() at the bottom. All other functions in this file get (indirectly)
     called by core(). """
-
 
 def sanity_checks(output="log", output_return=False, check=None):
     """
@@ -34,7 +35,6 @@ def sanity_checks(output="log", output_return=False, check=None):
     if output_return and output in ["tui", "background"]:
         raise RuntimeError("Can't use output_return with output: " + output)
 
-
 def background(args, cmd, working_dir=None):
     """ Run a subprocess in background and redirect its output to the log. """
     ret = subprocess.Popen(cmd, stdout=args.logfd, stderr=args.logfd,
@@ -42,14 +42,12 @@ def background(args, cmd, working_dir=None):
     logging.debug("New background process: pid={}, output=background".format(ret.pid))
     return ret
 
-
 def pipe(args, cmd, working_dir=None):
     """ Run a subprocess in background and redirect its output to a pipe. """
     ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=args.logfd,
                            cwd=working_dir)
     logging.verbose("New background process: pid={}, output=pipe".format(ret.pid))
     return ret
-
 
 def pipe_read(args, process, output_to_stdout=False, output_return=False,
               output_return_buffer=False):
@@ -82,7 +80,6 @@ def pipe_read(args, process, output_to_stdout=False, output_return=False,
             sys.stdout.flush()
         return
 
-
 def kill_process_tree(args, pid, ppids, sudo):
     """
     Recursively kill a pid and its child processes
@@ -102,7 +99,6 @@ def kill_process_tree(args, pid, ppids, sudo):
         if child_ppid == str(pid):
             kill_process_tree(args, child_pid, ppids, sudo)
 
-
 def kill_command(args, pid, sudo):
     """
     Kill a command process and recursively kill its child processes
@@ -121,7 +117,6 @@ def kill_command(args, pid, sudo):
         ppids.append(items)
 
     kill_process_tree(args, pid, ppids, sudo)
-
 
 def foreground_pipe(args, cmd, working_dir=None, output_to_stdout=False,
                     output_return=False, output_timeout=True,
@@ -186,7 +181,6 @@ def foreground_pipe(args, cmd, working_dir=None, output_to_stdout=False,
     # combined string with each new chunk)
     return (process.returncode, b"".join(output_buffer).decode("utf-8"))
 
-
 def foreground_tui(cmd, working_dir=None):
     """
     Run a subprocess in foreground without redirecting any of its output.
@@ -199,7 +193,6 @@ def foreground_tui(cmd, working_dir=None):
                   " ***")
     process = subprocess.Popen(cmd, cwd=working_dir)
     return process.wait()
-
 
 def check_return_code(args, code, log_message):
     """
@@ -218,7 +211,6 @@ def check_return_code(args, code, log_message):
                      " in the log file: " + args.log)
         raise RuntimeError("Command failed: " + log_message)
 
-
 def sudo_timer_iterate():
     """
     Run sudo -v and schedule a new timer to repeat the same.
@@ -229,7 +221,6 @@ def sudo_timer_iterate():
     timer = threading.Timer(interval=60, function=sudo_timer_iterate)
     timer.daemon = True
     timer.start()
-
 
 def sudo_timer_start(args):
     """
@@ -242,7 +233,6 @@ def sudo_timer_start(args):
     args.cache["sudo_timer_active"] = True
 
     sudo_timer_iterate()
-
 
 def core(args, log_message, cmd, working_dir=None, output="log",
          output_return=False, check=None, sudo=False, disable_timeout=False):

@@ -1,10 +1,11 @@
 # Copyright 2021 Oliver Smith
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 import logging
 import configparser
 import os
 import tools.config
-
 
 def load(args):
     cfg = configparser.ConfigParser()

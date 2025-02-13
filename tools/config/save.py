@@ -1,9 +1,10 @@
 # Copyright 2021 Oliver Smith
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 import os
 import logging
 import tools.config
-
 
 def save(args, cfg):
     logging.debug("Save config: " + args.config)

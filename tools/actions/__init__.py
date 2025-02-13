@@ -1,5 +1,7 @@
 # Copyright 2021 Erfan Abdi
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 from tools.actions.initializer import init, wait_for_init
 from tools.actions.upgrader import upgrade
 from tools.actions.session_manager import start, stop

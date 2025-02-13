@@ -1,5 +1,7 @@
 # Copyright 2021 Erfan Abdi
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 import logging
 import os
 import glob
@@ -7,7 +9,6 @@ import fcntl
 import struct
 import tools.config
 import tools.helpers.run
-
 
 BINDER_DRIVERS = [
     "anbox-binder",
@@ -27,7 +28,6 @@ HWBINDER_DRIVERS = [
     "hwbonder",
     "hwbinder"
 ]
-
 
 def isBinderfsLoaded(args):
     with open("/proc/filesystems", "r") as handle:
@@ -117,7 +117,6 @@ def probeAshmemDriver(args):
 
     if not os.path.exists("/dev/ashmem"):
         return -1
-    
     return 0
 
 def setupBinderNodes(args):

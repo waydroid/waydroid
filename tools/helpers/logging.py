@@ -1,9 +1,10 @@
 # Copyright 2021 Oliver Smith
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 import logging
 import os
 import sys
-
 
 class log_handler(logging.StreamHandler):
     """
@@ -34,7 +35,6 @@ class log_handler(logging.StreamHandler):
         except BaseException:
             self.handleError(record)
 
-
 def add_verbose_log_level():
     """
     Add a new log level "verbose", which is below "debug". Also monkeypatch
@@ -52,7 +52,6 @@ def add_verbose_log_level():
     logging.verbose = lambda msg, *args, **kwargs: logging.log(logging.VERBOSE,
                                                                msg, *args,
                                                                **kwargs)
-
 
 def init(args):
     """
@@ -96,7 +95,6 @@ def init(args):
     log_handler._args = args
     handler.setFormatter(formatter)
     root_logger.addHandler(handler)
-
 
 def disable():
     logger = logging.getLogger()

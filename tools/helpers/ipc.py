@@ -1,4 +1,5 @@
 # Copyright 2022 Alessandro Astone
+# Copyright 2025 Bardia Moshiri
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import dbus
