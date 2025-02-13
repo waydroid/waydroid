@@ -176,3 +176,6 @@ def loadBinderNodes(args):
     # These might not be in cfg on package upgrade
     args.BINDER_PROTOCOL = cfg["waydroid"].get("binder_protocol")
     args.SERVICE_MANAGER_PROTOCOL = cfg["waydroid"].get("service_manager_protocol")
+
+def should_use_statechange():
+    return os.path.exists("/usr/lib/furios/device/android-use-statechange")
