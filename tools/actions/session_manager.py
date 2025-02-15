@@ -199,6 +199,10 @@ def start(args, unlocked_cb=None, background=True):
 
     mainloop = GLib.MainLoop()
 
+    if shutil.which("systemctl") and (tools.helpers.run.user(args, ["systemctl", "is-active", "--user", "-q", "android-vibrator"], check=False) != 0):
+        command = ["systemctl", "start", "--user", "android-vibrator"]
+        tools.helpers.run.user(args, command, check=False)
+
     def sigint_handler(data):
         do_stop(args, mainloop)
         stop_container(quit_session=False)
