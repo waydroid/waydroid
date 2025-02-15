@@ -13,7 +13,7 @@ Vcs-Git: https://github.com/furilabs/waydroid.git
 Package: waydroid
 Architecture: all
 Pre-Depends: waydroid-system-image,
-             waydroid-vendor-image
+             waydroid-vendor-image,
 Depends: ${misc:Depends},
          ${python3:Depends},
          lxc,
@@ -26,6 +26,7 @@ Depends: ${misc:Depends},
 	 iptables,
          libglib2.0-bin,
          wl-clipboard,
+         android-vibrator-hal,
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container.
