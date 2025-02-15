@@ -37,8 +37,13 @@ def make_prop(args, cfg, full_props_path):
     props.append("waydroid.xdg_runtime_dir=" + tools.config.defaults["container_xdg_runtime_dir"])
     props.append("waydroid.pulse_runtime_path=" + tools.config.defaults["container_pulse_runtime_path"])
     props.append("waydroid.wayland_display=" + tools.config.defaults["container_wayland_display"])
+
     if which("waydroid-sensord") is None:
         props.append("waydroid.stub_sensors_hal=1")
+
+    if not os.path.exists("/usr/libexec/android-vibrator"):
+        props.append("furios.stub_vibrator_hal=1")
+
     dpi = cfg["lcd_density"]
     if dpi != "0":
         props.append("ro.sf.lcd_density=" + dpi)
