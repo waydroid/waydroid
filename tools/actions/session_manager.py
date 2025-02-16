@@ -30,6 +30,10 @@ class DbusSessionManager(dbus.service.Object):
         do_stop(self.args, self.looper)
         stop_container(quit_session=False)
 
+    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='b')
+    def Ping(self):
+        return True
+
     @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
     def VendorType(self):
         cfg = tools.config.load(self.args)
