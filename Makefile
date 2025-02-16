@@ -40,7 +40,7 @@ install:
 	install -d $(INSTALL_WAYDROID_DIR) $(INSTALL_BIN_DIR) $(INSTALL_DBUS_DIR)/system.d $(INSTALL_POLKIT_DIR)/actions $(INSTALL_ANDROID_STORE_DIR)
 	install -d $(INSTALL_APPS_DIR) $(INSTALL_ICONS_DIR)/hicolor/512x512/apps $(INSTALL_APPS_DIRECTORY_DIR) $(INSTALL_APPS_MENU_DIR) $(INSTALL_LIBEXEC_DIR)
 	cp -a data tools waydroid.py $(INSTALL_WAYDROID_DIR)
-	cp -a android-store/android-store.py $(INSTALL_ANDROID_STORE_DIR)
+	cp -a android-store/android-store.py android-store/repos $(INSTALL_ANDROID_STORE_DIR)
 	ln -sf $(WAYDROID_DIR)/waydroid.py $(INSTALL_BIN_DIR)/waydroid
 	ln -sf $(ANDROID_STORE_DIR)/android-store.py $(INSTALL_LIBEXEC_DIR)/android-store
 	mv $(INSTALL_WAYDROID_DIR)/data/AppIcon.png $(INSTALL_ICONS_DIR)/hicolor/512x512/apps/waydroid.png
