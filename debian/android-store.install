@@ -1,0 +1,3 @@
+usr/lib/android-store/android-store.py
+usr/lib/systemd/user/android-store.service
+usr/libexec/android-store

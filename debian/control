@@ -30,3 +30,12 @@ Depends: ${misc:Depends},
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container.
+
+Package: android-store
+Architecture: all
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         waydroid,
+         python3-dbus-fast,
+Description: Android software store bridge
+ This bridge allows to install Android apps from software stores through DBus
