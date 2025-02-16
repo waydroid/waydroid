@@ -1,0 +1,8 @@
+[Unit]
+Description=Android software store bridge
+After=io.FuriOS.AndroidStore
+
+[Service]
+Type=dbus
+ExecStart=/usr/libexec/android-store
+Restart=on-failure
