@@ -16,7 +16,7 @@ from dbus_fast.aio import MessageBus
 from dbus_fast.service import ServiceInterface, method, signal
 from dbus_fast import BusType, Variant
 
-REPO_CONFIG_DIR = "/etc/android-store/repos"
+DEFAULT_REPO_CONFIG_DIR = "/usr/lib/android-store/repos"
 CACHE_DIR = os.path.expanduser("~/.cache/android-store/repo")
 DOWNLOAD_CACHE_DIR = os.path.expanduser("~/.cache/android-store/downloads")
 
@@ -38,7 +38,7 @@ class FDroidInterface(ServiceInterface):
 
     def read_repo_list(self, repo_file):
         try:
-            with open(os.path.join(REPO_CONFIG_DIR, repo_file), 'r') as f:
+            with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_file), 'r') as f:
                 return [line.strip() for line in f if line.strip() and not line.startswith('#')]
         except FileNotFoundError:
             return []
@@ -202,7 +202,7 @@ class FDroidInterface(ServiceInterface):
 
             try:
                 repo_url = None
-                with open(os.path.join(REPO_CONFIG_DIR, repo_dir), 'r') as f:
+                with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_dir), 'r') as f:
                     for line in f:
                         line = line.strip()
                         if line and not line.startswith('#'):
@@ -256,8 +256,8 @@ class FDroidInterface(ServiceInterface):
 
         os.makedirs(CACHE_DIR, exist_ok=True)
 
-        for config_file in os.listdir(REPO_CONFIG_DIR):
-            if not os.path.isfile(os.path.join(REPO_CONFIG_DIR, config_file)):
+        for config_file in os.listdir(DEFAULT_REPO_CONFIG_DIR):
+            if not os.path.isfile(os.path.join(DEFAULT_REPO_CONFIG_DIR, config_file)):
                 continue
 
             # skip if we've already successfully processed this repo (don't redownload from a mirror)
@@ -316,7 +316,7 @@ class FDroidInterface(ServiceInterface):
                 if not os.path.exists(index_path):
                     continue
 
-                with open(os.path.join(REPO_CONFIG_DIR, repo_dir), 'r') as f:
+                with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_dir), 'r') as f:
                     for line in f:
                         line = line.strip()
                         if line and not line.startswith('#'):
@@ -386,8 +386,8 @@ class FDroidInterface(ServiceInterface):
             return repositories
 
         try:
-            for repo_file in os.listdir(REPO_CONFIG_DIR):
-                repo_path = os.path.join(REPO_CONFIG_DIR, repo_file)
+            for repo_file in os.listdir(DEFAULT_REPO_CONFIG_DIR):
+                repo_path = os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_file)
                 if not os.path.isfile(repo_path):
                     continue
 
@@ -446,7 +446,7 @@ class FDroidInterface(ServiceInterface):
 
                 try:
                     repo_url = None
-                    with open(os.path.join(REPO_CONFIG_DIR, repo_dir), 'r') as f:
+                    with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_dir), 'r') as f:
                         for line in f:
                             line = line.strip()
                             if line and not line.startswith('#'):
