@@ -13,9 +13,16 @@ stopping = False
 def start(args, session, unlocked_cb=None):
     waydroid_data = session["waydroid_data"]
     apps_dir = session["xdg_data_home"] + "/applications/"
+    cfg = tools.config.load(args.config)
+    user_config_file = str(tools.config.session_defaults["xdg_config_home"] + "/waydroid/waydroid.cfg")
+    if os.path.exists(user_config_file):
+        cfg.update(tools.config.load(user_config_file))
 
     def makeDesktopFile(appInfo):
         if appInfo is None:
+            return -1
+
+        if cfg["properties"]["create_desktop_entry"] == "False" and appInfo["name"] not in cfg["properties"]["desktop_entry_white_list"]:
             return -1
 
         showApp = False
@@ -68,11 +75,6 @@ NoDisplay={str(hide).lower()}
 """)
 
     def userUnlocked(uid):
-        cfg = tools.config.load(args.config)
-        user_config_file = str(tools.config.session_defaults["xdg_config_home"] + "/waydroid/waydroid.cfg")
-        if os.path.exists(user_config_file):
-            cfg.update(tools.config.load(user_config_file))
-
         logging.info("Android with user {} is ready".format(uid))
 
         if cfg["waydroid"]["auto_adb"] == "True":
@@ -83,9 +85,8 @@ NoDisplay={str(hide).lower()}
             if not os.path.exists(apps_dir):
                 os.mkdir(apps_dir, 0o700)
             appsList = platformService.getAppsInfo()
-            if cfg["properties"]["create_desktop_entry"] == "True":
-                for app in appsList:
-                    makeDesktopFile(app)
+            for app in appsList:
+                makeDesktopFile(app)
             multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
             makeWaydroidDesktopFile(multiwin == "true")
         if unlocked_cb:
@@ -98,8 +99,7 @@ NoDisplay={str(hide).lower()}
             desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
             if mode == 0:
                 # Package added
-                if cfg["properties"]["create_desktop_entry"] == "True":
-                    makeDesktopFile(appInfo)
+                makeDesktopFile(appInfo)
             elif mode == 1:
                 if os.path.isfile(desktop_file_path):
                     os.remove(desktop_file_path)

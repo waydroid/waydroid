@@ -28,6 +28,7 @@ def load(config_file):
 
     if "properties" not in cfg:
         cfg["properties"] = {}
+
     for key in tools.config.property_defaults:
         if key in tools.config.property_keys and key not in cfg["properties"]:
             cfg["properties"][key] = str(tools.config.property_defaults[key])

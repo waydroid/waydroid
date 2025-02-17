@@ -27,10 +27,12 @@ config_keys = ["arch",
 
 property_keys = [
         "create_desktop_entry",
+        "desktop_entry_white_list"
         ]
 
 property_defaults = {
         "create_desktop_entry": "True",
+        "desktop_entry_white_list": []
         }
 
 # Config file/commandline default values
