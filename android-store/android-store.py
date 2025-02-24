@@ -17,6 +17,7 @@ from dbus_fast.service import ServiceInterface, method, signal
 from dbus_fast import BusType, Variant
 
 DEFAULT_REPO_CONFIG_DIR = "/usr/lib/android-store/repos"
+CUSTOM_REPO_CONFIG_DIR = "/etc/android-store/repos"
 CACHE_DIR = os.path.expanduser("~/.cache/android-store/repo")
 DOWNLOAD_CACHE_DIR = os.path.expanduser("~/.cache/android-store/downloads")
 
@@ -86,9 +87,9 @@ class FDroidInterface(ServiceInterface):
             await self.session.close()
             self.session = None
 
-    def read_repo_list(self, repo_file):
+    def read_repo_list(self, repo_file, repo_dir):
         try:
-            with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_file), 'r') as f:
+            with open(os.path.join(repo_dir, repo_file), 'r') as f:
                 return [line.strip() for line in f if line.strip() and not line.startswith('#')]
         except FileNotFoundError:
             return []
@@ -205,6 +206,31 @@ class FDroidInterface(ServiceInterface):
             store_print(f"Error removing app: {e}", self.verbose)
             return False
 
+    def get_repo_url(self, repo_file):
+        """Get the URL for a repository, prioritizing custom directory over default"""
+        custom_path = os.path.join(CUSTOM_REPO_CONFIG_DIR, repo_file)
+        if os.path.exists(custom_path) and os.path.isfile(custom_path):
+            try:
+                with open(custom_path, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#'):
+                            return line
+            except Exception as e:
+                store_print(f"Error reading {custom_path}: {e}", self.verbose)
+
+        default_path = os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_file)
+        if os.path.exists(default_path) and os.path.isfile(default_path):
+            try:
+                with open(default_path, 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith('#'):
+                            return line
+            except Exception as e:
+                store_print(f"Error reading {default_path}: {e}", self.verbose)
+        return None
+
     async def get_apps_info(self):
         try:
             bus = await MessageBus(bus_type=BusType.SESSION).connect()
@@ -302,24 +328,40 @@ class FDroidInterface(ServiceInterface):
     async def update_cache(self):
         success = True
         processed_repos = set()
-
         os.makedirs(CACHE_DIR, exist_ok=True)
 
-        for config_file in os.listdir(DEFAULT_REPO_CONFIG_DIR):
-            if not os.path.isfile(os.path.join(DEFAULT_REPO_CONFIG_DIR, config_file)):
-                continue
+        all_repo_files = set()
 
-            # skip if we've already successfully processed this repo (don't redownload from a mirror)
+        if os.path.exists(CUSTOM_REPO_CONFIG_DIR) and os.path.isdir(CUSTOM_REPO_CONFIG_DIR):
+            for config_file in os.listdir(CUSTOM_REPO_CONFIG_DIR):
+                if os.path.isfile(os.path.join(CUSTOM_REPO_CONFIG_DIR, config_file)):
+                    all_repo_files.add(config_file)
+                    store_print(f"Found repository in custom dir: {config_file}", self.verbose)
+
+        if os.path.exists(DEFAULT_REPO_CONFIG_DIR) and os.path.isdir(DEFAULT_REPO_CONFIG_DIR):
+            for config_file in os.listdir(DEFAULT_REPO_CONFIG_DIR):
+                if os.path.isfile(os.path.join(DEFAULT_REPO_CONFIG_DIR, config_file)) and config_file not in all_repo_files:
+                    all_repo_files.add(config_file)
+                    store_print(f"Found repository in default dir: {config_file}", self.verbose)
+
+        # Process all repositories, prioritizing custom directory
+        for config_file in all_repo_files:
+            # Check custom dir first, then fall back to default
+            if os.path.exists(os.path.join(CUSTOM_REPO_CONFIG_DIR, config_file)):
+                repo_dir = CUSTOM_REPO_CONFIG_DIR
+            else:
+                repo_dir = DEFAULT_REPO_CONFIG_DIR
+
+            # Skip if we've already processed this repo
             if config_file in processed_repos:
                 continue
 
-            repos = self.read_repo_list(config_file)
+            repos = self.read_repo_list(config_file, repo_dir)
             repo_success = False
 
             for repo_url in repos:
                 repo_name = config_file
-                store_print(f"Downloading {repo_name} index from {repo_url}", self.verbose)
-
+                store_print(f"Downloading {repo_name} index from {repo_url} (from {repo_dir})", self.verbose)
                 if await self.download_index(repo_url, repo_name):
                     store_print(f"Successfully downloaded {repo_name}", self.verbose)
                     repo_success = True
@@ -349,7 +391,6 @@ class FDroidInterface(ServiceInterface):
     async def Install(self, package_id: 's') -> 'b':
         async def _install_task():
             store_print(f"Installing package {package_id}", self.verbose)
-
             ping = await self.ping_session_manager()
             if not ping:
                 store_print("Container session manager is not started", self.verbose)
@@ -361,13 +402,28 @@ class FDroidInterface(ServiceInterface):
 
             try:
                 package_info = None
-                repo_url = None
                 for repo_dir in os.listdir(CACHE_DIR):
                     index_path = os.path.join(CACHE_DIR, repo_dir, 'index-v2.json')
                     if not os.path.exists(index_path):
                         continue
 
-                    with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_dir), 'r') as f:
+                    repo_url = self.get_repo_url(repo_dir)
+                    if not repo_url:
+                        continue
+
+                    if not os.path.exists(index_path):
+                        continue
+
+                    config_dir = repo_locations.get(repo_dir, DEFAULT_REPO_CONFIG_DIR)
+
+                    if not os.path.exists(os.path.join(config_dir, repo_dir)):
+                        alt_config_dir = CUSTOM_REPO_CONFIG_DIR if config_dir == DEFAULT_REPO_CONFIG_DIR else DEFAULT_REPO_CONFIG_DIR
+                        if os.path.exists(os.path.join(alt_config_dir, repo_dir)):
+                            config_dir = alt_config_dir
+                        else:
+                            continue
+
+                    with open(os.path.join(config_dir, repo_dir), 'r') as f:
                         for line in f:
                             line = line.strip()
                             if line and not line.startswith('#'):
@@ -433,20 +489,34 @@ class FDroidInterface(ServiceInterface):
                 store_print(f"Container session manager is not started", self.verbose)
                 return repositories
 
-            try:
+            repo_files = {}  # filename -> (repo_dir, url)
+
+            if os.path.exists(CUSTOM_REPO_CONFIG_DIR) and os.path.isdir(CUSTOM_REPO_CONFIG_DIR):
+                for repo_file in os.listdir(CUSTOM_REPO_CONFIG_DIR):
+                    repo_path = os.path.join(CUSTOM_REPO_CONFIG_DIR, repo_file)
+                    if os.path.isfile(repo_path):
+                        with open(repo_path, 'r') as f:
+                            lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+                            if lines:
+                                repo_files[repo_file] = (CUSTOM_REPO_CONFIG_DIR, lines[0])
+
+            if os.path.exists(DEFAULT_REPO_CONFIG_DIR) and os.path.isdir(DEFAULT_REPO_CONFIG_DIR):
                 for repo_file in os.listdir(DEFAULT_REPO_CONFIG_DIR):
-                    repo_path = os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_file)
-                    if not os.path.isfile(repo_path):
+                    if repo_file in repo_files:
                         continue
 
-                    with open(repo_path, 'r') as f:
-                        lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
-                        if lines:
-                            repositories.append([repo_file, lines[0]])
-                return repositories
-            except Exception as e:
-                store_print(f"Error reading repositories: {e}", self.verbose)
-                return []
+                    repo_path = os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_file)
+                    if os.path.isfile(repo_path):
+                        with open(repo_path, 'r') as f:
+                            lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+                            if lines:
+                                repo_files[repo_file] = (DEFAULT_REPO_CONFIG_DIR, lines[0])
+
+            for repo_file, (repo_dir, repo_url) in repo_files.items():
+                source = "custom" if repo_dir == CUSTOM_REPO_CONFIG_DIR else "default"
+                repositories.append([f"{repo_file} ({source})", repo_url])
+            return repositories
+
         return await self._queue_task(_get_repositories_task)
 
     @method()
@@ -479,7 +549,6 @@ class FDroidInterface(ServiceInterface):
     async def get_upgradable_packages(self):
         upgradable = []
         installed_apps = await self.get_apps_info()
-
         if not os.path.exists(CACHE_DIR):
             store_print("Cache directory not found. Updating cache first", self.verbose)
             await self.update_cache()
@@ -487,21 +556,13 @@ class FDroidInterface(ServiceInterface):
         for app in installed_apps:
             package_name = app['packageName'].value
             current_version = app['versionName'].value
-
             for repo_dir in os.listdir(CACHE_DIR):
                 index_path = os.path.join(CACHE_DIR, repo_dir, 'index-v2.json')
                 if not os.path.exists(index_path):
                     continue
 
                 try:
-                    repo_url = None
-                    with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_dir), 'r') as f:
-                        for line in f:
-                            line = line.strip()
-                            if line and not line.startswith('#'):
-                                repo_url = line
-                                break
-
+                    repo_url = self.get_repo_url(repo_dir)
                     if not repo_url:
                         continue
 
