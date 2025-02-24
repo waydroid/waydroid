@@ -27,6 +27,56 @@ class FDroidInterface(ServiceInterface):
         self.verbose = verbose
         self.session = None
 
+        # Task queue implementation
+        self._task_queue = asyncio.Queue()
+        self._task_processor = None
+        self._running = False
+        # Start the task processor
+        self._start_task_processor()
+
+    def _start_task_processor(self):
+        """Start the async task processor if it's not already running"""
+        if not self._running:
+            self._running = True
+            self._task_processor = asyncio.create_task(self._process_task_queue())
+            store_print("Task processor started", self.verbose)
+
+    async def _process_task_queue(self):
+        """Process tasks in queue one at a time"""
+        while self._running:
+            try:
+                # Get next task from queue
+                task, future = await self._task_queue.get()
+                store_print(f"Processing task: {task.__name__}", self.verbose)
+
+                try:
+                    # Execute the task
+                    result = await task()
+
+                    # Set the result for the waiting caller
+                    future.set_result(result)
+                except Exception as e:
+                    future.set_exception(e)
+                    store_print(f"Task error: {e}", self.verbose)
+
+                # Mark task as done
+                self._task_queue.task_done()
+                store_print(f"Task completed: {task.__name__}", self.verbose)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                store_print(f"Task processor error: {e}", self.verbose)
+
+    async def _queue_task(self, task_func):
+        """Queue a task and wait for its result"""
+        future = asyncio.Future()
+        await self._task_queue.put((task_func, future))
+
+        store_print(f"Task queued: {task_func.__name__}", self.verbose)
+
+        # Wait for the task to complete and return its result
+        return await future
+
     async def ensure_session(self):
         if self.session is None:
             self.session = aiohttp.ClientSession()
@@ -183,72 +233,71 @@ class FDroidInterface(ServiceInterface):
 
     @method()
     async def Search(self, query: 's') -> 's':
-        store_print(f"Searching for {query}", self.verbose)
-        results = []
+        async def _search_task():
+            store_print(f"Searching for {query}", self.verbose)
+            results = []
 
-        ping = await self.ping_session_manager()
-        if not ping:
-            store_print("Container session manager is not started", self.verbose)
-            return json.dumps(results)
+            ping = await self.ping_session_manager()
+            if not ping:
+                store_print("Container session manager is not started", self.verbose)
+                return json.dumps(results)
 
-        if not os.path.exists(CACHE_DIR):
-            store_print("Cache directory not found. Updating cache first", self.verbose)
-            await self.update_cache()
+            if not os.path.exists(CACHE_DIR):
+                store_print("Cache directory not found. Updating cache first", self.verbose)
+                await self.update_cache()
 
-        for repo_dir in os.listdir(CACHE_DIR):
-            index_path = os.path.join(CACHE_DIR, repo_dir, 'index-v2.json')
-            if not os.path.exists(index_path):
-                continue
-
-            try:
-                repo_url = None
-                with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_dir), 'r') as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith('#'):
-                            repo_url = line
-                            break
-
-                if not repo_url:
+            for repo_dir in os.listdir(CACHE_DIR):
+                index_path = os.path.join(CACHE_DIR, repo_dir, 'index-v2.json')
+                if not os.path.exists(index_path):
                     continue
 
-                with open(index_path, 'r') as f:
-                    index_data = json.load(f)
+                try:
+                    repo_url = None
+                    with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_dir), 'r') as f:
+                        for line in f:
+                            line = line.strip()
+                            if line and not line.startswith('#'):
+                                repo_url = line
+                                break
 
-                for package_id, package_data in index_data['packages'].items():
-                    name = self.get_localized_text(package_data['metadata'].get('name', ''))
-                    if query.lower() in name.lower():
-                        latest_version = self.get_latest_version(package_data['versions'])
-                        if latest_version:
-                            package_info = self.get_package_info(package_id, package_data['metadata'], latest_version, repo_url)
-                            metadata = package_data['metadata']
+                    if not repo_url:
+                        continue
 
-                            app_info = {
-                                'repository': repo_dir,
-                                'id': package_id,
-                                'name': name,
-                                'summary': self.get_localized_text(metadata.get('summary', 'N/A')),
-                                'description': self.get_localized_text(metadata.get('description', 'N/A')),
-                                'license': metadata.get('license', 'N/A'),
-                                'categories': metadata.get('categories', []),
-                                'author': metadata.get('author', {}).get('name', 'N/A'),
-                                'web_url': metadata.get('webSite', 'N/A'),
-                                'source_url': metadata.get('sourceCode', 'N/A'),
-                                'tracker_url': metadata.get('issueTracker', 'N/A'),
-                                'changelog_url': metadata.get('changelog', 'N/A'),
-                                'donation_url': metadata.get('donate', 'N/A'),
-                                'added_date': metadata.get('added', 'N/A'),
-                                'last_updated': metadata.get('lastUpdated', 'N/A'),
-                                'package': package_info
-                            }
-                            results.append(app_info)
+                    with open(index_path, 'r') as f:
+                        index_data = json.load(f)
 
-                            store_print(f"Search: found app {name}", self.verbose)
-            except Exception as e:
-                store_print(f"Error parsing {index_path}: {e}", self.verbose)
-                continue
-
-        return json.dumps(results)
+                    for package_id, package_data in index_data['packages'].items():
+                        name = self.get_localized_text(package_data['metadata'].get('name', ''))
+                        if query.lower() in name.lower():
+                            latest_version = self.get_latest_version(package_data['versions'])
+                            if latest_version:
+                                package_info = self.get_package_info(package_id, package_data['metadata'], latest_version, repo_url)
+                                metadata = package_data['metadata']
+                                app_info = {
+                                    'repository': repo_dir,
+                                    'id': package_id,
+                                    'name': name,
+                                    'summary': self.get_localized_text(metadata.get('summary', 'N/A')),
+                                    'description': self.get_localized_text(metadata.get('description', 'N/A')),
+                                    'license': metadata.get('license', 'N/A'),
+                                    'categories': metadata.get('categories', []),
+                                    'author': metadata.get('author', {}).get('name', 'N/A'),
+                                    'web_url': metadata.get('webSite', 'N/A'),
+                                    'source_url': metadata.get('sourceCode', 'N/A'),
+                                    'tracker_url': metadata.get('issueTracker', 'N/A'),
+                                    'changelog_url': metadata.get('changelog', 'N/A'),
+                                    'donation_url': metadata.get('donate', 'N/A'),
+                                    'added_date': metadata.get('added', 'N/A'),
+                                    'last_updated': metadata.get('lastUpdated', 'N/A'),
+                                    'package': package_info
+                                }
+                                results.append(app_info)
+                                store_print(f"Search: found app {name}", self.verbose)
+                except Exception as e:
+                    store_print(f"Error parsing {index_path}: {e}", self.verbose)
+                    continue
+            return json.dumps(results)
+        return await self._queue_task(_search_task)
 
     async def update_cache(self):
         success = True
@@ -288,88 +337,86 @@ class FDroidInterface(ServiceInterface):
 
     @method()
     async def UpdateCache(self) -> 'b':
-        ping = await self.ping_session_manager()
-        if not ping:
-            store_print("Container session manager is not started", self.verbose)
-            return False
-        return await self.update_cache()
+        async def _update_cache_task():
+            ping = await self.ping_session_manager()
+            if not ping:
+                store_print("Container session manager is not started", self.verbose)
+                return False
+            return await self.update_cache()
+        return await self._queue_task(_update_cache_task)
 
     @method()
     async def Install(self, package_id: 's') -> 'b':
-        store_print(f"Installing package {package_id}", self.verbose)
+        async def _install_task():
+            store_print(f"Installing package {package_id}", self.verbose)
 
-        ping = await self.ping_session_manager()
-        if not ping:
-            store_print("Container session manager is not started", self.verbose)
-            return False
-
-        if not os.path.exists(CACHE_DIR):
-            store_print("Cache directory not found. Updating cache first", self.verbose)
-            await self.update_cache()
-
-        try:
-            package_info = None
-            repo_url = None
-
-            for repo_dir in os.listdir(CACHE_DIR):
-                index_path = os.path.join(CACHE_DIR, repo_dir, 'index-v2.json')
-                if not os.path.exists(index_path):
-                    continue
-
-                with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_dir), 'r') as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith('#'):
-                            repo_url = line
-                            break
-
-                if not repo_url:
-                    continue
-
-                with open(index_path, 'r') as f:
-                    index_data = json.load(f)
-
-                if package_id in index_data['packages']:
-                    package_data = index_data['packages'][package_id]
-                    latest_version = self.get_latest_version(package_data['versions'])
-                    if latest_version:
-                        package_info = self.get_package_info(package_id, package_data['metadata'], latest_version, repo_url)
-                        break
-
-            if not package_info:
-                store_print(f"Package {package_id} not found", self.verbose)
+            ping = await self.ping_session_manager()
+            if not ping:
+                store_print("Container session manager is not started", self.verbose)
                 return False
 
-            os.makedirs(DOWNLOAD_CACHE_DIR, exist_ok=True)
+            if not os.path.exists(CACHE_DIR):
+                store_print("Cache directory not found. Updating cache first", self.verbose)
+                await self.update_cache()
 
-            await self.ensure_session()
-            filepath = os.path.join(DOWNLOAD_CACHE_DIR, package_info['apk_name'])
+            try:
+                package_info = None
+                repo_url = None
+                for repo_dir in os.listdir(CACHE_DIR):
+                    index_path = os.path.join(CACHE_DIR, repo_dir, 'index-v2.json')
+                    if not os.path.exists(index_path):
+                        continue
 
-            async with self.session.get(package_info['download_url']) as response:
-                if response.status == 200:
-                    with open(filepath, 'wb') as f:
-                        async for chunk in response.content.iter_chunked(8192):
-                            f.write(chunk)
+                    with open(os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_dir), 'r') as f:
+                        for line in f:
+                            line = line.strip()
+                            if line and not line.startswith('#'):
+                                repo_url = line
+                                break
 
-                    store_print(f"APK downloaded to: {filepath}", self.verbose)
+                    if not repo_url:
+                        continue
 
-                    success = await self.install_app(filepath)
+                    with open(index_path, 'r') as f:
+                        index_data = json.load(f)
 
-                    os.remove(filepath)
+                    if package_id in index_data['packages']:
+                        package_data = index_data['packages'][package_id]
+                        latest_version = self.get_latest_version(package_data['versions'])
+                        if latest_version:
+                            package_info = self.get_package_info(package_id, package_data['metadata'], latest_version, repo_url)
+                            break
 
-                    if success:
-                        self.AppInstalled(package_id)
-                        store_print(f"Successfully installed {package_id}", self.verbose)
-                        return True
-                    else:
-                        store_print(f"Failed to install {package_id}", self.verbose)
-                        return False
-                else:
-                    store_print(f"Download failed with status: {response.status}", self.verbose)
+                if not package_info:
+                    store_print(f"Package {package_id} not found", self.verbose)
                     return False
-        except Exception as e:
-            store_print(f"Installation failed: {e}", self.verbose)
-            return False
+
+                os.makedirs(DOWNLOAD_CACHE_DIR, exist_ok=True)
+                await self.ensure_session()
+                filepath = os.path.join(DOWNLOAD_CACHE_DIR, package_info['apk_name'])
+                async with self.session.get(package_info['download_url']) as response:
+                    if response.status == 200:
+                        with open(filepath, 'wb') as f:
+                            async for chunk in response.content.iter_chunked(8192):
+                                f.write(chunk)
+
+                        store_print(f"APK downloaded to: {filepath}", self.verbose)
+                        success = await self.install_app(filepath)
+                        os.remove(filepath)
+                        if success:
+                            self.AppInstalled(package_id)
+                            store_print(f"Successfully installed {package_id}", self.verbose)
+                            return True
+                        else:
+                            store_print(f"Failed to install {package_id}", self.verbose)
+                            return False
+                    else:
+                        store_print(f"Download failed with status: {response.status}", self.verbose)
+                        return False
+            except Exception as e:
+                store_print(f"Installation failed: {e}", self.verbose)
+                return False
+        return await self._queue_task(_install_task)
 
     @signal()
     def AppInstalled(self, package_id: 's') -> 's':
@@ -377,55 +424,57 @@ class FDroidInterface(ServiceInterface):
 
     @method()
     async def GetRepositories(self) -> 'a(ss)':
-        store_print("Getting repositories", self.verbose)
-        repositories = []
+        async def _get_repositories_task():
+            store_print("Getting repositories", self.verbose)
+            repositories = []
 
-        ping = await self.ping_session_manager()
-        if not ping:
-            store_print(f"Container session manager is not started", self.verbose)
-            return repositories
+            ping = await self.ping_session_manager()
+            if not ping:
+                store_print(f"Container session manager is not started", self.verbose)
+                return repositories
 
-        try:
-            for repo_file in os.listdir(DEFAULT_REPO_CONFIG_DIR):
-                repo_path = os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_file)
-                if not os.path.isfile(repo_path):
-                    continue
+            try:
+                for repo_file in os.listdir(DEFAULT_REPO_CONFIG_DIR):
+                    repo_path = os.path.join(DEFAULT_REPO_CONFIG_DIR, repo_file)
+                    if not os.path.isfile(repo_path):
+                        continue
 
-                with open(repo_path, 'r') as f:
-                    lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
-                    if lines:
-                        repositories.append([repo_file, lines[0]])
-            return repositories
-        except Exception as e:
-            store_print(f"Error reading repositories: {e}", self.verbose)
-            return []
+                    with open(repo_path, 'r') as f:
+                        lines = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+                        if lines:
+                            repositories.append([repo_file, lines[0]])
+                return repositories
+            except Exception as e:
+                store_print(f"Error reading repositories: {e}", self.verbose)
+                return []
+        return await self._queue_task(_get_repositories_task)
 
     @method()
     async def GetUpgradable(self) -> 'aa{sv}':
-        store_print("Getting upgradable", self.verbose)
-        upgradable = []
+        async def _get_upgradable_task():
+            store_print("Getting upgradable", self.verbose)
+            upgradable = []
 
-        ping = await self.ping_session_manager()
-        if not ping:
-            store_print("Container session manager is not started", self.verbose)
+            ping = await self.ping_session_manager()
+            if not ping:
+                store_print("Container session manager is not started", self.verbose)
+                return upgradable
+
+            raw_upgradable = await self.get_upgradable_packages()
+            for pkg in raw_upgradable:
+                upgradable_info = {
+                    'id': Variant('s', pkg['id']),
+                    'name': Variant('s', pkg.get('name', pkg['id'])),
+                    'packageName': Variant('s', pkg['id']),
+                    'currentVersion': Variant('s', pkg['current_version']),
+                    'availableVersion': Variant('s', pkg['available_version']),
+                    'repository': Variant('s', pkg['repo_url']),
+                    'package': Variant('s', json.dumps(pkg['packageInfo']))
+                }
+                upgradable.append(upgradable_info)
+                store_print(f"{upgradable_info['packageName'].value} {upgradable_info['name'].value} {upgradable_info['currentVersion'].value} {upgradable_info['availableVersion'].value}", self.verbose)
             return upgradable
-
-        raw_upgradable = await self.get_upgradable_packages()
-
-        for pkg in raw_upgradable:
-            upgradable_info = {
-                'id': Variant('s', pkg['id']),
-                'name': Variant('s', pkg.get('name', pkg['id'])),
-                'packageName': Variant('s', pkg['id']),
-                'currentVersion': Variant('s', pkg['current_version']),
-                'availableVersion': Variant('s', pkg['available_version']),
-                'repository': Variant('s', pkg['repo_url']),
-                'package': Variant('s', json.dumps(pkg['packageInfo']))
-            }
-            upgradable.append(upgradable_info)
-
-            store_print(f"{upgradable_info['packageName'].value} {upgradable_info['name'].value} {upgradable_info['currentVersion'].value} {upgradable_info['availableVersion'].value}", self.verbose)
-        return upgradable
+        return await self._queue_task(_get_upgradable_task)
 
     async def get_upgradable_packages(self):
         upgradable = []
@@ -488,85 +537,96 @@ class FDroidInterface(ServiceInterface):
 
     @method()
     async def UpgradePackages(self, packages: 'as') -> 'b':
-        store_print(f"Upgrading packages {packages}", self.verbose)
-        upgradable = await self.get_upgradable_packages()
+        async def _upgrade_packages_task():
+            store_print(f"Upgrading packages {packages}", self.verbose)
+            upgradable = await self.get_upgradable_packages()
 
-        ping = await self.ping_session_manager()
-        if not ping:
-            store_print("Container session manager is not started", self.verbose)
-            return False
+            ping = await self.ping_session_manager()
+            if not ping:
+                store_print("Container session manager is not started", self.verbose)
+                return False
 
-        if not packages:
-            packages = [pkg['id'] for pkg in upgradable]
-            store_print(f"Upgrading all available packages: {packages}", self.verbose)
+            if not packages:
+                packages = [pkg['id'] for pkg in upgradable]
+                store_print(f"Upgrading all available packages: {packages}", self.verbose)
 
-        os.makedirs(DOWNLOAD_CACHE_DIR, exist_ok=True)
-        await self.ensure_session()
+            os.makedirs(DOWNLOAD_CACHE_DIR, exist_ok=True)
+            await self.ensure_session()
+            for package in packages:
+                for pkg in upgradable:
+                    if pkg['id'] == package:
+                        store_print(f"Installing upgrade for {package}", self.verbose)
+                        try:
+                            package_info = pkg['packageInfo']
+                            download_url = package_info['download_url']
+                            apk_name = package_info['apk_name']
+                            filepath = os.path.join(DOWNLOAD_CACHE_DIR, apk_name)
+                            async with self.session.get(download_url) as response:
+                                if response.status == 200:
+                                    with open(filepath, 'wb') as f:
+                                        async for chunk in response.content.iter_chunked(8192):
+                                            f.write(chunk)
 
-        for package in packages:
-            for pkg in upgradable:
-                if pkg['id'] == package:
-                    store_print(f"Installing upgrade for {package}", self.verbose)
-                    try:
-                        package_info = pkg['packageInfo']
-                        download_url = package_info['download_url']
-                        apk_name = package_info['apk_name']
-
-                        filepath = os.path.join(DOWNLOAD_CACHE_DIR, apk_name)
-                        async with self.session.get(download_url) as response:
-                            if response.status == 200:
-                                with open(filepath, 'wb') as f:
-                                    async for chunk in response.content.iter_chunked(8192):
-                                        f.write(chunk)
-
-                                store_print(f"APK downloaded to: {filepath}", self.verbose)
-
-                                success = await self.install_app(filepath)
-
-                                os.remove(filepath)
-
-                                if not success:
-                                    store_print(f"Failed to upgrade {package}", self.verbose)
+                                    store_print(f"APK downloaded to: {filepath}", self.verbose)
+                                    success = await self.install_app(filepath)
+                                    os.remove(filepath)
+                                    if not success:
+                                        store_print(f"Failed to upgrade {package}", self.verbose)
+                                        return False
+                                else:
+                                    store_print(f"Download failed with status: {response.status}", self.verbose)
                                     return False
-                            else:
-                                store_print(f"Download failed with status: {response.status}", self.verbose)
-                                return False
-                    except Exception as e:
-                        store_print(f"Error upgrading {package}: {e}", self.verbose)
-                        return False
-                    break
-        await self.cleanup_session()
-        return True
+                        except Exception as e:
+                            store_print(f"Error upgrading {package}: {e}", self.verbose)
+                            return False
+                        break
+            await self.cleanup_session()
+            return True
+        return await self._queue_task(_upgrade_packages_task)
 
     @method()
     async def RemoveRepository(self, repo_id: 's') -> 'b':
-        store_print(f"Removing repository {repo_id}", self.verbose)
-
-        ping = await self.ping_session_manager()
-        if not ping:
-            store_print("Container session manager is not started", self.verbose)
-            return False
-        return True
+        async def _remove_repository_task():
+            store_print(f"Removing repository {repo_id}", self.verbose)
+            ping = await self.ping_session_manager()
+            if not ping:
+                store_print("Container session manager is not started", self.verbose)
+                return False
+            return True
+        return await self._queue_task(_remove_repository_task)
 
     @method()
     async def GetInstalledApps(self) -> 'aa{sv}':
-        store_print("Getting installed apps", self.verbose)
-
-        ping = await self.ping_session_manager()
-        if not ping:
-            store_print("Container session manager is not started", self.verbose)
-            return []
-        return await self.get_apps_info()
+        async def _get_installed_apps_task():
+            store_print("Getting installed apps", self.verbose)
+            ping = await self.ping_session_manager()
+            if not ping:
+                store_print("Container session manager is not started", self.verbose)
+                return []
+            return await self.get_apps_info()
+        return await self._queue_task(_get_installed_apps_task)
 
     @method()
     async def UninstallApp(self, package_name: 's') -> 'b':
-        store_print(f"Uninstalling app {package_name}", self.verbose)
+        async def _uninstall_app_task():
+            store_print(f"Uninstalling app {package_name}", self.verbose)
+            ping = await self.ping_session_manager()
+            if not ping:
+                store_print("Container session manager is not started", self.verbose)
+                return False
+            return await self.remove_app(package_name)
+        return await self._queue_task(_uninstall_app_task)
 
-        ping = await self.ping_session_manager()
-        if not ping:
-            store_print("Container session manager is not started", self.verbose)
-            return False
-        return await self.remove_app(package_name)
+    async def cleanup(self):
+        """Clean up resources when service is stopping"""
+        self._running = False
+        if self._task_processor:
+            self._task_processor.cancel()
+            try:
+                await self._task_processor
+            except asyncio.CancelledError:
+                pass
+        await self.cleanup_session()
 
 class AndroidStoreService:
     def __init__(self, verbose):
@@ -587,6 +647,9 @@ class AndroidStoreService:
             await self.bus.wait_for_disconnect()
         except:
             print("Session bus disconnected, exiting")
+        finally:
+            if self.fdroid_interface:
+                await self.fdroid_interface.cleanup()
 
 def store_print(message, verbose):
     if not verbose:
