@@ -583,7 +583,10 @@ class AndroidStoreService:
 
         await self.bus.request_name('io.FuriOS.AndroidStore')
 
-        await self.bus.wait_for_disconnect()
+        try:
+            await self.bus.wait_for_disconnect()
+        except:
+            print("Session bus disconnected, exiting")
 
 def store_print(message, verbose):
     if not verbose:
