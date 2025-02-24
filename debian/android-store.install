@@ -2,5 +2,5 @@ usr/lib/android-store/android-store.py
 usr/lib/android-store/repos/fdroid
 usr/lib/android-store/repos/microg
 usr/lib/android-store/repos/newpipe
-usr/lib/systemd/user/android-store.service
+usr/share/dbus-1/services/io.FuriOS.AndroidStore.service
 usr/libexec/android-store
