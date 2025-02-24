@@ -52,8 +52,10 @@ install:
 	cp dbus/id.waydro.StateChange.conf $(INSTALL_DBUS_DIR)/system.d/
 	if [ $(USE_DBUS_ACTIVATION) = 1 ]; then \
 		install -d $(INSTALL_DBUS_DIR)/system-services; \
+		install -d $(INSTALL_DBUS_DIR)/services/; \
 		cp dbus/id.waydro.Container.service $(INSTALL_DBUS_DIR)/system-services/; \
 		cp dbus/id.waydro.Notification.service $(INSTALL_DBUS_DIR)/system-services/; \
+		cp dbus/io.FuriOS.AndroidStore.service $(INSTALL_DBUS_DIR)/services/; \
 	fi
 	if [ $(USE_SYSTEMD) = 1 ]; then \
 		install -d $(INSTALL_SYSD_DIR) $(INSTALL_SYSD_USER_DIR); \
@@ -62,7 +64,6 @@ install:
 		cp systemd/waydroid-notification-client.service $(INSTALL_SYSD_USER_DIR); \
 		cp systemd/waydroid-statechange-server.service $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-session.service $(INSTALL_SYSD_USER_DIR); \
-		cp systemd/android-store.service $(INSTALL_SYSD_USER_DIR); \
 	fi
 	if [ $(USE_NFTABLES) = 1 ]; then \
 		sed '/LXC_USE_NFT=/ s/false/true/' -i $(INSTALL_WAYDROID_DIR)/data/scripts/waydroid-net.sh; \
