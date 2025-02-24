@@ -20,13 +20,16 @@ DEFAULT_REPO_CONFIG_DIR = "/usr/lib/android-store/repos"
 CUSTOM_REPO_CONFIG_DIR = "/etc/android-store/repos"
 CACHE_DIR = os.path.expanduser("~/.cache/android-store/repo")
 DOWNLOAD_CACHE_DIR = os.path.expanduser("~/.cache/android-store/downloads")
+IDLE_TIMEOUT = 120
 
 class FDroidInterface(ServiceInterface):
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, idle_callback=None):
         store_print("Initializing F-Droid store daemon", verbose)
         super().__init__('io.FuriOS.AndroidStore.fdroid')
         self.verbose = verbose
         self.session = None
+        self.idle_callback = idle_callback
+        self.idle_timer = None
 
         # Task queue implementation
         self._task_queue = asyncio.Queue()
@@ -35,12 +38,33 @@ class FDroidInterface(ServiceInterface):
         # Start the task processor
         self._start_task_processor()
 
+        # Start the idle timer
+        self._reset_idle_timer()
+
     def _start_task_processor(self):
         """Start the async task processor if it's not already running"""
         if not self._running:
             self._running = True
             self._task_processor = asyncio.create_task(self._process_task_queue())
             store_print("Task processor started", self.verbose)
+
+    def _reset_idle_timer(self):
+        """Reset the idle timer when activity occurs"""
+        if self.idle_timer:
+            self.idle_timer.cancel()
+
+        if self.idle_callback:
+            self.idle_timer = asyncio.create_task(self._idle_countdown())
+
+    async def _idle_countdown(self):
+        """Count down to service shutdown due to inactivity"""
+        try:
+            await asyncio.sleep(IDLE_TIMEOUT)
+            store_print(f"Service idle for {IDLE_TIMEOUT} seconds, shutting down", self.verbose)
+            if self.idle_callback:
+                await self.idle_callback()
+        except asyncio.CancelledError:
+            pass
 
     async def _process_task_queue(self):
         """Process tasks in queue one at a time"""
@@ -49,6 +73,9 @@ class FDroidInterface(ServiceInterface):
                 # Get next task from queue
                 task, future = await self._task_queue.get()
                 store_print(f"Processing task: {task.__name__}", self.verbose)
+
+                # Reset idle timer on activity
+                self._reset_idle_timer()
 
                 try:
                     # Execute the task
@@ -74,6 +101,9 @@ class FDroidInterface(ServiceInterface):
         await self._task_queue.put((task_func, future))
 
         store_print(f"Task queued: {task_func.__name__}", self.verbose)
+
+        # Reset idle timer on activity
+        self._reset_idle_timer()
 
         # Wait for the task to complete and return its result
         return await future
@@ -414,6 +444,7 @@ class FDroidInterface(ServiceInterface):
                     if not os.path.exists(index_path):
                         continue
 
+                    repo_locations = {}  # Define repo_locations since it's missing in the original code
                     config_dir = repo_locations.get(repo_dir, DEFAULT_REPO_CONFIG_DIR)
 
                     if not os.path.exists(os.path.join(config_dir, repo_dir)):
@@ -681,6 +712,8 @@ class FDroidInterface(ServiceInterface):
     async def cleanup(self):
         """Clean up resources when service is stopping"""
         self._running = False
+        if self.idle_timer:
+            self.idle_timer.cancel()
         if self._task_processor:
             self._task_processor.cancel()
             try:
@@ -695,19 +728,39 @@ class AndroidStoreService:
         self.verbose = verbose
         self.bus = None
         self.fdroid_interface = None
+        self.shutdown_event = asyncio.Event()
+
+    async def shutdown(self):
+        """Shutdown the service after idle timeout"""
+        store_print("Shutting down service due to inactivity", self.verbose)
+        self.shutdown_event.set()
 
     async def setup(self):
         self.bus = await MessageBus(bus_type=BusType.SESSION).connect()
 
-        self.fdroid_interface = FDroidInterface(verbose=self.verbose)
+        self.fdroid_interface = FDroidInterface(verbose=self.verbose, idle_callback=self.shutdown)
         self.bus.export('/fdroid', self.fdroid_interface)
 
         await self.bus.request_name('io.FuriOS.AndroidStore')
 
         try:
-            await self.bus.wait_for_disconnect()
-        except:
-            print("Session bus disconnected, exiting")
+            disconnect_task = asyncio.create_task(self.bus.wait_for_disconnect())
+            shutdown_task = asyncio.create_task(self.shutdown_event.wait())
+
+            done, pending = await asyncio.wait(
+                [disconnect_task, shutdown_task],
+                return_when=asyncio.FIRST_COMPLETED
+            )
+
+            for task in pending:
+                task.cancel()
+
+            if disconnect_task in done:
+                print("Session bus disconnected, exiting")
+            else:
+                print("Idle timeout reached, exiting")
+        except Exception as e:
+            store_print(f"Error in service main loop: {e}", self.verbose)
         finally:
             if self.fdroid_interface:
                 await self.fdroid_interface.cleanup()
