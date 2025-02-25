@@ -8,6 +8,7 @@ from pathlib import Path
 from time import time
 import asyncio
 import aiohttp
+import functools
 import json
 import sys
 import os
@@ -99,8 +100,6 @@ class FDroidInterface(ServiceInterface):
         """Queue a task and wait for its result"""
         future = asyncio.Future()
         await self._task_queue.put((task_func, future))
-
-        store_print(f"Task queued: {task_func.__name__}", self.verbose)
 
         # Reset idle timer on activity
         self._reset_idle_timer()
@@ -629,7 +628,7 @@ class FDroidInterface(ServiceInterface):
 
     @method()
     async def UpgradePackages(self, packages: 'as') -> 'b':
-        async def _upgrade_packages_task():
+        async def _upgrade_packages_task(packages: 'as'):
             store_print(f"Upgrading packages {packages}", self.verbose)
             upgradable = await self.get_upgradable_packages()
 
@@ -674,7 +673,7 @@ class FDroidInterface(ServiceInterface):
                         break
             await self.cleanup_session()
             return True
-        return await self._queue_task(_upgrade_packages_task)
+        return await self._queue_task(functools.partial(_upgrade_packages_task, packages))
 
     @method()
     async def RemoveRepository(self, repo_id: 's') -> 'b':
