@@ -230,12 +230,14 @@ def start(args, unlocked_cb=None, background=True):
     services.user_manager.start(args, session, unlocked_cb)
     services.clipboard_manager.start(args)
     services.gnss_manager.start(args)
+    services.notification_client.start(args)
     service(args, mainloop)
 
 def do_stop(args, looper):
     services.user_manager.stop(args)
     services.clipboard_manager.stop(args)
     services.gnss_manager.stop(args)
+    services.notification_client.stop(args)
     looper.quit()
 
 def stop(args):

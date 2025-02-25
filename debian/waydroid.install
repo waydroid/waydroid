@@ -3,7 +3,6 @@ lib/systemd/system/waydroid-container.service
 lib/systemd/system/waydroid-notification-server.service
 lib/systemd/system/waydroid-statechange-server.service
 usr/bin/waydroid
-usr/lib/systemd/user/waydroid-notification-client.service
 usr/lib/systemd/user/waydroid-session.service
 usr/lib/waydroid/data/configs/apparmor_profiles/adbd
 usr/lib/waydroid/data/configs/apparmor_profiles/android_app
@@ -19,7 +18,6 @@ usr/lib/waydroid/tools/actions/__init__.py
 usr/lib/waydroid/tools/actions/app_manager.py
 usr/lib/waydroid/tools/actions/container_manager.py
 usr/lib/waydroid/tools/actions/initializer.py
-usr/lib/waydroid/tools/actions/notification_client.py
 usr/lib/waydroid/tools/actions/notification_server.py
 usr/lib/waydroid/tools/actions/prop.py
 usr/lib/waydroid/tools/actions/session_manager.py
@@ -53,6 +51,7 @@ usr/lib/waydroid/tools/services/__init__.py
 usr/lib/waydroid/tools/services/clipboard_manager.py
 usr/lib/waydroid/tools/services/gnss_manager.py
 usr/lib/waydroid/tools/services/user_manager.py
+usr/lib/waydroid/tools/services/notification_client.py
 usr/lib/waydroid/waydroid.py
 usr/share/applications/Waydroid.desktop
 usr/share/applications/waydroid.app.install.desktop

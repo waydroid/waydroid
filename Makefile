@@ -61,7 +61,6 @@ install:
 		install -d $(INSTALL_SYSD_DIR) $(INSTALL_SYSD_USER_DIR); \
 		cp systemd/waydroid-container.service $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-notification-server.service $(INSTALL_SYSD_DIR); \
-		cp systemd/waydroid-notification-client.service $(INSTALL_SYSD_USER_DIR); \
 		cp systemd/waydroid-statechange-server.service $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-session.service $(INSTALL_SYSD_USER_DIR); \
 	fi

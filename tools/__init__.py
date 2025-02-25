@@ -128,14 +128,6 @@ def main():
             else:
                 logging.info(
                     "Run waydroid {} -h for usage information.".format(args.action))
-        elif args.action == "notification_client":
-            if args.subaction == "start":
-                actions.notification_client.start(args)
-            elif args.subaction == "stop":
-                actions.notification_client.stop(args)
-            else:
-                logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
         elif args.action == "app":
             if args.subaction == "install":
                 actions.app_manager.install(args)

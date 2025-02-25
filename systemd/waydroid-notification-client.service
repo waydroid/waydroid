@@ -1,7 +1,0 @@
-[Unit]
-Description=Waydroid Notification client
-After=sm.puri.Phosh.service
-
-[Service]
-Type=simple
-ExecStart=/usr/bin/waydroid notification_client start
