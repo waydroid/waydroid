@@ -6,3 +6,4 @@ from tools.services.user_manager import start, stop
 from tools.services.clipboard_manager import start, stop
 from tools.services.gnss_manager import start, stop
 from tools.services.notification_client import start, stop
+from tools.services.screen_manager import start, stop

@@ -52,6 +52,7 @@ usr/lib/waydroid/tools/services/clipboard_manager.py
 usr/lib/waydroid/tools/services/gnss_manager.py
 usr/lib/waydroid/tools/services/user_manager.py
 usr/lib/waydroid/tools/services/notification_client.py
+usr/lib/waydroid/tools/services/screen_manager.py
 usr/lib/waydroid/waydroid.py
 usr/share/applications/Waydroid.desktop
 usr/share/applications/waydroid.app.install.desktop
