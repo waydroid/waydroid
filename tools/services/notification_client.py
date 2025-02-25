@@ -152,9 +152,9 @@ class NotificationService:
 
     def on_new_message(self, msg_hash, _msg_id, package_name, ticker, title, text, is_foreground_service,
                        is_group_summary, show_light, _when):
-        #logging.info(f"Received new message notification: {msg_hash}, {_msg_id}, {package_name}, " +
-        #             f"{ticker}, {title}, {text}, {is_foreground_service}, {is_group_summary}, " +
-        #             f"{show_light}, {_when}")
+        logging.debug(f"Received new message notification: {msg_hash}, {_msg_id}, {package_name}, " +
+                     f"{ticker}, {title}, {text}, {is_foreground_service}, {is_group_summary}, " +
+                     f"{show_light}, {_when}")
         try:
             ok, app_name = self.get_app_name(package_name)
             if ok and not is_group_summary:
@@ -166,9 +166,9 @@ class NotificationService:
 
     def on_update_message(self, msg_hash, replaces_hash, _msg_id, package_name, ticker, title, text,
                           is_foreground_service, _is_group_summary, show_light, _when):
-        #logging.info(f"Received update message notification: {msg_hash}, {replaces_hash}, " +
-        #             f"{_msg_id}, {package_name}, {ticker}, {title}, {text}, " +
-        #             f"{is_foreground_service}, {_is_group_summary}, {show_light}, {_when}")
+        logging.debug(f"Received update message notification: {msg_hash}, {replaces_hash}, " +
+                     f"{_msg_id}, {package_name}, {ticker}, {title}, {text}, " +
+                     f"{is_foreground_service}, {_is_group_summary}, {show_light}, {_when}")
         try:
             ok, app_name = self.get_app_name(package_name)
             if ok and replaces_hash in self.open_notifications:
@@ -182,7 +182,7 @@ class NotificationService:
 
     # on android, a notification disappeared (and was not replaced by another)
     def on_delete_message(self, msg_hash):
-        #logging.info(f"Received delete message notification: {msg_hash}")
+        logging.debug(f"Received delete message notification: {msg_hash}")
         try:
             if msg_hash in self.open_notifications:
                 self.close_notification_send(self.open_notifications[msg_hash])
@@ -192,7 +192,7 @@ class NotificationService:
 
     def run(self):
         self.args.notificationLoop = GLib.MainLoop()
-        #logging.info("Notification client service running")
+        logging.debug("Notification client service running")
         self.args.notificationLoop.run()
 
 def service_thread(args):
@@ -215,7 +215,7 @@ def service_thread(args):
 
 def start(args):
     global stopping
-    #logging.info("Starting notification client service")
+    logging.debug("Starting notification client service")
 
     stopping = False
     args.notification_manager = threading.Thread(target=service_thread, args=(args,))
@@ -225,7 +225,7 @@ def start(args):
 def stop(args):
     global stopping
 
-    logging.info("Stopping notification client service")
+    logging.debug("Stopping notification client service")
     stopping = True
 
     try:

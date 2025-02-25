@@ -116,7 +116,7 @@ class ScreenService:
 
         if "IdleHint" in changed_properties:
             idle_hint = bool(changed_properties["IdleHint"])
-            logging.info(f"IdleHint changed: {idle_hint}")
+            logging.debug(f"IdleHint changed: {idle_hint}")
 
             current_time = time.time()
             if self.last_idle_state == idle_hint and current_time - self.last_processed_time < 0.5:

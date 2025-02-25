@@ -113,7 +113,7 @@ class LocationService:
 
     def start_tracking(self):
         if self.tracker_process and self.tracker_process.is_alive():
-            logging.info("Location tracking is already running.")
+            logging.debug("Location tracking is already running.")
             return
 
         # FakeShell: This is a bit awkward. tl;dr, I could not find a way to make geoclue remove the object properly after we are done when using gi
@@ -125,13 +125,13 @@ class LocationService:
         try:
             self.tracker_process = LocationTracker(self.args.work)
             self.tracker_process.start()
-            logging.info(f"Location tracking started (PID: {self.tracker_process.pid})")
+            logging.debug(f"Location tracking started (PID: {self.tracker_process.pid})")
         except Exception as e:
             logging.error(f"Failed to start tracking: {e}")
 
     def stop_tracking(self):
         if not self.tracker_process:
-            logging.info("Location tracking is not running.")
+            logging.debug("Location tracking is not running.")
             return
 
         try:
@@ -139,7 +139,7 @@ class LocationService:
             self.tracker_process.join(timeout=5)
             if self.tracker_process.is_alive():
                 self.tracker_process.kill()
-            logging.info("Location tracking stopped.")
+            logging.debug("Location tracking stopped.")
         except Exception as e:
             logging.error(f"Error stopping tracker: {e}")
 
