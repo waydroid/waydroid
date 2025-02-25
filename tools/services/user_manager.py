@@ -26,7 +26,7 @@ def start(args, session, unlocked_cb=None):
 
         showApp = False
         for cat in appInfo["categories"]:
-            if cat.strip() == "android.intent.category.LAUNCHER":
+            if cat.strip() == "android.intent.category.LAUNCHER" or cat.strip() == "android.intent.category.INFO":
                 showApp = True
         if not showApp:
             return -1
@@ -38,6 +38,7 @@ def start(args, session, unlocked_cb=None):
             "com.android.inputmethod.latin",
             "com.android.settings",
             "com.google.android.gms",
+            "com.android.vending",
             "org.lineageos.jelly",
             "org.lineageos.aperture",
             "com.android.messaging",
