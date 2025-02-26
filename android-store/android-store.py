@@ -73,7 +73,6 @@ class FDroidInterface(ServiceInterface):
             try:
                 # Get next task from queue
                 task, future = await self._task_queue.get()
-                store_print(f"Processing task: {task.__name__}", self.verbose)
 
                 # Reset idle timer on activity
                 self._reset_idle_timer()
@@ -90,7 +89,6 @@ class FDroidInterface(ServiceInterface):
 
                 # Mark task as done
                 self._task_queue.task_done()
-                store_print(f"Task completed: {task.__name__}", self.verbose)
             except asyncio.CancelledError:
                 break
             except Exception as e:
