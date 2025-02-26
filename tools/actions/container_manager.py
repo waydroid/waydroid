@@ -151,6 +151,18 @@ class DbusContainerManager(dbus.service.Object):
         t.daemon = True
         t.start()
 
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='b', out_signature='')
+    def EnableNotificationServer(self, enable):
+        if which("systemctl"):
+            service_action = "start" if enable else "stop"
+            systemd_action = "enable" if enable else "disable"
+
+            action_command = ["systemctl", service_action, "waydroid-notification-server.service"]
+            systemd_command = ["systemctl", systemd_action, "waydroid-notification-server.service"]
+
+            tools.helpers.run.user(self.args, action_command, check=False)
+            tools.helpers.run.user(self.args, systemd_command, check=False)
+
 def service(args, looper):
     dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
