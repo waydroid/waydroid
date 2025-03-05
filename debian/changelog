@@ -1,3 +1,17 @@
+waydroid (1.5.0) bullseye; urgency=medium
+
+  * debian: Use new polkitd package
+  * initializer: Refactor setup to better handle preinstalled images
+  * gpu: Use intel_hasvk on intel graphics gen 8 or lower (Closes: #1604)
+  * protocol: Correct gbinder protocol version for API 33
+  * initializer: Differentiate HALIUM vndk31 and vndk32
+  * gpu: Do not log failure to read i915_capabilities
+  * container: Do not mount KMS nodes
+  * lxc: Handle CTRL+C silently during shell commands
+  * Upver to 1.5.0
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Wed, 05 Mar 2025 19:12:03 +0100
+
 waydroid (1.4.3) bullseye; urgency=medium
 
   * update regex for deprecation warning
