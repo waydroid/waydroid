@@ -46,6 +46,7 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/ashmem")
     make_entry("/dev/fuse")
     make_entry("/dev/ion")
+    make_entry("/dev/rfkill")
     make_entry("/dev/tty")
     make_entry("/dev/char", options="bind,create=dir,optional 0 0")
 
@@ -69,6 +70,9 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/" + args.BINDER_DRIVER, "dev/binder", check=False)
     make_entry("/dev/" + args.VNDBINDER_DRIVER, "dev/vndbinder", check=False)
     make_entry("/dev/" + args.HWBINDER_DRIVER, "dev/hwbinder", check=False)
+    # Wifi
+    make_entry("/sys/class/ieee80211", "sys/class/ieee80211", options="rbind,create=dir,optional 0 0", check=False)
+    make_entry("/sys/devices/virtual/ieee80211", "sys/devices/virtual/ieee80211", options="rbind,create=dir,optional 0 0", check=False)
 
     if args.vendor_type != "MAINLINE":
         if not make_entry("/dev/hwbinder", "dev/host_hwbinder"):
