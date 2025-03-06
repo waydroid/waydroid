@@ -246,6 +246,9 @@ def make_base_props(args):
     if not os.path.exists("/dev/ashmem"):
         props.append("sys.use_memfd=true")
 
+    # Added for security reasons
+    props.append("ro.adb.secure=1")
+    props.append("ro.debuggable=0")
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
     dri, _ = tools.helpers.gpu.getDriNode(args)
 
