@@ -25,6 +25,16 @@ config_keys = ["arch",
                "mount_overlays",
                "auto_adb"]
 
+property_keys = [
+        "create_desktop_entry",
+        "desktop_entry_white_list"
+        ]
+
+property_defaults = {
+        "create_desktop_entry": "True",
+        "desktop_entry_white_list": []
+        }
+
 # Config file/commandline default values
 # $WORK gets replaced with the actual value for args.work (which may be
 # overridden on the commandline)
@@ -61,6 +71,7 @@ session_defaults = {
     "host_user": os.path.expanduser("~"),
     "pid": str(os.getpid()),
     "xdg_data_home": str(os.environ.get('XDG_DATA_HOME', os.path.expanduser("~") + "/.local/share")),
+    "xdg_config_home": str(os.environ.get('XDG_CONFIG_HOME', os.path.expanduser("~") + "/.config")),
     "xdg_runtime_dir": str(os.environ.get('XDG_RUNTIME_DIR')),
     "wayland_display": str(os.environ.get('WAYLAND_DISPLAY')),
     "pulse_runtime_path": str(os.environ.get('PULSE_RUNTIME_PATH')),
