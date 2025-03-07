@@ -118,6 +118,10 @@ def generate_nodes_lxc_config(args):
     # NFC config
     make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
 
+    # selinuxfs
+    if os.path.exists("/sys/fs/selinux/enforce"):
+        make_entry("selinuxfs", "sys/fs/selinux", "selinuxfs", "nosuid,noexec 0 0", False)
+
     return nodes
 
 LXC_APPARMOR_PROFILE = "lxc-waydroid"
