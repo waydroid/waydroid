@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: GPL-2.0-only
 # Copyright (C) 2025 Bardia Moshiri <bardia@furilabs.com>
+# Copyright (C) 2025 Luis Garcia <git@luigi311.com>
 
 from argparse import ArgumentParser
 from inspect import currentframe
