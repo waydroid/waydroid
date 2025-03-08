@@ -148,9 +148,9 @@ class FDroidInterface(ServiceInterface):
         try:
             async with self.session.get(index_url) as response:
                 if response.status == 200:
-                    json_content = await response.text()
+                    json_content = await response.read()
                     index_path = os.path.join(repo_cache_dir, 'index-v2.json')
-                    with open(index_path, 'w') as f:
+                    with open(index_path, 'wb') as f:
                         f.write(json_content)
                     return True
             return False
