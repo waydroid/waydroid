@@ -9,6 +9,7 @@ from pathlib import Path
 from time import time
 import asyncio
 import aiohttp
+import aiofiles
 import functools
 import json
 import msgspec
@@ -152,8 +153,8 @@ class FDroidInterface(ServiceInterface):
                 if response.status == 200:
                     json_content = await response.read()
                     index_path = os.path.join(repo_cache_dir, 'index-v2.json')
-                    with open(index_path, 'wb') as f:
-                        f.write(json_content)
+                    async with aiofiles.open(index_path, 'wb') as f:
+                        await f.write(json_content)
                     return True
             return False
         except Exception as e:
@@ -354,9 +355,27 @@ class FDroidInterface(ServiceInterface):
             return json.dumps(results)
         return await self._queue_task(_search_task)
 
+    async def process_repo_file(self, config_file, repo_dir):
+        """
+        Process a single repository configuration file by iterating through its mirrors sequentially.
+        """
+        repos = self.read_repo_list(config_file, repo_dir)
+        repo_success = False
+        for repo_url in repos:
+            store_print(f"Downloading {config_file} index from {repo_url} (from {repo_dir})", self.verbose)
+            if await self.download_index(repo_url, config_file):
+                store_print(f"Successfully downloaded {config_file}", self.verbose)
+                repo_success = True
+                break
+            else:
+                store_print(f"Failed to download from {repo_url}, trying next mirror...", self.verbose)
+        
+        if not repo_success:
+            store_print(f"Failed to download {config_file} from all mirrors", self.verbose)
+        
+        return repo_success
+
     async def update_cache(self):
-        success = True
-        processed_repos = set()
         os.makedirs(CACHE_DIR, exist_ok=True)
 
         all_repo_files = set()
@@ -373,38 +392,20 @@ class FDroidInterface(ServiceInterface):
                     all_repo_files.add(config_file)
                     store_print(f"Found repository in default dir: {config_file}", self.verbose)
 
-        # Process all repositories, prioritizing custom directory
+        tasks = []
         for config_file in all_repo_files:
             # Check custom dir first, then fall back to default
             if os.path.exists(os.path.join(CUSTOM_REPO_CONFIG_DIR, config_file)):
                 repo_dir = CUSTOM_REPO_CONFIG_DIR
             else:
                 repo_dir = DEFAULT_REPO_CONFIG_DIR
+            tasks.append(asyncio.create_task(self.process_repo_file(config_file, repo_dir)))
 
-            # Skip if we've already processed this repo
-            if config_file in processed_repos:
-                continue
-
-            repos = self.read_repo_list(config_file, repo_dir)
-            repo_success = False
-
-            for repo_url in repos:
-                repo_name = config_file
-                store_print(f"Downloading {repo_name} index from {repo_url} (from {repo_dir})", self.verbose)
-                if await self.download_index(repo_url, repo_name):
-                    store_print(f"Successfully downloaded {repo_name}", self.verbose)
-                    repo_success = True
-                    processed_repos.add(config_file)
-                    break
-                else:
-                    store_print(f"Failed to download from {repo_url}, trying next mirror...", self.verbose)
-
-            if not repo_success:
-                store_print(f"Failed to download {repo_name} from all mirrors", self.verbose)
-                success = False
+        results = await asyncio.gather(*tasks)
+        overall_success = all(results)
 
         await self.cleanup_session()
-        return success
+        return overall_success
 
     @method()
     async def UpdateCache(self) -> 'b':
