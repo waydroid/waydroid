@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: GPL-2.0-only
 # Copyright (C) 2025 Bardia Moshiri <bardia@furilabs.com>
+# Copyright (C) 2025 Luis Garcia <git@luigi311.com>
 
 from argparse import ArgumentParser
 from inspect import currentframe
@@ -10,6 +11,7 @@ import asyncio
 import aiohttp
 import functools
 import json
+import msgspec
 import sys
 import os
 
@@ -316,8 +318,8 @@ class FDroidInterface(ServiceInterface):
                     if not repo_url:
                         continue
 
-                    with open(index_path, 'r') as f:
-                        index_data = json.load(f)
+                    with open(index_path, 'rb') as f:
+                        index_data = msgspec.json.decode(f.read())
 
                     for package_id, package_data in index_data['packages'].items():
                         name = self.get_localized_text(package_data['metadata'].get('name', ''))
@@ -461,8 +463,8 @@ class FDroidInterface(ServiceInterface):
                     if not repo_url:
                         continue
 
-                    with open(index_path, 'r') as f:
-                        index_data = json.load(f)
+                    with open(index_path, 'rb') as f:
+                        index_data = msgspec.json.decode(f.read())
 
                     if package_id in index_data['packages']:
                         package_data = index_data['packages'][package_id]
@@ -594,8 +596,8 @@ class FDroidInterface(ServiceInterface):
                     if not repo_url:
                         continue
 
-                    with open(index_path, 'r') as f:
-                        index_data = json.load(f)
+                    with open(index_path, 'rb') as f:
+                        index_data = msgspec.json.decode(f.read())
 
                     if package_name in index_data['packages']:
                         package_data = index_data['packages'][package_name]
