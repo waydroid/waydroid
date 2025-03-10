@@ -694,21 +694,21 @@ class FDroidInterface(ServiceInterface):
     async def UpgradePackages(self, packages: 'as') -> 'b':
         async def _upgrade_packages_task(packages: 'as'):
             store_print(f"Upgrading packages {packages}", self.verbose)
-            upgradable = await self.get_upgradable_packages()
 
             ping = await self.ping_session_manager()
             if not ping:
                 store_print("Container session manager is not started", self.verbose)
                 return False
 
+            upgradables = await self.get_upgradable_packages()
             if not packages:
-                packages = [pkg['id'] for pkg in upgradable]
+                packages = [pkg['id'] for pkg in upgradables]
                 store_print(f"Upgrading all available packages: {packages}", self.verbose)
 
             os.makedirs(DOWNLOAD_CACHE_DIR, exist_ok=True)
             await self.ensure_session()
             for package in packages:
-                for pkg in upgradable:
+                for pkg in upgradables:
                     if pkg['id'] == package:
                         store_print(f"Installing upgrade for {package}", self.verbose)
                         try:
