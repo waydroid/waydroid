@@ -35,6 +35,8 @@ class FDroidInterface(ServiceInterface):
         self.verbose = verbose
         self.session = None
         self.db = None
+        self.json_enc = msgspec.json.Encoder()
+
         self.idle_callback = idle_callback
         self.idle_timer = None
 
@@ -251,16 +253,16 @@ class FDroidInterface(ServiceInterface):
                     "summary": self.get_localized_text(package_data["metadata"].get("summary", "N/A")),
                     "description": self.get_localized_text(package_data["metadata"].get("description", "N/A")),
                     "license": package_data["metadata"].get("license", "N/A"),
-                    "categories": json.dumps(package_data["metadata"].get("categories", [])),
+                    "categories": self.json_enc.encode(package_data["metadata"].get("categories", [])),
                     "author": package_data["metadata"].get("author", {}).get("name", "N/A"),
                     "web_url": package_data["metadata"].get("webSite", "N/A"),
                     "source_url": package_data["metadata"].get("sourceCode", "N/A"),
                     "tracker_url": package_data["metadata"].get("issueTracker", "N/A"),
                     "changelog_url": package_data["metadata"].get("changelog", "N/A"),
-                    "donation_url": json.dumps(package_data["metadata"].get("donate", [])),
+                    "donation_url": self.json_enc.encode(package_data["metadata"].get("donate", [])),
                     "added_date": package_data["metadata"].get("added", "N/A"),
                     "last_updated": package_data["metadata"].get("lastUpdated", "N/A"),
-                    "package": json.dumps(package_info),
+                    "package": self.json_enc.encode(package_info),
                 }
                 rows.append(row)
 
@@ -421,7 +423,7 @@ class FDroidInterface(ServiceInterface):
             ping = await self.ping_session_manager()
             if not ping:
                 store_print("Container session manager is not started", self.verbose)
-                return json.dumps(results)
+                return self.json_enc.encode(results)
 
             # Use the database to perform the search.
             sql_query = """
@@ -442,16 +444,16 @@ class FDroidInterface(ServiceInterface):
                         'summary': row[3],
                         'description': row[4],
                         'license': row[5],
-                        'categories': json.loads(row[6]) if row[6] else None,
+                        'categories': msgspec.json.decode(row[6]) if row[6] else None,
                         'author': row[7],
                         'web_url': row[8],
                         'source_url': row[9],
                         'tracker_url': row[10],
                         'changelog_url': row[11],
-                        'donation_url': json.loads(row[12]) if row[12] else None,
+                        'donation_url': msgspec.json.decode(row[12]) if row[12] else None,
                         'added_date': row[13],
                         'last_updated': row[14],
-                        'package': json.loads(row[15]) if row[15] else None
+                        'package': msgspec.json.decode(row[15]) if row[15] else None
                     }
                     results.append(app_info)
             return json.dumps(results)
@@ -547,7 +549,7 @@ class FDroidInterface(ServiceInterface):
                     for row in rows:
                         repository, package_json = row
                         store_print(f"Found package {package_id} in {repository}", self.verbose)
-                        package_info = json.loads(package_json)
+                        package_info = msgspec.json.decode(package_json)
                         break
 
                 if not package_info:
@@ -674,7 +676,7 @@ class FDroidInterface(ServiceInterface):
                 repository, package_json, package_id, repository_url = row
                 if not package_json:
                     continue
-                available_pkg = json.loads(package_json)
+                available_pkg = msgspec.json.decode(package_json)
                 repo_version = available_pkg.get("version", "N/A")
 
                 if repo_version != current_version:
