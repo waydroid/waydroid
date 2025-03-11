@@ -796,6 +796,7 @@ class FDroidInterface(ServiceInterface):
             except asyncio.CancelledError:
                 pass
         await self.cleanup_session()
+        await self.db.close()
 
 class AndroidStoreService:
     def __init__(self, verbose):
