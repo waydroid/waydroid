@@ -29,6 +29,6 @@ def set_aidl_version(args):
         binder_protocol = "aidl3"
         sm_protocol =     "aidl4"
 
-    cfg["waydroid"]["binder_protocol"] = binder_protocol
-    cfg["waydroid"]["service_manager_protocol"] = sm_protocol
+    cfg["andromeda"]["binder_protocol"] = binder_protocol
+    cfg["andromeda"]["service_manager_protocol"] = sm_protocol
     tools.config.save(args, cfg)

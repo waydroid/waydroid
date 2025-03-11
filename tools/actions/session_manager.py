@@ -19,57 +19,57 @@ import dbus.exceptions
 from gi.repository import GLib, Gio
 import copy
 
-class DbusSessionManager(dbus.service.Object):
+class DBusSessionManager(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
         self.args = args
         self.looper = looper
         dbus.service.Object.__init__(self, bus, object_path)
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='', out_signature='')
     def Stop(self):
         do_stop(self.args, self.looper)
         stop_container(quit_session=False)
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='b')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='', out_signature='b')
     def Ping(self):
         return True
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='', out_signature='s')
     def VendorType(self):
         cfg = tools.config.load(self.args)
-        return cfg["waydroid"]["vendor_type"]
+        return cfg["andromeda"]["vendor_type"]
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='', out_signature='s')
     def IpAddress(self):
         ip_address = tools.helpers.net.get_device_ip_address()
         return ip_address if ip_address else "UNKNOWN"
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='s')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='', out_signature='s')
     def LineageVersion(self):
         full_version = tools.helpers.props.get(self.args, "ro.lineage.display.version")
         version_parts = full_version.split('-')
         version = '-'.join(version_parts[:2])
         return version
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='s', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='s', out_signature='')
     def RemoveApp(self, packageName):
         tools.helpers.ipc.DBusContainerService().RemoveApp(packageName)
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='s', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='s', out_signature='')
     def InstallApp(self, packagePath):
-        prop_file_path = '/var/lib/waydroid/waydroid.prop'
-        waydroid_host_data_path = None
+        prop_file_path = '/var/lib/andromeda/andromeda.prop'
+        andromeda_host_data_path = None
         with open(prop_file_path, 'r') as file:
             for line in file:
-                if line.startswith('waydroid.host_data_path'):
+                if line.startswith('andromeda.host_data_path'):
                     key, value = line.split('=', 1)
-                    waydroid_host_data_path = value.strip()
+                    andromeda_host_data_path = value.strip()
                     break
 
-        if waydroid_host_data_path is None:
+        if andromeda_host_data_path is None:
             return
 
-        tmp_dir = waydroid_host_data_path + "/waydroid_tmp"
+        tmp_dir = andromeda_host_data_path + "/andromeda_tmp"
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 
@@ -77,7 +77,7 @@ class DbusSessionManager(dbus.service.Object):
         tools.helpers.ipc.DBusContainerService().InstallBaseApk()
         os.remove(tmp_dir + "/base.apk")
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='s', out_signature='s')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='s', out_signature='s')
     def NameToPackageName(self, appName):
         platformService = IPlatform.get_service(self.args)
         if platformService:
@@ -87,7 +87,7 @@ class DbusSessionManager(dbus.service.Object):
                     return app["packageName"]
         return ""
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='s', out_signature='s')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='s', out_signature='s')
     def PackageNameToName(self, packageName):
         platformService = IPlatform.get_service(self.args)
         if platformService:
@@ -97,7 +97,7 @@ class DbusSessionManager(dbus.service.Object):
                     return app["name"]
         return ""
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='as')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='', out_signature='as')
     def GetAllNames(self):
         platformService = IPlatform.get_service(self.args)
         if platformService:
@@ -105,7 +105,7 @@ class DbusSessionManager(dbus.service.Object):
             return [app["name"] for app in appsList]
         return []
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='as')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='', out_signature='as')
     def GetAllPackageNames(self):
         platformService = IPlatform.get_service(self.args)
         if platformService:
@@ -113,7 +113,7 @@ class DbusSessionManager(dbus.service.Object):
             return [app["packageName"] for app in appsList]
         return []
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='s', out_signature='s')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='s', out_signature='s')
     def Getprop(self, propname):
         platformService = IPlatform.get_service(self.args)
         if platformService:
@@ -121,13 +121,13 @@ class DbusSessionManager(dbus.service.Object):
             return prop_value
         return ""
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='ss', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='ss', out_signature='')
     def Setprop(self, propname, propvalue):
         platformService = IPlatform.get_service(self.args)
         if platformService:
             platformService.setprop(propname, propvalue)
 
-    @dbus.service.method("id.waydro.SessionManager", in_signature='', out_signature='aa{sv}')
+    @dbus.service.method("io.furios.Andromeda.SessionManager", in_signature='', out_signature='aa{sv}')
     def GetAppsInfo(self):
         platformService = IPlatform.get_service(self.args)
         if platformService:
@@ -150,12 +150,12 @@ class DbusSessionManager(dbus.service.Object):
         return []
 
 def service(args, looper):
-    dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
+    dbus_obj = DBusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
     looper.run()
 
 def start(args, unlocked_cb=None, background=True):
     try:
-        name = dbus.service.BusName("id.waydro.Session", dbus.SessionBus(), do_not_queue=True)
+        name = dbus.service.BusName("io.furios.Andromeda.Session", dbus.SessionBus(), do_not_queue=True)
     except dbus.exceptions.NameExistsException:
         logging.error("Session is already running")
         if unlocked_cb:
@@ -175,16 +175,27 @@ def start(args, unlocked_cb=None, background=True):
     else:
         xdg_runtime_dir = session["xdg_runtime_dir"]
         if xdg_runtime_dir == "None" or not xdg_runtime_dir:
-            logging.error(f"XDG_RUNTIME_DIR is not set; please don't start a Waydroid session with 'sudo'!")
+            logging.error(f"XDG_RUNTIME_DIR is not set; please don't start a Andromeda session with 'sudo'!")
             sys.exit(1)
         wayland_socket_path = os.path.join(xdg_runtime_dir, wayland_display)
     if not os.path.exists(wayland_socket_path):
         logging.error(f"Wayland socket '{wayland_socket_path}' doesn't exist; are you running a Wayland compositor?")
         sys.exit(1)
 
-    waydroid_data = session["waydroid_data"]
-    if not os.path.isdir(waydroid_data):
-        os.makedirs(waydroid_data)
+    andromeda_data = session["andromeda_data"]
+    waydroid_data = tools.config.session_defaults.get("waydroid_data")
+
+    if os.path.isdir(andromeda_data):
+        pass
+    elif waydroid_data and os.path.isdir(waydroid_data):
+        parent_dir = os.path.dirname(andromeda_data)
+        if not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
+
+        os.symlink(waydroid_data, andromeda_data)
+        logging.info(f"Created symlink from {andromeda_data} to {waydroid_data}")
+    else:
+        os.makedirs(andromeda_data)
 
     dpi = tools.helpers.props.host_get(args, "ro.sf.lcd_density")
     if dpi == "":
@@ -224,7 +235,7 @@ def start(args, unlocked_cb=None, background=True):
         if e.get_dbus_name().startswith("org.freedesktop.DBus.Python"):
             logging.error(e.get_dbus_message().splitlines()[-1])
         else:
-            logging.error("WayDroid container is not listening")
+            logging.error("Andromeda container is not listening")
         sys.exit(0)
 
     services.user_manager.start(args, session, unlocked_cb)

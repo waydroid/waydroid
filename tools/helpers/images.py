@@ -16,12 +16,12 @@ def remove_overlay(args):
         shutil.rmtree(tools.config.defaults["overlay_work"])
 
 def make_prop(args, cfg, full_props_path):
-    if not os.path.isfile(args.work + "/waydroid_base.prop"):
-        raise RuntimeError("waydroid_base.prop Not found")
-    with open(args.work + "/waydroid_base.prop") as f:
+    if not os.path.isfile(args.work + "/andromeda_base.prop"):
+        raise RuntimeError("andromeda_base.prop Not found")
+    with open(args.work + "/andromeda_base.prop") as f:
         props = f.read().splitlines()
     if not props:
-        raise RuntimeError("waydroid_base.prop is broken!!?")
+        raise RuntimeError("andromeda_base.prop is broken!!?")
 
     def add_prop(key, cfg_key):
         value = cfg[cfg_key]
@@ -32,14 +32,24 @@ def make_prop(args, cfg, full_props_path):
     add_prop("waydroid.host.user", "user_name")
     add_prop("waydroid.host.uid", "user_id")
     add_prop("waydroid.host.gid", "group_id")
-    add_prop("waydroid.host_data_path", "waydroid_data")
+    add_prop("waydroid.host_data_path", "andromeda_data")
     add_prop("waydroid.background_start", "background_start")
     props.append("waydroid.xdg_runtime_dir=" + tools.config.defaults["container_xdg_runtime_dir"])
     props.append("waydroid.pulse_runtime_path=" + tools.config.defaults["container_pulse_runtime_path"])
     props.append("waydroid.wayland_display=" + tools.config.defaults["container_wayland_display"])
 
+    add_prop("andromeda.host.user", "user_name")
+    add_prop("andromeda.host.uid", "user_id")
+    add_prop("andromeda.host.gid", "group_id")
+    add_prop("andromeda.host_data_path", "andromeda_data")
+    add_prop("andromeda.background_start", "background_start")
+    props.append("andromeda.xdg_runtime_dir=" + tools.config.defaults["container_xdg_runtime_dir"])
+    props.append("andromeda.pulse_runtime_path=" + tools.config.defaults["container_pulse_runtime_path"])
+    props.append("andromeda.wayland_display=" + tools.config.defaults["container_wayland_display"])
+
     if which("waydroid-sensord") is None:
         props.append("waydroid.stub_sensors_hal=1")
+        props.append("andromeda.stub_sensors_hal=1")
 
     if not os.path.exists("/usr/libexec/android-vibrator"):
         props.append("furios.stub_vibrator_hal=1")
@@ -51,10 +61,12 @@ def make_prop(args, cfg, full_props_path):
     width = cfg["width"]
     if width != "0":
         props.append("waydroid.display_width_override=" + width)
+        props.append("andromeda.display_width_override=" + width)
 
     height = cfg["height"]
     if height != "0":
         props.append("waydroid.display_height_override=" + height)
+        props.append("andromeda.display_width_override=" + width)
 
     final_props = open(full_props_path, "w")
     for prop in props:
@@ -66,7 +78,7 @@ def mount_rootfs(args, images_dir, session):
     cfg = tools.config.load(args)
     helpers.mount.mount(args, images_dir + "/system.img",
                         tools.config.defaults["rootfs"], umount=True)
-    if cfg["waydroid"]["mount_overlays"] == "True":
+    if cfg["andromeda"]["mount_overlays"] == "True":
         try:
             helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"],
                                                tools.config.defaults["rootfs"]],
@@ -74,13 +86,13 @@ def mount_rootfs(args, images_dir, session):
                                     upper_dir=tools.config.defaults["overlay_rw"] + "/system",
                                     work_dir=tools.config.defaults["overlay_work"] + "/system")
         except RuntimeError:
-            cfg["waydroid"]["mount_overlays"] = "False"
+            cfg["andromeda"]["mount_overlays"] = "False"
             tools.config.save(args, cfg)
             logging.warning("Mounting overlays failed. The feature has been disabled.")
 
     helpers.mount.mount(args, images_dir + "/vendor.img",
                            tools.config.defaults["rootfs"] + "/vendor")
-    if cfg["waydroid"]["mount_overlays"] == "True":
+    if cfg["andromeda"]["mount_overlays"] == "True":
         helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"] + "/vendor",
                                            tools.config.defaults["rootfs"] + "/vendor"],
                                     tools.config.defaults["rootfs"] + "/vendor",
@@ -99,9 +111,13 @@ def mount_rootfs(args, images_dir, session):
             helpers.mount.bind(
                 args, "/vendor/odm", tools.config.defaults["rootfs"] + "/odm_extra")
 
-    make_prop(args, session, args.work + "/waydroid.prop")
-    helpers.mount.bind_file(args, args.work + "/waydroid.prop",
-                            tools.config.defaults["rootfs"] + "/vendor/waydroid.prop")
+    vendor_andromeda_prop = tools.config.defaults["rootfs"] + "/vendor/andromeda.prop"
+    vendor_waydroid_prop = tools.config.defaults["rootfs"] + "/vendor/waydroid.prop"
+    make_prop(args, session, args.work + "/andromeda.prop")
+    if os.path.exists(vendor_andromeda_prop):
+        helpers.mount.bind_file(args, args.work + "/andromeda.prop", vendor_andromeda_prop)
+    elif os.path.exists(vendor_waydroid_prop):
+        helpers.mount.bind_file(args, args.work + "/andromeda.prop", vendor_waydroid_prop)
 
 def umount_rootfs(args):
     helpers.mount.umount_all(args, tools.config.defaults["rootfs"])

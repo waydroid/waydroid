@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Waydroid Market
+Name=Andromeda Market
 Comment=Android Market Protocol Handler
-Exec=waydroid app intent android.intent.action.VIEW %u
-Icon=waydroid
+Exec=andromeda app intent android.intent.action.VIEW %u
+Icon=andromeda
 Type=Application
 Encoding=UTF-8
 Terminal=false

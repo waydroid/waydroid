@@ -11,15 +11,15 @@ import dbus
 
 def get_config(args):
     cfg = tools.config.load(args)
-    args.arch = cfg["waydroid"]["arch"]
-    args.images_path = cfg["waydroid"]["images_path"]
-    args.vendor_type = cfg["waydroid"]["vendor_type"]
+    args.arch = cfg["andromeda"]["arch"]
+    args.images_path = cfg["andromeda"]["images_path"]
+    args.vendor_type = cfg["andromeda"]["vendor_type"]
     args.session = None
 
 def upgrade(args):
     get_config(args)
     status = "STOPPED"
-    if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
+    if os.path.exists(tools.config.defaults["lxc"] + "/andromeda"):
         status = helpers.lxc.status(args)
     if status != "STOPPED":
         logging.info("Stopping container")

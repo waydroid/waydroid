@@ -1,6 +1,6 @@
-# Waydroid LXC Config
+# Andromeda LXC Config
 
-lxc.rootfs.path = /var/lib/waydroid/rootfs
+lxc.rootfs.path = /var/lib/andromeda/rootfs
 lxc.arch = LXCARCH
 lxc.autodev = 0
 # lxc.autodev.tmpfs.size = 25000000
@@ -11,8 +11,8 @@ lxc.mount.auto = cgroup:ro sys:ro proc
 
 lxc.console.path = none
 
-lxc.include = /var/lib/waydroid/lxc/waydroid/config_nodes
-lxc.include = /var/lib/waydroid/lxc/waydroid/config_session
+lxc.include = /var/lib/andromeda/lxc/andromeda/config_nodes
+lxc.include = /var/lib/andromeda/lxc/andromeda/config_session
 
 lxc.hook.post-stop = /dev/null
 

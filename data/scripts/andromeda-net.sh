@@ -1,17 +1,17 @@
 #!/bin/sh -
 
-varrun="/run/waydroid-lxc"
+varrun="/run/andromeda-lxc"
 varlib="/var/lib"
 net_link_key="lxc.net.0.link"
 case "$(lxc-info --version)" in [012].*) net_link_key="lxc.network.link" ;; esac
-vnic=$(awk "\$1 == \"$net_link_key\" {print \$3}" /var/lib/waydroid/lxc/waydroid/config)
-: ${vnic:=waydroid0}
+vnic=$(awk "\$1 == \"$net_link_key\" {print \$3}" /var/lib/andromeda/lxc/andromeda/config)
+: ${vnic:=andromeda0}
 
-if [ "$vnic" != "waydroid0" ]; then
+if [ "$vnic" != "andromeda0" ]; then
     echo "vnic is $vnic, bailing out"
     exit 0
-else 
-    echo "vnic is waydroid0"
+else
+    echo "vnic is andromeda0"
 fi
 
 USE_LXC_BRIDGE="true"
@@ -128,7 +128,7 @@ add rule ip lxc postrouting ip saddr ${LXC_NETWORK} ip daddr != ${LXC_NETWORK} c
 start() {
     [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
 
-    [ ! -f "${varrun}/network_up" ] || { echo "waydroid-net is already running"; exit 0; }
+    [ ! -f "${varrun}/network_up" ] || { echo "andromeda-net is already running"; exit 0; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         stop force || true
@@ -139,7 +139,7 @@ start() {
     cleanup() {
         set +e
         if [ "$FAILED" = "1" ]; then
-            echo "Failed to setup waydroid-net." >&2
+            echo "Failed to setup andromeda-net." >&2
             stop force
             exit 1
         fi
@@ -242,7 +242,7 @@ delete table ip6 lxc;"
 stop() {
     [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
 
-    [ -f "${varrun}/network_up" ] || [ "$1" = "force" ] || { echo "waydroid-net isn't running"; exit 1; }
+    [ -f "${varrun}/network_up" ] || [ "$1" = "force" ] || { echo "andromeda-net isn't running"; exit 1; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         _ifdown

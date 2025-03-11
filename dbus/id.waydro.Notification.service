@@ -1,5 +1,0 @@
-[D-BUS Service]
-Name=id.waydro.Notification
-Exec=/usr/bin/waydroid -w notification_server start
-User=root
-SystemdService=waydroid-notification-server.service

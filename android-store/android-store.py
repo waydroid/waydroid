@@ -195,9 +195,9 @@ class FDroidInterface(ServiceInterface):
         try:
             bus = await MessageBus(bus_type=BusType.SESSION).connect()
 
-            introspection = await bus.introspect('id.waydro.Session', '/SessionManager')
-            proxy = bus.get_proxy_object('id.waydro.Session', '/SessionManager', introspection)
-            interface = proxy.get_interface('id.waydro.SessionManager')
+            introspection = await bus.introspect('io.furios.Andromeda.Session', '/SessionManager')
+            proxy = bus.get_proxy_object('io.furios.Andromeda.Session', '/SessionManager', introspection)
+            interface = proxy.get_interface('io.furios.Andromeda.SessionManager')
 
             await interface.call_ping()
 
@@ -381,9 +381,9 @@ class FDroidInterface(ServiceInterface):
         try:
             bus = await MessageBus(bus_type=BusType.SESSION).connect()
 
-            introspection = await bus.introspect('id.waydro.Session', '/SessionManager')
-            proxy = bus.get_proxy_object('id.waydro.Session', '/SessionManager', introspection)
-            interface = proxy.get_interface('id.waydro.SessionManager')
+            introspection = await bus.introspect('io.furios.Andromeda.Session', '/SessionManager')
+            proxy = bus.get_proxy_object('io.furios.Andromeda.Session', '/SessionManager', introspection)
+            interface = proxy.get_interface('io.furios.Andromeda.SessionManager')
 
             await interface.call_install_app(package_path)
 
@@ -397,9 +397,9 @@ class FDroidInterface(ServiceInterface):
         try:
             bus = await MessageBus(bus_type=BusType.SESSION).connect()
 
-            introspection = await bus.introspect('id.waydro.Session', '/SessionManager')
-            proxy = bus.get_proxy_object('id.waydro.Session', '/SessionManager', introspection)
-            interface = proxy.get_interface('id.waydro.SessionManager')
+            introspection = await bus.introspect('io.furios.Andromeda.Session', '/SessionManager')
+            proxy = bus.get_proxy_object('io.furios.Andromeda.Session', '/SessionManager', introspection)
+            interface = proxy.get_interface('io.furios.Andromeda.SessionManager')
 
             await interface.call_remove_app(package_name)
 
@@ -412,9 +412,9 @@ class FDroidInterface(ServiceInterface):
     async def get_apps_info(self):
         try:
             bus = await MessageBus(bus_type=BusType.SESSION).connect()
-            introspection = await bus.introspect('id.waydro.Session', '/SessionManager')
-            proxy = bus.get_proxy_object('id.waydro.Session', '/SessionManager', introspection)
-            interface = proxy.get_interface('id.waydro.SessionManager')
+            introspection = await bus.introspect('io.furios.Andromeda.Session', '/SessionManager')
+            proxy = bus.get_proxy_object('io.furios.Andromeda.Session', '/SessionManager', introspection)
+            interface = proxy.get_interface('io.furios.Andromeda.SessionManager')
 
             apps_info = await interface.call_get_apps_info()
             result = []

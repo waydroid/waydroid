@@ -19,7 +19,7 @@ import dbus.service
 import dbus.exceptions
 from gi.repository import GLib
 
-class DbusContainerManager(dbus.service.Object):
+class DBusContainerManager(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
         self.args = args
         self.looper = looper
@@ -27,14 +27,14 @@ class DbusContainerManager(dbus.service.Object):
 
     @dbus.service.method(dbus_interface='org.freedesktop.DBus.Properties', in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface_name):
-        if interface_name != "id.waydro.ContainerManager":
+        if interface_name != "io.furios.Andromeda.ContainerManager":
             return {}
 
         session = self.GetSession()
         # Convert each string value to variant
         return dict((k, dbus.String(v, variant_level=1)) for k, v in session.items())
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
     def Start(self, session, sender, conn):
         dbus_info = dbus.Interface(conn.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False), "org.freedesktop.DBus")
         uid = dbus_info.GetConnectionUnixUser(sender)
@@ -45,31 +45,31 @@ class DbusContainerManager(dbus.service.Object):
             raise RuntimeError("Invalid session pid")
         do_start(self.args, session)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='b', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='b', out_signature='')
     def Stop(self, quit_session):
         stop(self.args, quit_session)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='')
     def Freeze(self):
         freeze(self.args)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='')
     def Unfreeze(self):
         unfreeze(self.args)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='')
     def Screen(self):
         screen(self.args)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='b')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='b')
     def isAsleep(self):
         return is_asleep(self.args)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='b')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='b')
     def OpenAppPresent(self):
         return open_app_present(self.args)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='a{ss}')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='a{ss}')
     def GetSession(self):
         try:
             session = self.args.session
@@ -78,61 +78,61 @@ class DbusContainerManager(dbus.service.Object):
         except AttributeError:
             return {}
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='')
     def InstallBaseApk(self):
         install_base_apk(self.args)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='s', out_signature='')
     def RemoveApp(self, packageName):
         remove_app(self.args, packageName)
 
-    @dbus.service.method("id.waydro.ContainerManager", out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", out_signature='')
     def MountSharedFolder(self):
-        guest_dir = self.args.session['waydroid_data'] + '/media/0/Host'
+        guest_dir = self.args.session['andromeda_data'] + '/media/0/Host'
         host_dir = self.args.session['host_user'] + '/Android'
         helpers.mount.bind(self.args, guest_dir, host_dir)
         chmod(self.args, host_dir, "777")
 
-    @dbus.service.method("id.waydro.ContainerManager", out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", out_signature='')
     def UnmountSharedFolder(self):
         host_dir = self.args.session['host_user'] + '/Android'
         if helpers.mount.ismount(host_dir):
             helpers.mount.umount_all(self.args, host_dir)
             os.rmdir(host_dir)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='')
     def NfcToggle(self):
         nfc_toggle(self.args)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='b')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='b')
     def GetNfcStatus(self):
         return nfc_status(self.args)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='')
     def ForceFinishSetup(self):
         force_finish_setup(self.args)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='s', out_signature='')
     def ClearAppData(self, packageName):
         clear_app_data(self.args, packageName)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='s', out_signature='')
     def KillApp(self, packageName):
         kill_app(self.args, packageName)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='s', out_signature='')
     def KillPid(self, pid):
         kill_pid(self.args, pid)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='ss', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='ss', out_signature='')
     def Setprop(self, propname, propvalue):
         setprop(self.args, propname, propvalue)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='s')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='s', out_signature='s')
     def Getprop(self, propname):
         return getprop(self.args, propname)
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='s', out_signature='s', async_callbacks=('reply_handler', 'error_handler'))
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='s', out_signature='s', async_callbacks=('reply_handler', 'error_handler'))
     def WatchProp(self, propname, reply_handler, error_handler):
         """
         Asynchronously handles a long-running or blocking watch_prop call
@@ -151,20 +151,20 @@ class DbusContainerManager(dbus.service.Object):
         t.daemon = True
         t.start()
 
-    @dbus.service.method("id.waydro.ContainerManager", in_signature='b', out_signature='')
+    @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='b', out_signature='')
     def EnableNotificationServer(self, enable):
         if which("systemctl"):
             service_action = "start" if enable else "stop"
             systemd_action = "enable" if enable else "disable"
 
-            action_command = ["systemctl", service_action, "waydroid-notification-server.service"]
-            systemd_command = ["systemctl", systemd_action, "waydroid-notification-server.service"]
+            action_command = ["systemctl", service_action, "andromeda-notification-server.service"]
+            systemd_command = ["systemctl", systemd_action, "andromeda-notification-server.service"]
 
             tools.helpers.run.user(self.args, action_command, check=False)
             tools.helpers.run.user(self.args, systemd_command, check=False)
 
 def service(args, looper):
-    dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
+    dbus_obj = DBusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
 
 def chmod(args, path, mode):
@@ -206,7 +206,7 @@ def set_permissions(args, perm_list=None, mode="777"):
 
 def start(args):
     try:
-        name = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+        name = dbus.service.BusName("io.furios.Andromeda.Container", dbus.SystemBus(), do_not_queue=True)
     except dbus.exceptions.NameExistsException:
         logging.error("Container service is already running")
         return
@@ -215,7 +215,7 @@ def start(args):
     if status == "STOPPED":
         # Load binder and ashmem drivers
         cfg = tools.config.load(args)
-        if cfg["waydroid"]["vendor_type"] == "MAINLINE":
+        if cfg["andromeda"]["vendor_type"] == "MAINLINE":
             if helpers.drivers.probeBinderDriver(args) != 0:
                 logging.error("Failed to load Binder driver")
             helpers.drivers.probeAshmemDriver(args)
@@ -236,7 +236,7 @@ def start(args):
         GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, sigint_handler, None)
         service(args, mainloop)
     else:
-        logging.error("WayDroid container is {}".format(status))
+        logging.error("Andromeda container is {}".format(status))
 
 def do_start(args, session):
     if "session" in args:
@@ -244,7 +244,7 @@ def do_start(args, session):
 
     # Networking
     command = [tools.config.tools_src +
-               "/data/scripts/waydroid-net.sh", "start"]
+               "/data/scripts/andromeda-net.sh", "start"]
     tools.helpers.run.user(args, command)
 
     # Cgroup hacks
@@ -263,14 +263,14 @@ def do_start(args, session):
     # Create session-specific LXC config file
     helpers.lxc.generate_session_lxc_config(args, session)
     # Backwards compatibility
-    with open(tools.config.defaults["lxc"] + "/waydroid/config") as f:
+    with open(tools.config.defaults["lxc"] + "/andromeda/config") as f:
         if "config_session" not in f.read():
-            helpers.mount.bind(args, session["waydroid_data"],
+            helpers.mount.bind(args, session["andromeda_data"],
                                tools.config.defaults["data"])
 
     # Mount rootfs
     cfg = tools.config.load(args)
-    helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"], session)
+    helpers.images.mount_rootfs(args, cfg["andromeda"]["images_path"], session)
 
     helpers.protocol.set_aidl_version(args)
 
@@ -288,7 +288,7 @@ def stop(args, quit_session=True):
 
         # Networking
         command = [tools.config.tools_src +
-                   "/data/scripts/waydroid-net.sh", "stop"]
+                   "/data/scripts/andromeda-net.sh", "stop"]
         tools.helpers.run.user(args, command, check=False)
 
         # Umount rootfs
@@ -320,7 +320,7 @@ def restart(args):
         helpers.lxc.stop(args)
         helpers.lxc.start(args)
     else:
-        logging.error("WayDroid container is {}".format(status))
+        logging.error("Andromeda container is {}".format(status))
 
 def freeze(args):
     status = helpers.lxc.status(args)
@@ -329,7 +329,7 @@ def freeze(args):
         while helpers.lxc.status(args) == "RUNNING":
             pass
     else:
-        logging.error("WayDroid container is {}".format(status))
+        logging.error("Andromeda container is {}".format(status))
 
 def unfreeze(args):
     status = helpers.lxc.status(args)

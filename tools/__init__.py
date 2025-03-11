@@ -31,8 +31,8 @@ def main():
         args = helpers.arguments()
         args.cache = {}
         args.work = config.defaults["work"]
-        args.config = args.work + "/waydroid.cfg"
-        args.log = args.work + "/waydroid.log"
+        args.config = args.work + "/andromeda.cfg"
+        args.log = args.work + "/andromeda.log"
         args.sudo_timer = True
         args.timeout = 1800
 
@@ -50,9 +50,10 @@ def main():
         dbus_notification_scope = None
         dbus_statechange_scope = None
 
+        actions.initializer.migrate_installation()
         if not actions.initializer.is_initialized(args) and \
                 args.action and args.action not in ("init", "log"):
-            print('ERROR: WayDroid is not initialized, run "waydroid init"')
+            print('Andromeda is not initialized, run "andromeda init"')
             return 0
 
         # Initialize or require config
@@ -69,15 +70,15 @@ def main():
                 actions.session_manager.stop(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    "Run andromeda {} -h for usage information.".format(args.action))
         elif args.action == "container":
             actionNeedRoot(args.action)
             if args.subaction == "start":
                 if dbus_name_scope is None:
                     try:
-                        dbus_name_scope = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+                        dbus_name_scope = dbus.service.BusName("io.furios.Andromeda.Container", dbus.SystemBus(), do_not_queue=True)
                     except dbus.exceptions.NameExistsException:
-                        print('ERROR: WayDroid container service is already running')
+                        print('Andromeda container service is already running')
                         return 1
                 actions.container_manager.start(args)
             elif args.subaction == "stop":
@@ -90,16 +91,16 @@ def main():
                 actions.container_manager.unfreeze(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    "Run andromeda {} -h for usage information.".format(args.action))
 
         elif args.action == "notification_server":
             actionNeedRoot(args.action)
             if args.subaction == "start":
                 if dbus_notification_scope is None:
                     try:
-                        dbus_notification_scope = dbus.service.BusName("id.waydro.Notification", dbus.SystemBus(), do_not_queue=True)
+                        dbus_notification_scope = dbus.service.BusName("io.furios.Andromeda.Notification", dbus.SystemBus(), do_not_queue=True)
                     except dbus.exceptions.NameExistsException:
-                        logging.info('LOG: WayDroid notification service is already running')
+                        logging.info('LOG: Andromeda notification service is already running')
                         return 1
                     except dbus.exceptions.DBusException as e:
                         print(f"An error occurred while creating the notification service: {e}")
@@ -109,15 +110,15 @@ def main():
                 actions.notification_server.stop(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    "Run andromeda {} -h for usage information.".format(args.action))
         elif args.action == "statechange_server":
             actionNeedRoot(args.action)
             if args.subaction == "start":
                 if dbus_notification_scope is None:
                     try:
-                        dbus_notification_scope = dbus.service.BusName("id.waydro.StateChange", dbus.SystemBus(), do_not_queue=True)
+                        dbus_notification_scope = dbus.service.BusName("io.furios.Andromeda.StateChange", dbus.SystemBus(), do_not_queue=True)
                     except dbus.exceptions.NameExistsException:
-                        logging.info('LOG: WayDroid state change service is already running')
+                        logging.info('LOG: Andromeda state change service is already running')
                         return 1
                     except dbus.exceptions.DBusException as e:
                         print(f"An error occurred while creating the state change service: {e}")
@@ -127,7 +128,7 @@ def main():
                 actions.statechange_server.stop(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    "Run andromeda {} -h for usage information.".format(args.action))
         elif args.action == "app":
             if args.subaction == "install":
                 actions.app_manager.install(args)
@@ -141,7 +142,7 @@ def main():
                 actions.app_manager.list(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    "Run andromeda {} -h for usage information.".format(args.action))
         elif args.action == "prop":
             if args.subaction == "get":
                 actions.prop.get(args)
@@ -149,7 +150,7 @@ def main():
                 actions.prop.set(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    "Run andromeda {} -h for usage information.".format(args.action))
         elif args.action == "shell":
             actionNeedRoot(args.action)
             helpers.lxc.shell(args)
@@ -169,10 +170,7 @@ def main():
             except KeyboardInterrupt:
                 pass
         else:
-            logging.info("Run waydroid -h for usage information.")
-
-        #logging.info("Done")
-
+            logging.info("Run andromeda -h for usage information.")
     except Exception as e:
         # Dump log to stdout when args (and therefore logging) init failed
         if not args:
@@ -182,10 +180,10 @@ def main():
         logging.debug(traceback.format_exc())
 
         # Hints about the log file (print to stdout only)
-        log_hint = "Run 'waydroid log' for details."
+        log_hint = "Run 'andromeda log' for details."
         if not args or not os.path.exists(args.log):
             log_hint += (" Alternatively you can use '--details-to-stdout' to"
-                         " get more output, e.g. 'waydroid"
+                         " get more output, e.g. 'andromeda"
                          " --details-to-stdout init'.")
         print(log_hint)
         return 1

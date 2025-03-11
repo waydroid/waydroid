@@ -127,7 +127,7 @@ def generate_nodes_lxc_config(args):
 
     return nodes
 
-LXC_APPARMOR_PROFILE = "lxc-waydroid"
+LXC_APPARMOR_PROFILE = "lxc-andromeda"
 def get_apparmor_status(args):
     enabled = False
     if shutil.which("aa-enabled"):
@@ -142,12 +142,12 @@ def get_apparmor_status(args):
     return enabled
 
 def set_lxc_config(args):
-    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+    lxc_path = tools.config.defaults["lxc"] + "/andromeda"
     lxc_ver = get_lxc_version(args)
     if lxc_ver == 0:
         raise OSError("LXC is not installed")
     config_paths = tools.config.tools_src + "/data/configs/config_"
-    seccomp_profile = tools.config.tools_src + "/data/configs/waydroid.seccomp"
+    seccomp_profile = tools.config.tools_src + "/data/configs/andromeda.seccomp"
 
     config_snippets = [ config_paths + "base" ]
     # lxc v1 and v2 are bit special because some options got renamed later
@@ -165,7 +165,7 @@ def set_lxc_config(args):
     tools.helpers.run.user(args, command)
     command = ["sed", "-i", "s/LXCARCH/{}/".format(platform.machine()), lxc_path + "/config"]
     tools.helpers.run.user(args, command)
-    command = ["cp", "-fpr", seccomp_profile, lxc_path + "/waydroid.seccomp"]
+    command = ["cp", "-fpr", seccomp_profile, lxc_path + "/andromeda.seccomp"]
     tools.helpers.run.user(args, command)
     if get_apparmor_status(args):
         command = ["sed", "-i", "-E", "/lxc.aa_profile|lxc.apparmor.profile/ s/unconfined/{}/g".format(LXC_APPARMOR_PROFILE), lxc_path + "/config"]
@@ -209,10 +209,10 @@ def generate_session_lxc_config(args, session):
     pulse_container_socket = os.path.join(tools.config.defaults["container_pulse_runtime_path"], "native")
     make_entry(pulse_host_socket, pulse_container_socket[1:])
 
-    if not make_entry(session["waydroid_data"], "data", options="rbind 0 0"):
+    if not make_entry(session["andromeda_data"], "data", options="rbind 0 0"):
         raise OSError("Failed to bind userdata")
 
-    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+    lxc_path = tools.config.defaults["lxc"] + "/andromeda"
     config_nodes_tmp_path = args.work + "/config_session"
     config_nodes = open(config_nodes_tmp_path, "w")
     for node in nodes:
@@ -351,29 +351,14 @@ def make_base_props(args):
         opengles = "196609"
     props.append("ro.opengles.version=" + opengles)
 
-    props.append("waydroid.tools_version=" + tools.config.version)
-
     if args.vendor_type == "MAINLINE":
         props.append("ro.vndk.lite=true")
-
-    for product in ["brand", "device", "manufacturer", "model", "name"]:
-        prop_product = tools.helpers.props.host_get(
-            args, "ro.product.vendor." + product)
-        if prop_product != "":
-            props.append("ro.product.waydroid." + product + "=" + prop_product)
-        else:
-            if os.path.isfile("/proc/device-tree/" + product):
-                with open("/proc/device-tree/" + product) as f:
-                    f_value = f.read().strip().rstrip('\x00')
-                    if f_value != "":
-                        props.append("ro.product.waydroid." +
-                                     product + "=" + f_value)
 
     prop_fp = tools.helpers.props.host_get(args, "ro.vendor.build.fingerprint")
     if prop_fp != "":
         props.append("ro.build.fingerprint=" + prop_fp)
 
-    # now append/override with values in [properties] section of waydroid.cfg
+    # now append/override with values in [properties] section of andromeda.cfg
     cfg = tools.config.load(args)
     for k, v in cfg["properties"].items():
         for idx, elem in enumerate(props):
@@ -383,7 +368,7 @@ def make_base_props(args):
 
     append_override_device_props(props)
 
-    base_props = open(args.work + "/waydroid_base.prop", "w")
+    base_props = open(args.work + "/andromeda_base.prop", "w")
     for prop in props:
         base_props.write(prop + "\n")
     base_props.close()
@@ -418,7 +403,7 @@ def setup_host_perms(args):
         shutil.copy(filename, tools.config.defaults["host_perms"])
 
 def status(args):
-    command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
+    command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "andromeda", "-sH"]
     try:
         return tools.helpers.run.user(args, command, output_return=True).strip()
     except:
@@ -439,7 +424,7 @@ def wait_for_running(args):
 
 def start(args):
     command = ["lxc-start", "-P", tools.config.defaults["lxc"],
-               "-F", "-n", "waydroid", "--", "/init"]
+               "-F", "-n", "andromeda", "--", "/init"]
     tools.helpers.run.user(args, command, output="background")
     wait_for_running(args)
     # Workaround lxc-start changing stdout/stderr permissions to 700
@@ -447,16 +432,16 @@ def start(args):
 
 def stop(args):
     command = ["lxc-stop", "-P",
-               tools.config.defaults["lxc"], "-n", "waydroid", "-k"]
+               tools.config.defaults["lxc"], "-n", "andromeda", "-k"]
     tools.helpers.run.user(args, command)
 
 def freeze(args):
-    command = ["lxc-freeze", "-P", tools.config.defaults["lxc"], "-n", "waydroid"]
+    command = ["lxc-freeze", "-P", tools.config.defaults["lxc"], "-n", "andromeda"]
     tools.helpers.run.user(args, command)
 
 def unfreeze(args):
     command = ["lxc-unfreeze", "-P",
-               tools.config.defaults["lxc"], "-n", "waydroid"]
+               tools.config.defaults["lxc"], "-n", "andromeda"]
     tools.helpers.run.user(args, command)
 
 ANDROID_ENV = {
@@ -480,10 +465,10 @@ def shell(args):
     if state == "FROZEN":
         unfreeze(args)
     elif state != "RUNNING":
-        logging.error("WayDroid container is {}".format(state))
+        logging.error("Andromeda container is {}".format(state))
         return
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
-               "-n", "waydroid", "--clear-env"]
+               "-n", "andromeda", "--clear-env"]
     command.extend(android_env_attach_options())
     if args.uid!=None:
         command.append("--uid="+str(args.uid))
@@ -537,7 +522,7 @@ def screen_toggle(args):
     shell(args)
 
 def sleep_status():
-    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "andromeda", "--clear-env"] + \
               android_env_attach_options() + ["--", "dumpsys", "power"]
 
     result = subprocess.run(command, capture_output=True, text=True)
@@ -582,7 +567,7 @@ def remove_app(args, packageName):
     shell(args)
 
 def open_app_present():
-    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "andromeda", "--clear-env"] + \
               android_env_attach_options() + ["--", "dumpsys", "window", "windows"]
 
     result = subprocess.run(command, capture_output=True, text=True)
@@ -614,7 +599,7 @@ def toggle_nfc(args):
     shell(args)
 
 def nfc_status():
-    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "andromeda", "--clear-env"] + \
               android_env_attach_options() + ["--", "dumpsys", "nfc"]
 
     result = subprocess.run(command, capture_output=True, text=True)
@@ -704,7 +689,7 @@ def setprop(args, propname, propvalue):
     shell(args)
 
 def getprop(propname):
-    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "andromeda", "--clear-env"] + \
               android_env_attach_options() + ["--", "getprop", propname]
 
     result = subprocess.run(command, capture_output=True, text=True)
@@ -714,7 +699,7 @@ def getprop(propname):
     return result.stdout.strip()
 
 def watch_prop(propname):
-    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env"] + \
+    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "andromeda", "--clear-env"] + \
               android_env_attach_options() + ["--", "propwatch", propname]
 
     try:

@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: waydroid
-Source: https://github.com/furilabs/waydroid
+Upstream-Name: andromeda
+Source: https://github.com/furilabs/andromeda
 
 Files: *
 Copyright: 2021 Erfan Abdi <erfangplus@gmail.com>

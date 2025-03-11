@@ -4,10 +4,10 @@ set -e
 configure() {
     # If there is no supplied image don't do anything as
     # we expect the user to do that manually
-    if [ -e /usr/share/waydroid-extra/images/system.img ]; then
-        waydroid init || true
+    if [ -e /usr/share/andromeda-images/system.img ]; then
+        andromeda init || true
     fi
-    waydroid upgrade -o || true
+    andromeda upgrade -o || true
 }
 
 case "$1" in

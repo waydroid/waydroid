@@ -3,10 +3,10 @@
 <Menu>
 	<Name>Applications</Name>
 	<Menu>
-		<Name>Waydroid</Name>
-		<Directory>waydroid.directory</Directory>
+		<Name>Andromeda</Name>
+		<Directory>andromeda.directory</Directory>
 		<Include>
-			<Category>X-WayDroid-App</Category>
+			<Category>X-Andromeda-App</Category>
 		</Include>
 	</Menu>
 </Menu>

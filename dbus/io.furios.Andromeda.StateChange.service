@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=io.furios.Andromeda.StateChange
+Exec=/usr/lib/andromeda -w statechange start
+User=root
+SystemdService=andromeda-statechange-server.service

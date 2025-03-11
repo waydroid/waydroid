@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Andromeda
+Exec=andromeda
+Icon=/usr/share/icons/hicolor/512x512/apps/andromeda.png
+Categories=X-Andromeda-App;
+X-Purism-FormFactor=Workstation;Mobile;
+NoDisplay=true

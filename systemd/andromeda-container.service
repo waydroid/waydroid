@@ -1,0 +1,10 @@
+[Unit]
+Description=Andromeda Container
+
+[Service]
+UMask=0022
+BusName=io.furios.Andromeda.Container
+ExecStart=/usr/bin/andromeda -w container start
+
+[Install]
+WantedBy=multi-user.target

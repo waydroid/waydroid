@@ -30,23 +30,23 @@ class NotificationService:
             system_bus.add_signal_receiver(
                 self.on_new_message,
                 signal_name="NewMessage",
-                dbus_interface='id.waydro.Notification',
-                bus_name='id.waydro.Notification',
-                path='/id/waydro/Notification'
+                dbus_interface='io.furios.Andromeda.Notification',
+                bus_name='io.furios.Andromeda.Notification',
+                path='/io/furios/Andromeda/Notification'
             )
             system_bus.add_signal_receiver(
                 self.on_update_message,
                 signal_name="UpdateMessage",
-                dbus_interface='id.waydro.Notification',
-                bus_name='id.waydro.Notification',
-                path='/id/waydro/Notification'
+                dbus_interface='io.furios.Andromeda.Notification',
+                bus_name='io.furios.Andromeda.Notification',
+                path='/io/furios/Andromeda/Notification'
             )
             system_bus.add_signal_receiver(
                 self.on_delete_message,
                 signal_name="DeleteMessage",
-                dbus_interface='id.waydro.Notification',
-                bus_name='id.waydro.Notification',
-                path='/id/waydro/Notification'
+                dbus_interface='io.furios.Andromeda.Notification',
+                bus_name='io.furios.Andromeda.Notification',
+                path='/io/furios/Andromeda/Notification'
             )
         except Exception as e:
             logging.error(f"Failed to setup DBus signals: {e}")
@@ -55,8 +55,8 @@ class NotificationService:
         args = helpers.arguments()
         args.cache = {}
         args.work = config.defaults["work"]
-        args.config = args.work + "/waydroid.cfg"
-        args.log = args.work + "/waydroid.log"
+        args.config = args.work + "/andromeda.cfg"
+        args.log = args.work + "/andromeda.log"
         args.sudo_timer = True
         args.timeout = 1800
 
@@ -94,8 +94,8 @@ class NotificationService:
                 args = helpers.arguments()
                 args.cache = {}
                 args.work = config.defaults["work"]
-                args.config = args.work + "/waydroid.cfg"
-                args.log = args.work + "/waydroid.log"
+                args.config = args.work + "/andromeda.cfg"
+                args.log = args.work + "/andromeda.log"
                 args.sudo_timer = True
                 args.timeout = 1800
                 args.PACKAGE = pkg_name
@@ -116,15 +116,15 @@ class NotificationService:
 
         bus = dbus.SessionBus()
         notification_service = bus.get_object('org.freedesktop.Notifications',
-                                            '/org/freedesktop/Notifications')
+                                              '/org/freedesktop/Notifications')
         notifications = dbus.Interface(notification_service,
-                                    dbus_interface='org.freedesktop.Notifications')
+                                       dbus_interface='org.freedesktop.Notifications')
         notifications.connect_to_signal("ActionInvoked", self.on_action_invoked)
 
         notification_id = notifications.Notify(
             app_name,
             updates_id,
-            config.session_defaults["waydroid_data"] + "/icons/"
+            config.session_defaults["andromeda_data"] + "/icons/"
             + package_name + ".png",
             title,
             text,
@@ -139,9 +139,9 @@ class NotificationService:
     def close_notification_send(self, notification_id):
         bus = dbus.SessionBus()
         notification_service = bus.get_object('org.freedesktop.Notifications',
-                                            '/org/freedesktop/Notifications')
+                                              '/org/freedesktop/Notifications')
         notifications = dbus.Interface(notification_service,
-                                    dbus_interface='org.freedesktop.Notifications')
+                                       dbus_interface='org.freedesktop.Notifications')
 
         notifications.CloseNotification(notification_id)
 
@@ -159,10 +159,10 @@ class NotificationService:
             ok, app_name = self.get_app_name(package_name)
             if ok and not is_group_summary:
                 notification_id = self.notify_send(app_name, package_name, ticker, title, text,
-                                            is_foreground_service, show_light, 0)
+                                                   is_foreground_service, show_light, 0)
                 self.open_notifications[msg_hash] = notification_id
         except dbus.DBusException:
-            logging.error("WayDroid session is stopped")
+            logging.error("Andromeda session is stopped")
 
     def on_update_message(self, msg_hash, replaces_hash, _msg_id, package_name, ticker, title, text,
                           is_foreground_service, _is_group_summary, show_light, _when):
@@ -173,12 +173,12 @@ class NotificationService:
             ok, app_name = self.get_app_name(package_name)
             if ok and replaces_hash in self.open_notifications:
                 notification_id = self.notify_send(app_name, package_name, ticker, title, text,
-                                            is_foreground_service, show_light,
-                                            self.open_notifications[replaces_hash])
+                                                   is_foreground_service, show_light,
+                                                   self.open_notifications[replaces_hash])
                 self.open_notifications[msg_hash] = notification_id
                 del self.open_notifications[replaces_hash]
         except dbus.DBusException:
-            logging.error("WayDroid session is stopped")
+            logging.error("Andromeda session is stopped")
 
     # on android, a notification disappeared (and was not replaced by another)
     def on_delete_message(self, msg_hash):
@@ -188,7 +188,7 @@ class NotificationService:
                 self.close_notification_send(self.open_notifications[msg_hash])
                 del self.open_notifications[msg_hash]
         except dbus.DBusException:
-            logging.error("WayDroid session is stopped")
+            logging.error("Andromeda session is stopped")
 
     def run(self):
         self.args.notificationLoop = GLib.MainLoop()

@@ -13,26 +13,26 @@ import dbus.service
 NETLINK_KOBJECT_UEVENT = 15
 BUFFER_SIZE = 4096
 
-ROOTFS_PATH = '/var/lib/waydroid/rootfs'
+ROOTFS_PATH = '/var/lib/andromeda/rootfs'
 
 running = False
 loop_thread = None
 
 class INotification(dbus.service.Object):
-    def __init__(self, bus_name, object_path='/id/waydro/Notification'):
+    def __init__(self, bus_name, object_path='/io/furios/Andromeda/Notification'):
         dbus.service.Object.__init__(self, bus_name, object_path)
 
-    @dbus.service.signal(dbus_interface='id.waydro.Notification', signature='ssssssbbbt')
+    @dbus.service.signal(dbus_interface='io.furios.Andromeda.Notification', signature='ssssssbbbt')
     def NewMessage(self, msg_hash, msg_id, package_name, ticker, title, text, is_foreground_service,
                    is_group_summary, show_light, when):
         pass
 
-    @dbus.service.signal(dbus_interface='id.waydro.Notification', signature='sssssssbbbt')
+    @dbus.service.signal(dbus_interface='io.furios.Andromeda.Notification', signature='sssssssbbbt')
     def UpdateMessage(self, msg_hash, replaces_hash, msg_id, package_name, ticker, title, text,
                       is_foreground_service, is_group_summary, show_light, when):
         pass
 
-    @dbus.service.signal(dbus_interface='id.waydro.Notification', signature='s')
+    @dbus.service.signal(dbus_interface='io.furios.Andromeda.Notification', signature='s')
     def DeleteMessage(self, msg_hash):
         pass
 
@@ -70,16 +70,16 @@ def get_notifications(_old_notification):
     old_notifications = {}
 
     system_bus = dbus.SystemBus()
-    bus_name = dbus.service.BusName('id.waydro.Notification', system_bus)
-    interface = INotification(bus_name, object_path='/id/waydro/Notification')
+    bus_name = dbus.service.BusName('io.furios.Andromeda.Notification', system_bus)
+    interface = INotification(bus_name, object_path='/io/furios/Andromeda/Notification')
 
     notification_command = [
-        "lxc-attach", "-P", "/var/lib/waydroid/lxc", "-n", "waydroid", "--clear-env", "--",
+        "lxc-attach", "-P", "/var/lib/andromeda/lxc", "-n", "andromeda", "--clear-env", "--",
         "/system/bin/sh", "-c", "dumpsys notification --noredact"
     ]
 
     applist_command = [
-        "lxc-attach", "-P", "/var/lib/waydroid/lxc", "-n", "waydroid", "--clear-env", "--",
+        "lxc-attach", "-P", "/var/lib/andromeda/lxc", "-n", "andromeda", "--clear-env", "--",
         "/system/bin/sh", "-c", "pm list packages -3"
     ]
 

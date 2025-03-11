@@ -22,7 +22,7 @@ def install(args):
         if session["state"] == "FROZEN":
             cm.Unfreeze()
 
-        tmp_dir = tools.config.session_defaults["waydroid_data"] + "/waydroid_tmp"
+        tmp_dir = tools.config.session_defaults["andromeda_data"] + "/waydroid_tmp"
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 
@@ -37,7 +37,7 @@ def install(args):
         if session["state"] == "FROZEN":
             cm.Freeze()
     except (dbus.DBusException, KeyError):
-        logging.error("WayDroid session is stopped")
+        logging.error("Andromeda session is stopped")
 
 def remove(args):
     try:
@@ -60,7 +60,7 @@ def remove(args):
         if session["state"] == "FROZEN":
             cm.Freeze()
     except dbus.DBusException:
-        logging.error("WayDroid session is stopped")
+        logging.error("Andromeda session is stopped")
 
 def maybeLaunchLater(args, launchNow):
     try:
@@ -71,20 +71,20 @@ def maybeLaunchLater(args, launchNow):
             logging.error("Failed to unfreeze container. Trying to launch anyways...")
         launchNow()
     except dbus.DBusException:
-        if shutil.which("dex") is not None and os.path.exists("/usr/share/applications/gnome-waydroid-panel.desktop"):
-            subprocess.run(["dex", "/usr/share/applications/gnome-waydroid-panel.desktop"], stdout=subprocess.PIPE)
+        if shutil.which("dex") is not None and os.path.exists("/usr/share/applications/gnome-andromeda-panel.desktop"):
+            subprocess.run(["dex", "/usr/share/applications/gnome-andromeda-panel.desktop"], stdout=subprocess.PIPE)
         else:
-            logging.error("Starting waydroid session")
+            logging.error("Starting andromeda session")
             tools.actions.session_manager.start(args, launchNow, background=False)
 
 def launch(args):
     def justLaunch():
         platformService = IPlatform.get_service(args)
         if platformService:
-            platformService.setprop("waydroid.active_apps", args.PACKAGE)
+            platformService.setprop("andromeda.active_apps", args.PACKAGE)
             ret = platformService.launchApp(args.PACKAGE)
             multiwin = platformService.getprop(
-                "persist.waydroid.multi_windows", "false")
+                "persist.andromeda.multi_windows", "false")
             if multiwin == "false":
                 platformService.settingsPutString(
                     2, "policy_control", "immersive.status=*")
@@ -120,13 +120,13 @@ def list(args):
         if session["state"] == "FROZEN":
             cm.Freeze()
     except dbus.DBusException:
-        logging.error("WayDroid session is stopped")
+        logging.error("Andromeda session is stopped")
 
 def showFullUI(args):
     def justShow():
         platformService = IPlatform.get_service(args)
         if platformService:
-            platformService.setprop("waydroid.active_apps", "Waydroid")
+            platformService.setprop("andromeda.active_apps", "Andromeda")
             platformService.settingsPutString(2, "policy_control", "null*")
         else:
             logging.error("Failed to access IPlatform service")
@@ -139,10 +139,10 @@ def intent(args):
             ret = platformService.launchIntent(args.ACTION, args.URI)
             if ret == "":
                 return
-            pkg = ret if ret != "android" else "Waydroid"
-            platformService.setprop("waydroid.active_apps", pkg)
+            pkg = ret if ret != "android" else "Andromeda"
+            platformService.setprop("andromeda.active_apps", pkg)
             multiwin = platformService.getprop(
-                "persist.waydroid.multi_windows", "false")
+                "persist.andromeda.multi_windows", "false")
             if multiwin == "false":
                 platformService.settingsPutString(
                     2, "policy_control", "immersive.status=*")

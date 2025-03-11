@@ -1,0 +1,10 @@
+[Unit]
+Description=Andromeda Notification server
+After=andromeda-container.service
+
+[Service]
+BusName=io.furios.Andromeda.Notification
+ExecStart=/usr/bin/andromeda notification_server start
+
+[Install]
+WantedBy=multi-user.target

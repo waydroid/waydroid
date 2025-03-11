@@ -8,7 +8,9 @@ from tools import helpers
 import tools.config
 
 import sys
+import shutil
 import threading
+import configparser
 import multiprocessing
 import select
 import queue
@@ -16,6 +18,108 @@ import time
 import dbus
 import dbus.service
 from gi.repository import GLib
+
+def migrate_installation():
+    source_path = "/var/lib/waydroid"
+    if not os.path.exists(source_path):
+        return False
+    try:
+        dest_path = tools.config.defaults["work"]
+        if os.path.exists(os.path.join(dest_path, "andromeda.cfg")):
+            return False
+
+        os.makedirs(dest_path, exist_ok=True)
+
+        file_renames = {
+            "waydroid.cfg": "andromeda.cfg",
+            "waydroid.prop": "andromeda.prop",
+            "waydroid_base.prop": "andromeda_base.prop"
+        }
+
+        for src_name, dst_name in file_renames.items():
+            src_file = os.path.join(source_path, src_name)
+            dst_file = os.path.join(dest_path, dst_name)
+            if os.path.exists(src_file):
+                if src_name == "waydroid.cfg":
+                    config = configparser.ConfigParser()
+                    config.read(src_file)
+                    if "waydroid" in config.sections():
+                        section_content = dict(config["waydroid"])
+                        config.remove_section("waydroid")
+                        config.add_section("andromeda")
+                        for key, value in section_content.items():
+                            if key == "images_path":
+                                config.set("andromeda", key, "/usr/share/andromeda-images")
+                            else:
+                                config.set("andromeda", key, value)
+                    with open(dst_file, "w") as configfile:
+                        config.write(configfile)
+                else:
+                    shutil.copy2(src_file, dst_file)
+
+        src_lxc_dir = os.path.join(source_path, "lxc", "waydroid")
+        dst_lxc_dir = os.path.join(dest_path, "lxc", "andromeda")
+
+        if os.path.exists(src_lxc_dir):
+            os.makedirs(os.path.dirname(dst_lxc_dir), exist_ok=True)
+
+            shutil.copytree(src_lxc_dir, dst_lxc_dir, dirs_exist_ok=True)
+
+            src_seccomp = os.path.join(dst_lxc_dir, "waydroid.seccomp")
+            dst_seccomp = os.path.join(dst_lxc_dir, "andromeda.seccomp")
+            if os.path.exists(src_seccomp):
+                shutil.move(src_seccomp, dst_seccomp)
+
+            config_file = os.path.join(dst_lxc_dir, "config")
+            if os.path.exists(config_file):
+                with open(config_file, 'r') as f:
+                    content = f.read()
+
+                content = content.replace("# Waydroid LXC Config", "# Andromeda LXC Config")
+                content = content.replace("/var/lib/waydroid/", "/var/lib/andromeda/")
+                content = content.replace("waydroid.seccomp", "andromeda.seccomp")
+                content = content.replace("waydroid0", "andromeda0")
+                content = content.replace("lxc.uts.name = waydroid", "lxc.uts.name = andromeda")
+                content = content.replace("/lxc/waydroid/", "/lxc/andromeda/")
+
+                with open(config_file, 'w') as f:
+                    f.write(content)
+
+            config_nodes_file = os.path.join(dst_lxc_dir, "config_nodes")
+            if os.path.exists(config_nodes_file):
+                with open(config_nodes_file, 'r') as f:
+                    content = f.read()
+
+                content = content.replace("/var/lib/waydroid/", "/var/lib/andromeda/")
+
+                with open(config_nodes_file, 'w') as f:
+                    f.write(content)
+
+            config_session_file = os.path.join(dst_lxc_dir, "config_session")
+            if os.path.exists(config_session_file):
+                with open(config_session_file, 'r') as f:
+                    content = f.read()
+
+                content = content.replace("/var/lib/waydroid/", "/var/lib/andromeda/")
+                content = content.replace("waydroid", "andromeda")
+
+                with open(config_session_file, 'w') as f:
+                    f.write(content)
+
+        for item in os.listdir(source_path):
+            if item in file_renames or item == "lxc":
+                continue
+
+            s = os.path.join(source_path, item)
+            d = os.path.join(dest_path, item)
+
+            if os.path.isdir(s):
+                shutil.copytree(s, d, dirs_exist_ok=True)
+            else:
+                shutil.copy2(s, d)
+        return True
+    except Exception as e:
+        return False
 
 def is_initialized(args):
     return os.path.isfile(args.config) and os.path.isdir(tools.config.defaults["rootfs"])
@@ -33,7 +137,7 @@ def get_vendor_type(args):
 def setup_config(args):
     cfg = tools.config.load(args)
     args.arch = helpers.arch.host()
-    cfg["waydroid"]["arch"] = args.arch
+    cfg["andromeda"]["arch"] = args.arch
 
     preinstalled_images_paths = tools.config.defaults["preinstalled_images_paths"]
     if not args.images_path:
@@ -47,23 +151,23 @@ def setup_config(args):
 
     if not args.images_path:
         args.images_path = tools.config.defaults["images_path"]
-    cfg["waydroid"]["images_path"] = args.images_path
+    cfg["andromeda"]["images_path"] = args.images_path
 
     device_codename = helpers.props.host_get(args, "ro.product.device")
     args.vendor_type = get_vendor_type(args)
 
-    cfg["waydroid"]["vendor_type"] = args.vendor_type
+    cfg["andromeda"]["vendor_type"] = args.vendor_type
     helpers.drivers.setupBinderNodes(args)
-    cfg["waydroid"]["binder"] = args.BINDER_DRIVER
-    cfg["waydroid"]["vndbinder"] = args.VNDBINDER_DRIVER
-    cfg["waydroid"]["hwbinder"] = args.HWBINDER_DRIVER
+    cfg["andromeda"]["binder"] = args.BINDER_DRIVER
+    cfg["andromeda"]["vndbinder"] = args.VNDBINDER_DRIVER
+    cfg["andromeda"]["hwbinder"] = args.HWBINDER_DRIVER
     tools.config.save(args, cfg)
 
 def init(args):
     if not is_initialized(args) or args.force:
         setup_config(args)
         status = "STOPPED"
-        if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
+        if os.path.exists(tools.config.defaults["lxc"] + "/andromeda"):
             status = helpers.lxc.status(args)
         if status != "STOPPED":
             logging.info("Stopping container")

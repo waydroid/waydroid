@@ -1,0 +1,10 @@
+[Unit]
+Description=Andromeda state change server
+After=andromeda-container.service
+
+[Service]
+BusName=io.furios.Andromeda.StateChange
+ExecStart=/usr/bin/andromeda statechange_server start
+
+[Install]
+WantedBy=multi-user.target

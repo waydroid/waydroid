@@ -17,7 +17,7 @@ import time
 
 NETLINK_KOBJECT_UEVENT = 15
 BUFFER_SIZE = 4096
-ROOTFS_PATH = '/var/lib/waydroid/rootfs'
+ROOTFS_PATH = '/var/lib/andromeda/rootfs'
 
 running = False
 mainloop = None
@@ -31,7 +31,7 @@ def signal_handler(signum, frame):
 
 class StateChangeInterface(dbus.service.Object):
     def __init__(self, bus_name):
-        super().__init__(bus_name, '/id/waydro/StateChange')
+        super().__init__(bus_name, '/io/furios/Andromeda/StateChange')
         self.composer_monitor_thread = None
         self.monitor_thread = None
         self.package_monitor_thread = None
@@ -40,28 +40,28 @@ class StateChangeInterface(dbus.service.Object):
         self.stop_monitoring = False
         self.current_watch_process = None
 
-    @dbus.service.signal(dbus_interface='id.waydro.StateChange', signature='i')
+    @dbus.service.signal(dbus_interface='io.furios.Andromeda.StateChange', signature='i')
     def userUnlocked(self, uid):
         logging.info("Signal: userUnlocked emitted")
         pass
 
-    @dbus.service.signal(dbus_interface='id.waydro.StateChange', signature='isi')
+    @dbus.service.signal(dbus_interface='io.furios.Andromeda.StateChange', signature='isi')
     def packageStateChanged(self, action, name, uid):
         logging.info(f"Signal: packageStateChanged emitted: action={action}, name={name}, uid={uid}")
         pass
 
-    @dbus.service.signal(dbus_interface='id.waydro.StateChange', signature='s')
+    @dbus.service.signal(dbus_interface='io.furios.Andromeda.StateChange', signature='s')
     def sendClipboardData(self, content):
         logging.info(f"Signal: sendClipboardData emitted: content={content}")
         pass
 
-    @dbus.service.signal(dbus_interface='id.waydro.StateChange', signature='b')
+    @dbus.service.signal(dbus_interface='io.furios.Andromeda.StateChange', signature='b')
     def gnssStateChanged(self, state):
         logging.info(f"Signal: gnssStateChanged emitted: state={state}")
         pass
 
     def propwatch(self, propname):
-        command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env", "--", "propwatch", propname]
+        command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "andromeda", "--clear-env", "--", "propwatch", propname]
         try:
             self.current_watch_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
             if self.current_watch_process and self.current_watch_process.stdout:
@@ -123,7 +123,7 @@ class StateChangeInterface(dbus.service.Object):
                     continue
 
                 if new_count and new_count != "0" and new_count != initial_count:
-                    host_data_path = helpers.lxc.getprop("waydroid.host_data_path")
+                    host_data_path = helpers.lxc.getprop("andromeda.host_data_path")
                     clipboard_path = os.path.join(host_data_path, "clipboard", "clipboard")
 
                     if os.path.isdir(os.path.dirname(clipboard_path)) and os.path.isfile(clipboard_path):
@@ -204,14 +204,14 @@ class StateChangeInterface(dbus.service.Object):
 
                 if new_state and new_state != initial_state and new_state == "running":
                     time.sleep(5)
-                    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env", "--", "lshal", "-i", "2>/dev/null", "|", "grep", "vendor.waydroid.display@1.0::IWaydroidDisplay/default"]
+                    command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "andromeda", "--clear-env", "--", "lshal", "-i", "2>/dev/null", "|", "grep", "vendor.waydroid.display@1.0::IWaydroidDisplay/default"]
                     result = ''
 
                     current_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
                     if current_process and current_process.stdout:
                         result = current_process.stdout.readline().strip()
                     else:
-                        logging.error(f"Failed to get waydroid display: Process or stdout is None")
+                        logging.error(f"Failed to get andromeda display: Process or stdout is None")
 
                     if result and result == 'vendor.waydroid.display@1.0::IWaydroidDisplay/default':
                         logging.info("vendor.hwcomposer-2-1 is up with all interfaces")
@@ -220,7 +220,7 @@ class StateChangeInterface(dbus.service.Object):
                         pid = helpers.lxc.getprop("init.svc_debug_pid.vendor.hwcomposer-2-1")
                         if pid:
                             logging.info(f"vendor.hwcomposer-2-1 is stuck. killing pid {pid}")
-                            command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "--clear-env", "--", "kill", "-9", f"{pid}"]
+                            command = ["lxc-attach", "-P", tools.config.defaults["lxc"], "-n", "andromeda", "--clear-env", "--", "kill", "-9", f"{pid}"]
                             subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
                         break
             except KeyboardInterrupt:
@@ -335,7 +335,7 @@ def start(_args=None):
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
-    name = dbus.service.BusName('id.waydro.StateChange', bus)
+    name = dbus.service.BusName('io.furios.Andromeda.StateChange', bus)
 
     state_change = StateChangeInterface(name)
     state_change.monitor_thread = threading.Thread(target=state_change.monitor_main)

@@ -11,27 +11,27 @@ except ImportError:
 
 import tools.config
 
-""" This file is about parsing command line arguments passed to waydroid, as
-    well as generating the help pages (waydroid -h). All this is done with
+""" This file is about parsing command line arguments passed to andromeda, as
+    well as generating the help pages (andromeda -h). All this is done with
     Python's argparse. The parsed arguments get extended and finally stored in
     the "args" variable, which is prominently passed to most functions all
-    over the waydroid code base.
+    over the andromeda code base.
 
     See tools/helpers/args.py for more information about the args variable. """
 
 def arguments_init(subparser):
-    ret = subparser.add_parser("init", help="set up waydroid specific"
+    ret = subparser.add_parser("init", help="set up andromeda specific"
                                " configs and install images")
     ret.add_argument("-i", "--images_path",
-                        help="custom path to waydroid images (default in"
-                             " /var/lib/waydroid/images)")
+                        help="custom path to andromeda images (default in"
+                             " /var/lib/andromeda/images)")
     ret.add_argument("-f", "--force", action="store_true",
                      help="re-initialize configs and images")
     return ret
 
 def arguments_status(subparser):
     ret = subparser.add_parser("status",
-                               help="quick check for the waydroid")
+                               help="quick check for the andromeda")
     return ret
 
 def arguments_upgrade(subparser):
@@ -41,7 +41,7 @@ def arguments_upgrade(subparser):
     return ret
 
 def arguments_log(subparser):
-    ret = subparser.add_parser("log", help="follow the waydroid logfile")
+    ret = subparser.add_parser("log", help="follow the andromeda logfile")
     ret.add_argument("-n", "--lines", default="60",
                      help="count of initial output lines")
     ret.add_argument("-c", "--clear", help="clear the log",
@@ -109,10 +109,6 @@ def arguments_prop(subparser):
     set.add_argument('value', help="value of the property to set")
     return ret
 
-def arguments_fullUI(subparser):
-    ret = subparser.add_parser("show-full-ui", help="show android full screen in window")
-    return ret
-
 def arguments_shell(subparser):
     ret = subparser.add_parser("shell", help="run remote shell command")
     ret.add_argument("-u", "--uid", help="the UID to run as (also sets GID to the same value if -g is not set)")
@@ -129,7 +125,7 @@ def arguments_logcat(subparser):
     return ret
 
 def arguments():
-    parser = argparse.ArgumentParser(prog="waydroid")
+    parser = argparse.ArgumentParser(prog="andromeda")
 
     # Other
     parser.add_argument("-V", "--version", action="version",
@@ -163,7 +159,6 @@ def arguments():
     arguments_statechange_server(sub)
     arguments_app(sub)
     arguments_prop(sub)
-#    arguments_fullUI(sub)
     arguments_shell(sub)
     arguments_logcat(sub)
 

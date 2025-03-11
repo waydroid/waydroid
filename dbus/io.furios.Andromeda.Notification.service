@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=io.furios.Andromeda.Notification
+Exec=/usr/bin/andromeda -w notification_server start
+User=root
+SystemdService=andromeda-notification-server.service

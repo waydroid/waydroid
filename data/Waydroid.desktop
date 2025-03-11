@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Waydroid
-Exec=waydroid
-Icon=/usr/share/icons/hicolor/512x512/apps/waydroid.png
-Categories=X-WayDroid-App;
-X-Purism-FormFactor=Workstation;Mobile;
-NoDisplay=true

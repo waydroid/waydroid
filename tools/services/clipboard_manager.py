@@ -20,8 +20,8 @@ def start(args):
         bus.add_signal_receiver(
             clipboard_handler.copy,
             signal_name='sendClipboardData',
-            dbus_interface='id.waydro.StateChange',
-            bus_name='id.waydro.StateChange'
+            dbus_interface='io.furios.Andromeda.StateChange',
+            bus_name='io.furios.Andromeda.StateChange'
         )
 
     def service_thread_gbinder():

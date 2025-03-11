@@ -1,7 +1,7 @@
-lxc.uts.name = waydroid
+lxc.uts.name = andromeda
 
 lxc.apparmor.profile = unconfined
-lxc.seccomp.profile = /var/lib/waydroid/lxc/waydroid/waydroid.seccomp
+lxc.seccomp.profile = /var/lib/andromeda/lxc/andromeda/andromeda.seccomp
 
 lxc.no_new_privs = 1
 
@@ -9,7 +9,7 @@ lxc.init.cmd = /init
 
 lxc.net.0.type = veth
 lxc.net.0.flags = up
-lxc.net.0.link = waydroid0
+lxc.net.0.link = andromeda0
 lxc.net.0.name = eth0
 lxc.net.0.hwaddr = 00:16:3e:f9:d3:03
 lxc.net.0.mtu = 1500

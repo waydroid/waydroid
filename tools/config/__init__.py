@@ -17,7 +17,7 @@ from tools.config.save import save
 version = "1.5.0"
 tools_src = os.path.normpath(os.path.realpath(__file__) + "/../../..")
 
-# Keys saved in the config file (mostly what we ask in 'waydroid init')
+# Keys saved in the config file (mostly what we ask in 'andromeda init')
 config_keys = ["arch",
                "images_path",
                "vendor_type",
@@ -30,11 +30,10 @@ config_keys = ["arch",
 # overridden on the commandline)
 defaults = {
     "arch": "arm64",
-    "work": "/var/lib/waydroid",
+    "work": "/var/lib/andromeda",
     "vendor_type": "MAINLINE",
     "preinstalled_images_paths": [
-        "/etc/waydroid-extra/images",
-        "/usr/share/waydroid-extra/images",
+        "/usr/share/andromeda-images",
     ],
     "suspend_action": "freeze",
     "mount_overlays": "True",
@@ -68,6 +67,8 @@ session_defaults = {
     "height": "0",
     "background_start": "true"
 }
+session_defaults["andromeda_data"] = session_defaults["xdg_data_home"] + \
+    "/andromeda/data"
 session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + \
     "/waydroid/data"
 if session_defaults["pulse_runtime_path"] == "None":

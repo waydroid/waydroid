@@ -1,13 +1,13 @@
-lxc.utsname = waydroid
+lxc.utsname = andromeda
 
 lxc.init_cmd = /init
 
 lxc.aa_profile = unconfined
-lxc.seccomp = /var/lib/waydroid/lxc/waydroid/waydroid.seccomp
+lxc.seccomp = /var/lib/andromeda/lxc/andromeda/andromeda.seccomp
 
 lxc.network.type = veth
 lxc.network.flags = up
-lxc.network.link = waydroid0
+lxc.network.link = andromeda0
 lxc.network.name = eth0
 lxc.network.hwaddr = 00:16:3e:f9:d3:03
 lxc.network.mtu = 1500

@@ -35,8 +35,8 @@ class LocationTracker(multiprocessing.Process):
         args = helpers.arguments()
         args.cache = {}
         args.work = self.work_dir
-        args.config = args.work + "/waydroid.cfg"
-        args.log = args.work + "/waydroid.log"
+        args.config = args.work + "/andromeda.cfg"
+        args.log = args.work + "/andromeda.log"
         args.sudo_timer = True
         args.timeout = 1800
         return args
@@ -99,8 +99,8 @@ class LocationService:
             bus.add_signal_receiver(
                 self.gnssStateChanged,
                 signal_name='gnssStateChanged',
-                dbus_interface='id.waydro.StateChange',
-                bus_name='id.waydro.StateChange'
+                dbus_interface='io.furios.Andromeda.StateChange',
+                bus_name='io.furios.Andromeda.StateChange'
             )
         except Exception as e:
             logging.error(f"Failed to setup DBus signals: {e}")

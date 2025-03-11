@@ -1,2 +1,2 @@
-/usr/lib/systemd/user/waydroid-notification-client.service /usr/lib/systemd/user/gnome-session.target.wants/waydroid-notification-client.service
-/usr/lib/systemd/user/waydroid-session.service /usr/lib/systemd/user/gnome-session.target.wants/waydroid-session.service
+/usr/lib/systemd/user/andromeda-notification-client.service /usr/lib/systemd/user/gnome-session.target.wants/andromeda-notification-client.service
+/usr/lib/systemd/user/andromeda-session.service /usr/lib/systemd/user/gnome-session.target.wants/andromeda-session.service
