@@ -39,5 +39,6 @@ Depends: ${misc:Depends},
          python3-dbus-fast,
          python3-msgspec,
          python3-aiofiles,
+         python3-aiosqlite,
 Description: Android software store bridge
  This bridge allows to install Android apps from software stores through DBus
