@@ -90,6 +90,27 @@ class FDroidInterface(ServiceInterface):
         await self.db.commit()
         store_print("Database initialized", self.verbose)
 
+    async def ensure_populated(self):
+        '''Ensure the database is populated '''
+
+        try:
+            overall_success = False
+            async with self.db.execute("SELECT COUNT(*) FROM apps") as cursor:
+                row_count = await cursor.fetchone()
+
+            if not row_count[0]:
+                store_print("Database is empty, updating cache", self.verbose)
+                overall_success = await self.update_cache()
+
+                if not overall_success:
+                    store_print("Database population failed", self.verbose)
+                    return False
+
+            return True
+
+        except Exception:
+            return False
+
     def _start_task_processor(self):
         """Start the async task processor if it's not already running"""
         if not self._running:
@@ -183,7 +204,8 @@ class FDroidInterface(ServiceInterface):
             bus.disconnect()
 
             return True
-        except Exception as e:
+        except Exception:
+            store_print("Container session manager is not started", self.verbose)
             return False
 
     async def download_index(self, repo_url, repo_name):
@@ -270,11 +292,12 @@ class FDroidInterface(ServiceInterface):
             os.remove(index_path)
             os.remove(url_path)
 
-        # If any rows were gathered, update the database in one transaction.
-        if rows:
-            async with self.db.execute("BEGIN TRANSACTION;"):
-                # full refresh, clear all previous entries.
-                await self.db.execute("DELETE FROM apps;")
+        async with self.db.execute("BEGIN TRANSACTION;"):
+            # full refresh, clear all previous entries.
+            await self.db.execute("DELETE FROM apps;")
+
+            # If any rows were gathered, update the database in one transaction.
+            if rows:
                 await self.db.executemany(
                     """
                     INSERT INTO apps (
@@ -306,12 +329,10 @@ class FDroidInterface(ServiceInterface):
                     """,
                     rows,
                 )
-                await self.db.commit()
-            store_print("Database updated successfully from cached indexes", self.verbose)
-            return True
-        else:
-            store_print("No index data found in cache.", self.verbose)
-            return False
+
+            await self.db.commit()
+
+        store_print("Database updated successfully from cached indexes", self.verbose)
 
     def get_localized_text(self, text_obj, lang='en-US'):
         if isinstance(text_obj, dict):
@@ -420,15 +441,16 @@ class FDroidInterface(ServiceInterface):
             store_print(f"Searching for {query}", self.verbose)
             results = []
 
-            ping = await self.ping_session_manager()
-            if not ping:
-                store_print("Container session manager is not started", self.verbose)
+            if not await self.ping_session_manager():
+                return self.json_enc.encode(results)
+
+            if not await self.ensure_populated():
                 return self.json_enc.encode(results)
 
             # Use the database to perform the search.
             sql_query = """
                 SELECT repository, package_id, name, summary, description, license,
-                    categories, author, web_url, source_url, tracker_url, 
+                    categories, author, web_url, source_url, tracker_url,
                     changelog_url, donation_url, added_date, last_updated, package
                 FROM apps
                 WHERE LOWER(name) LIKE LOWER(?)
@@ -473,10 +495,10 @@ class FDroidInterface(ServiceInterface):
                 break
             else:
                 store_print(f"Failed to download from {repo_url}, trying next mirror...", self.verbose)
-        
+
         if not repo_success:
             store_print(f"Failed to download {config_file} from all mirrors", self.verbose)
-        
+
         return repo_success
 
     async def update_cache(self):
@@ -504,7 +526,8 @@ class FDroidInterface(ServiceInterface):
             tasks.append(asyncio.create_task(self.process_repo_file(config_file, repo_dir)))
 
         results = await asyncio.gather(*tasks)
-        overall_success = all(results)
+
+        overall_success = any(results)
         await self.process_all_indexes_to_db()
 
         await self.cleanup_session()
@@ -513,9 +536,7 @@ class FDroidInterface(ServiceInterface):
     @method()
     async def UpdateCache(self) -> 'b':
         async def _update_cache_task():
-            ping = await self.ping_session_manager()
-            if not ping:
-                store_print("Container session manager is not started", self.verbose)
+            if not await self.ping_session_manager():
                 return False
             return await self.update_cache()
         return await self._queue_task(_update_cache_task)
@@ -524,14 +545,12 @@ class FDroidInterface(ServiceInterface):
     async def Install(self, package_id: 's') -> 'b':
         async def _install_task():
             store_print(f"Installing package {package_id}", self.verbose)
-            ping = await self.ping_session_manager()
-            if not ping:
-                store_print("Container session manager is not started", self.verbose)
+
+            if not await self.ping_session_manager():
                 return False
 
-            if not os.path.exists(CACHE_DIR):
-                store_print("Cache directory not found. Updating cache first", self.verbose)
-                await self.update_cache()
+            if not await self.ensure_populated():
+                return False
 
             try:
                 package_info = None
@@ -545,7 +564,7 @@ class FDroidInterface(ServiceInterface):
                     rows = await cursor.fetchall()
                     if len(rows) > 1:
                         store_print(f"Multiple entries found for {package_id}", self.verbose)
-                    
+
                     for row in rows:
                         repository, package_json = row
                         store_print(f"Found package {package_id} in {repository}", self.verbose)
@@ -593,9 +612,7 @@ class FDroidInterface(ServiceInterface):
             store_print("Getting repositories", self.verbose)
             repositories = []
 
-            ping = await self.ping_session_manager()
-            if not ping:
-                store_print("Container session manager is not started", self.verbose)
+            if not await self.ping_session_manager():
                 return repositories
 
             repo_files = {}  # filename -> (repo_dir, url)
@@ -634,9 +651,7 @@ class FDroidInterface(ServiceInterface):
             store_print("Getting upgradable", self.verbose)
             upgradable = []
 
-            ping = await self.ping_session_manager()
-            if not ping:
-                store_print("Container session manager is not started", self.verbose)
+            if not await self.ping_session_manager():
                 return upgradable
 
             raw_upgradable = await self.get_upgradable_packages()
@@ -658,9 +673,9 @@ class FDroidInterface(ServiceInterface):
     async def get_upgradable_packages(self):
         upgradable = []
         installed_apps = await self.get_apps_info()
-        if not os.path.exists(CACHE_DIR):
-            store_print("Cache directory not found. Updating cache first", self.verbose)
-            await self.update_cache()
+
+        if not await self.ensure_populated():
+            return upgradable
 
         for app in installed_apps:
             package_name = app['packageName'].value
@@ -697,9 +712,7 @@ class FDroidInterface(ServiceInterface):
         async def _upgrade_packages_task(packages: 'as'):
             store_print(f"Upgrading packages {packages}", self.verbose)
 
-            ping = await self.ping_session_manager()
-            if not ping:
-                store_print("Container session manager is not started", self.verbose)
+            if not await self.ping_session_manager():
                 return False
 
             upgradables = await self.get_upgradable_packages()
@@ -745,9 +758,8 @@ class FDroidInterface(ServiceInterface):
     async def RemoveRepository(self, repo_id: 's') -> 'b':
         async def _remove_repository_task():
             store_print(f"Removing repository {repo_id}", self.verbose)
-            ping = await self.ping_session_manager()
-            if not ping:
-                store_print("Container session manager is not started", self.verbose)
+
+            if not await self.ping_session_manager():
                 return False
             return True
         return await self._queue_task(_remove_repository_task)
@@ -756,9 +768,8 @@ class FDroidInterface(ServiceInterface):
     async def GetInstalledApps(self) -> 'aa{sv}':
         async def _get_installed_apps_task():
             store_print("Getting installed apps", self.verbose)
-            ping = await self.ping_session_manager()
-            if not ping:
-                store_print("Container session manager is not started", self.verbose)
+
+            if not await self.ping_session_manager():
                 return []
             return await self.get_apps_info()
         return await self._queue_task(_get_installed_apps_task)
@@ -767,9 +778,8 @@ class FDroidInterface(ServiceInterface):
     async def UninstallApp(self, package_name: 's') -> 'b':
         async def _uninstall_app_task():
             store_print(f"Uninstalling app {package_name}", self.verbose)
-            ping = await self.ping_session_manager()
-            if not ping:
-                store_print("Container session manager is not started", self.verbose)
+
+            if not await self.ping_session_manager():
                 return False
             return await self.remove_app(package_name)
         return await self._queue_task(_uninstall_app_task)
