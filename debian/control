@@ -1,19 +1,25 @@
-Source: waydroid
+Source: andromeda
 Maintainer: Bardia Moshiri <bardia@furilabs.com>
 Section: misc
 Priority: optional
 Build-Depends: debhelper-compat (= 13),
                dh-python,
                python3,
-               dh-apparmor
-Standards-Version: 4.5.0.3
-Vcs-Browser: https://github.com/furilabs/waydroid
-Vcs-Git: https://github.com/furilabs/waydroid.git
+Standards-Version: 4.7.0
+Vcs-Browser: https://github.com/furilabs/andromeda
+Vcs-Git: https://github.com/furilabs/andromeda.git
 
 Package: waydroid
 Architecture: all
+Description: Android™ application support
+ waydroid allows running a separate Android™ environment
+ confined to a LXC container. - this is a transitional package
+
+Package: andromeda
+Architecture: all
 Pre-Depends: waydroid-system-image,
              waydroid-vendor-image,
+             waydroid (= ${binary:Version}),
 Depends: ${misc:Depends},
          ${python3:Depends},
          lxc,
@@ -23,12 +29,12 @@ Depends: ${misc:Depends},
          python3-dbus,
          dbus,
          polkitd | policykit-1,
-	 iptables,
+         iptables,
          libglib2.0-bin,
          wl-clipboard,
          android-vibrator-hal,
 Description: Android™ application support
- waydroid allows running a separate Android™ environment
+ Andromeda allows running a separate Android™ environment
  confined to a LXC container.
 
 Package: android-store
