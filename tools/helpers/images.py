@@ -47,8 +47,7 @@ def make_prop(args, cfg, full_props_path):
     props.append("andromeda.pulse_runtime_path=" + tools.config.defaults["container_pulse_runtime_path"])
     props.append("andromeda.wayland_display=" + tools.config.defaults["container_wayland_display"])
 
-    if which("waydroid-sensord") is None:
-        props.append("waydroid.stub_sensors_hal=1")
+    if not os.path.exists("/usr/libexec/andromeda-sensors"):
         props.append("andromeda.stub_sensors_hal=1")
 
     if not os.path.exists("/usr/libexec/android-vibrator"):
