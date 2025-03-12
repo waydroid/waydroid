@@ -41,7 +41,7 @@ Package: android-store
 Architecture: all
 Depends: ${misc:Depends},
          ${python3:Depends},
-         waydroid,
+         andromeda,
          python3-dbus-fast,
          python3-msgspec,
          python3-aiofiles,
