@@ -10,6 +10,7 @@ import tools.config
 import sys
 import shutil
 import threading
+import subprocess
 import configparser
 import multiprocessing
 import select
@@ -19,11 +20,26 @@ import dbus
 import dbus.service
 from gi.repository import GLib
 
+def is_mounted(path):
+    with open('/proc/mounts', 'r') as f:
+        for line in f:
+            if path in line.split():
+                return True
+    return False
+
 def migrate_installation():
     source_path = "/var/lib/waydroid"
     if not os.path.exists(source_path):
         return False
     try:
+        rootfs_path = os.path.join(source_path, "rootfs")
+        if is_mounted(rootfs_path):
+            subprocess.run(["lxc-stop", "-P", os.path.join(source_path, "lxc"), "-n", "waydroid", "-k"],
+                           check=False, stderr=subprocess.PIPE)
+
+            subprocess.run(["umount", "-l", rootfs_path],
+                           check=False, stderr=subprocess.PIPE)
+
         dest_path = tools.config.defaults["work"]
         if os.path.exists(os.path.join(dest_path, "andromeda.cfg")):
             return False
