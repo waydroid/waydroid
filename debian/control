@@ -17,8 +17,8 @@ Description: Android™ application support
 
 Package: andromeda
 Architecture: all
-Pre-Depends: waydroid-system-image,
-             waydroid-vendor-image,
+Pre-Depends: andromeda-system-image,
+             andromeda-vendor-image,
              waydroid (= ${binary:Version}),
 Depends: ${misc:Depends},
          ${python3:Depends},
