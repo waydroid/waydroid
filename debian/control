@@ -11,6 +11,7 @@ Vcs-Git: https://github.com/furilabs/andromeda.git
 
 Package: waydroid
 Architecture: all
+Depends: andromeda
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container. - this is a transitional package
@@ -19,7 +20,6 @@ Package: andromeda
 Architecture: all
 Pre-Depends: andromeda-system-image,
              andromeda-vendor-image,
-             waydroid (= ${binary:Version}),
 Depends: ${misc:Depends},
          ${python3:Depends},
          lxc,
