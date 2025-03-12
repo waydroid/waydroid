@@ -69,7 +69,7 @@ class DBusSessionManager(dbus.service.Object):
         if andromeda_host_data_path is None:
             return
 
-        tmp_dir = andromeda_host_data_path + "/andromeda_tmp"
+        tmp_dir = andromeda_host_data_path + "/waydroid_tmp"
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 
