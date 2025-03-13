@@ -208,28 +208,56 @@ class FDroidInterface(ServiceInterface):
             store_print("Container session manager is not started", self.verbose)
             return False
 
-    async def download_index(self, repo_url, repo_name):
+    async def downloader(self, url, file):
         await self.ensure_session()
 
+        try:
+            downloaded = 0
+            previous_progress = 0
+            async with self.session.get(url) as response:
+                if response.status == 200:
+                    download_size = response.headers.get('Content-Length', 0)
+                    with open(file, 'wb') as f:
+                        async for chunk in response.content.iter_chunked(8192):
+                            f.write(chunk)
+
+                            # Calculate download progress only if Content-Length is known
+                            if download_size:
+                                downloaded += len(chunk)
+                                progress = int((downloaded / int(download_size)) * 100)
+
+                                # Only update on new % to avoid spamming
+                                if progress != previous_progress:
+                                    store_print(f"Downloading {url}: {progress}%", self.verbose)
+                                    previous_progress = progress
+
+                    return True
+                else:
+                    return False
+        except Exception as e:
+            store_print(f"Error downloading {url}: {e}", self.verbose)
+            os.remove(file)
+            return False
+
+    async def download_index(self, repo_url, repo_name):
         repo_cache_dir = os.path.join(CACHE_DIR, repo_name)
         os.makedirs(repo_cache_dir, exist_ok=True)
 
         repo_url = repo_url.rstrip('/')
         index_url = f"{repo_url}/index-v2.json"
+        index_path = os.path.join(repo_cache_dir, 'index-v2.json')
+        url_path = os.path.join(repo_cache_dir, 'repo_url.txt')
+
         try:
-            async with self.session.get(index_url) as response:
-                if response.status == 200:
-                    json_content = await response.read()
-                    index_path = os.path.join(repo_cache_dir, 'index-v2.json')
-                    url_path = os.path.join(repo_cache_dir, "repo_url.txt")
+            result = await self.downloader(index_url, index_path)
 
-                    async with aiofiles.open(index_path, 'wb') as f:
-                        await f.write(json_content)
-                    async with aiofiles.open(url_path, 'w') as f:
-                        await f.write(repo_url)
+            if not result:
+                return False
 
-                    return True
-            return False
+            async with aiofiles.open(url_path, 'w') as f:
+                await f.write(repo_url)
+
+            return True
         except Exception as e:
             store_print(f"Error downloading index for {repo_url}: {e}", self.verbose)
             return False
@@ -576,27 +604,25 @@ class FDroidInterface(ServiceInterface):
                     return False
 
                 os.makedirs(DOWNLOAD_CACHE_DIR, exist_ok=True)
-                await self.ensure_session()
-                filepath = os.path.join(DOWNLOAD_CACHE_DIR, package_info['apk_name'])
-                async with self.session.get(package_info['download_url']) as response:
-                    if response.status == 200:
-                        with open(filepath, 'wb') as f:
-                            async for chunk in response.content.iter_chunked(8192):
-                                f.write(chunk)
 
-                        store_print(f"APK downloaded to: {filepath}", self.verbose)
-                        success = await self.install_app(filepath)
-                        os.remove(filepath)
-                        if success:
-                            self.AppInstalled(package_id)
-                            store_print(f"Successfully installed {package_id}", self.verbose)
-                            return True
-                        else:
-                            store_print(f"Failed to install {package_id}", self.verbose)
-                            return False
-                    else:
-                        store_print(f"Download failed with status: {response.status}", self.verbose)
-                        return False
+                filepath = os.path.join(DOWNLOAD_CACHE_DIR, package_info['apk_name'])
+                result = await self.downloader(package_info['download_url'], filepath)
+
+                if not result:
+                    return False
+
+                store_print(f"APK downloaded to: {filepath}", self.verbose)
+                success = await self.install_app(filepath)
+                os.remove(filepath)
+
+                if success:
+                    self.AppInstalled(package_id)
+                    store_print(f"Successfully installed {package_id}", self.verbose)
+                    return True
+                else:
+                    store_print(f"Failed to install {package_id}", self.verbose)
+                    return False
+
             except Exception as e:
                 store_print(f"Installation failed: {e}", self.verbose)
                 return False
