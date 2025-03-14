@@ -20,6 +20,16 @@ def getCardFromRender(args, dev):
         return ""
 
 def getDriNode(args):
+    cfg = tools.config.load(args)
+    node = cfg["waydroid"].get("drm_device")
+    if node:
+        if not os.path.exists(node):
+            raise OSError("The specified drm_device {} does not exist".format(node))
+        renderDev = os.path.basename(node)
+        if getKernelDriver(args, renderDev) not in unsupported:
+            return node, getCardFromRender(args, renderDev)
+        return "", ""
+
     for node in glob.glob("/dev/dri/renderD*"):
         renderDev = os.path.basename(node)
         if getKernelDriver(args, renderDev) not in unsupported:
