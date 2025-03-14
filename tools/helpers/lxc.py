@@ -127,20 +127,6 @@ def generate_nodes_lxc_config(args):
 
     return nodes
 
-LXC_APPARMOR_PROFILE = "lxc-andromeda"
-def get_apparmor_status(args):
-    enabled = False
-    if shutil.which("aa-enabled"):
-        enabled = (tools.helpers.run.user(args, ["aa-enabled", "--quiet"], check=False) == 0)
-    if not enabled and shutil.which("systemctl"):
-        enabled = (tools.helpers.run.user(args, ["systemctl", "is-active", "-q", "apparmor"], check=False) == 0)
-    try:
-        with open("/sys/kernel/security/apparmor/profiles", "r") as f:
-            enabled &= (LXC_APPARMOR_PROFILE in f.read())
-    except:
-        enabled = False
-    return enabled
-
 def set_lxc_config(args):
     lxc_path = tools.config.defaults["lxc"] + "/andromeda"
     lxc_ver = get_lxc_version(args)
@@ -167,9 +153,6 @@ def set_lxc_config(args):
     tools.helpers.run.user(args, command)
     command = ["cp", "-fpr", seccomp_profile, lxc_path + "/andromeda.seccomp"]
     tools.helpers.run.user(args, command)
-    if get_apparmor_status(args):
-        command = ["sed", "-i", "-E", "/lxc.aa_profile|lxc.apparmor.profile/ s/unconfined/{}/g".format(LXC_APPARMOR_PROFILE), lxc_path + "/config"]
-        tools.helpers.run.user(args, command)
 
     nodes = generate_nodes_lxc_config(args)
     config_nodes_tmp_path = args.work + "/config_nodes"

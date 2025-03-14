@@ -1,6 +1,5 @@
 lxc.uts.name = andromeda
 
-lxc.apparmor.profile = unconfined
 lxc.seccomp.profile = /var/lib/andromeda/lxc/andromeda/andromeda.seccomp
 
 lxc.no_new_privs = 1
