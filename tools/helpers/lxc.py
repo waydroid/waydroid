@@ -56,7 +56,7 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/pmsg0")
     make_entry("/dev/dxg")
     render, _ = tools.helpers.gpu.getDriNode(args)
-    make_entry(render, "dev/dri/renderD128")
+    make_entry(render)
 
     for n in glob.glob("/dev/fb*"):
         make_entry(n)
@@ -257,6 +257,7 @@ def make_base_props(args):
         if dri:
             gralloc = "gbm"
             egl = "mesa"
+            props.append("gralloc.gbm.device=" + dri)
         else:
             gralloc = "default"
             egl = "swiftshader"
