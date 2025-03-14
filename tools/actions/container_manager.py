@@ -11,6 +11,7 @@ import signal
 import sys
 import uuid
 import threading
+import subprocess
 import tools.config
 from tools import helpers
 from tools import services
@@ -307,10 +308,18 @@ def stop(args, quit_session=True):
         if "session" in args:
             if quit_session:
                 try:
-                    os.kill(int(args.session["pid"]), signal.SIGUSR1)
+                    pid = int(args.session["pid"])
+                    logging.info(f"Killing PID {pid} of session manager")
+                    os.kill(pid, signal.SIGKILL)
                 except:
                     pass
             del args.session
+
+        if quit_session:
+            pids = subprocess.check_output(["pgrep", "-f", "andromeda session start"]).decode().strip().split()
+            for pid in pids:
+                logging.info(f"Killing PID {pid} of session manager")
+                os.kill(int(pid), signal.SIGKILL)
     except:
         pass
 

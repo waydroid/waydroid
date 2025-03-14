@@ -9,6 +9,7 @@ import time
 import signal
 import sys
 import shutil
+import threading
 import tools.config
 import tools.helpers.ipc
 from tools import services
@@ -253,9 +254,28 @@ def do_stop(args, looper):
     looper.quit()
 
 def stop(args):
-    try:
-        tools.helpers.ipc.DBusSessionService().Stop()
-    except dbus.DBusException:
+    stop_executed = False
+
+    def attempt_dbus_stop():
+        nonlocal stop_executed
+        try:
+            tools.helpers.ipc.DBusSessionService().Stop()
+            stop_executed = True
+        except dbus.DBusException:
+            stop_container(quit_session=True)
+            stop_executed = True
+
+    stop_thread = threading.Thread(target=attempt_dbus_stop)
+    stop_thread.daemon = True
+    stop_thread.start()
+
+    timeout = 5
+    start_time = time.time()
+    while not stop_executed and (time.time() - start_time < timeout):
+        time.sleep(0.1)
+
+    if not stop_executed:
+        logging.info(f"DBus stop operation timed out after {timeout} seconds, force stopping the container")
         stop_container(quit_session=True)
 
 def stop_container(quit_session):
