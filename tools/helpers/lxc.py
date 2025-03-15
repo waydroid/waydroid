@@ -67,6 +67,8 @@ def generate_nodes_lxc_config(args):
         make_entry(n)
     for n in glob.glob("/dev/video*"):
         make_entry(n)
+    for n in glob.glob("/dev/dma_heap/*"):
+         make_entry(n)
 
     # Binder dev nodes
     make_entry("/dev/" + args.BINDER_DRIVER, "dev/binder", check=False)

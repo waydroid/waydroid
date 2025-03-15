@@ -202,6 +202,8 @@ def set_permissions(args, perm_list=None, mode="777"):
         perm_list.extend(glob.glob("/dev/fb*"))
         # Videos
         perm_list.extend(glob.glob("/dev/video*"))
+        # DMA-BUF Heaps
+        perm_list.extend(glob.glob("/dev/dma_heap/*"))
 
     for path in perm_list:
         chmod(args, path, mode)
