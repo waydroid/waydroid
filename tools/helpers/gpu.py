@@ -12,7 +12,7 @@ def getKernelDriver(args, dev):
 
 def getCardFromRender(args, dev):
     try:
-        return "/dev/dri/" + os.path.basename(glob.glob("/sys/class/drm/{}/device/drm/card*".format(dev))[0])
+        return "/dev/dri/" + os.path.basename(sorted(glob.glob("/sys/class/drm/{}/device/drm/card*".format(dev)))[0])
     except IndexError:
         return ""
 
@@ -27,7 +27,7 @@ def getDriNode(args):
             return node, getCardFromRender(args, renderDev)
         return "", ""
 
-    for node in glob.glob("/dev/dri/renderD*"):
+    for node in sorted(glob.glob("/dev/dri/renderD*")):
         renderDev = os.path.basename(node)
         if getKernelDriver(args, renderDev) not in unsupported:
             return node, getCardFromRender(args, renderDev)
