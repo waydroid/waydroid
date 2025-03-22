@@ -17,14 +17,36 @@ def start(args):
     def sendClipboardData(value):
         try:
             pyclip.copy(value)
+        except UnicodeDecodeError as e:
+            logging.debug("sendClipboardData: UnicodeDecodeError: %s", str(e))
+            logging.debug("During handling of the above exception, the data causing the error was: %s", value)
         except Exception as e:
-            logging.debug(str(e))
+            logging.debug(f"sendClipboardData: Exception: {str(e)} occurred with {value}")
+
+    def get_clipboard_via_xsel():
+        import subprocess
+        try:
+            return subprocess.check_output(['xsel', '--output', '--clipboard']).decode('utf-8')
+        except subprocess.CalledProcessError as e:
+            print("An error occurred while trying to read the clipboard using xsel.")
+            return ""
 
     def getClipboardData():
         try:
+            # Attempt to get clipboard data using pyclip
             return pyclip.paste()
         except Exception as e:
-            logging.debug(str(e))
+            logging.debug(f"getClipboardData: Exception with pyclip: {str(e)}")
+
+        try:
+            # Fallback to xsel if pyclip fails with: `'utf-8' codec can't decode byte 0xfd in position 0: invalid start byte`
+            xsel_data = get_clipboard_via_xsel()
+            logging.debug("getClipboardData: Successfully retrieved data using xsel.")
+            return xsel_data
+        except Exception as e:
+            logging.debug(f"getClipboardData: Exception with xsel: {str(e)}")
+
+        logging.debug("getClipboardData: Failed to retrieve data from clipboard.")
         return ""
 
     def service_thread():
