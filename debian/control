@@ -40,6 +40,5 @@ Description: Android™ application support
 Package: android-store
 Architecture: all
 Depends: ${misc:Depends},
-         store-provider,
 Description: Android software store bridge
  This bridge allows to install Android apps from software stores through DBus - this is a transitional package
