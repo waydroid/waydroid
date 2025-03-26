@@ -1,4 +1,0 @@
-[D-BUS Service]
-Name=io.FuriOS.AndroidStore
-Exec=/usr/libexec/android-store
-User=root

@@ -40,11 +40,6 @@ Description: Android™ application support
 Package: android-store
 Architecture: all
 Depends: ${misc:Depends},
-         ${python3:Depends},
-         andromeda,
-         python3-dbus-fast,
-         python3-msgspec,
-         python3-aiofiles,
-         python3-aiosqlite,
+         store-provider,
 Description: Android software store bridge
- This bridge allows to install Android apps from software stores through DBus
+ This bridge allows to install Android apps from software stores through DBus - this is a transitional package

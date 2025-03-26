@@ -1,1 +1,0 @@
-/usr/lib/systemd/user/android-store.service /usr/lib/systemd/user/gnome-session.target.wants/android-store.service

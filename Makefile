@@ -15,7 +15,6 @@ SYSD_DIR := $(PREFIX)/lib/systemd/system
 SYSD_USER_DIR := $(PREFIX)/lib/systemd/user
 DBUS_DIR := $(PREFIX)/share/dbus-1
 POLKIT_DIR := $(PREFIX)/share/polkit-1
-ANDROID_STORE_DIR := $(PREFIX)/lib/android-store
 LIBEXEC_DIR := $(PREFIX)/libexec
 
 INSTALL_ANDROMEDA_DIR := $(DESTDIR)$(ANDROMEDA_DIR)
@@ -28,19 +27,16 @@ INSTALL_SYSD_DIR := $(DESTDIR)$(SYSD_DIR)
 INSTALL_SYSD_USER_DIR := $(DESTDIR)$(SYSD_USER_DIR)
 INSTALL_DBUS_DIR := $(DESTDIR)$(DBUS_DIR)
 INSTALL_POLKIT_DIR := $(DESTDIR)$(POLKIT_DIR)
-INSTALL_ANDROID_STORE_DIR := $(DESTDIR)$(ANDROID_STORE_DIR)
 INSTALL_LIBEXEC_DIR := $(DESTDIR)$(LIBEXEC_DIR)
 
 build:
 	@echo "Nothing to build, run 'make install' to copy the files!"
 
 install:
-	install -d $(INSTALL_ANDROMEDA_DIR) $(INSTALL_BIN_DIR) $(INSTALL_DBUS_DIR)/system.d $(INSTALL_POLKIT_DIR)/actions $(INSTALL_ANDROID_STORE_DIR)
+	install -d $(INSTALL_ANDROMEDA_DIR) $(INSTALL_BIN_DIR) $(INSTALL_DBUS_DIR)/system.d $(INSTALL_POLKIT_DIR)/actions
 	install -d $(INSTALL_APPS_DIR) $(INSTALL_ICONS_DIR)/hicolor/512x512/apps $(INSTALL_APPS_DIRECTORY_DIR) $(INSTALL_APPS_MENU_DIR) $(INSTALL_LIBEXEC_DIR)
 	cp -a data tools andromeda.py $(INSTALL_ANDROMEDA_DIR)
-	cp -a android-store/android-store.py android-store/repos $(INSTALL_ANDROID_STORE_DIR)
 	ln -sf $(ANDROMEDA_DIR)/andromeda.py $(INSTALL_BIN_DIR)/andromeda
-	ln -sf $(ANDROID_STORE_DIR)/android-store.py $(INSTALL_LIBEXEC_DIR)/android-store
 	mv $(INSTALL_ANDROMEDA_DIR)/data/AppIcon.png $(INSTALL_ICONS_DIR)/hicolor/512x512/apps/andromeda.png
 	mv $(INSTALL_ANDROMEDA_DIR)/data/*.desktop $(INSTALL_APPS_DIR)
 	mv $(INSTALL_ANDROMEDA_DIR)/data/*.menu $(INSTALL_APPS_MENU_DIR)
@@ -53,7 +49,6 @@ install:
 		install -d $(INSTALL_DBUS_DIR)/services/; \
 		cp dbus/io.furios.Andromeda.Container.service $(INSTALL_DBUS_DIR)/system-services/; \
 		cp dbus/io.furios.Andromeda.Notification.service $(INSTALL_DBUS_DIR)/system-services/; \
-		cp dbus/io.FuriOS.AndroidStore.service $(INSTALL_DBUS_DIR)/services/; \
 	fi
 	if [ $(USE_SYSTEMD) = 1 ]; then \
 		install -d $(INSTALL_SYSD_DIR) $(INSTALL_SYSD_USER_DIR); \
