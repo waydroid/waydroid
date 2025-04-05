@@ -9,6 +9,29 @@ import tools.config
 from tools import helpers
 from shutil import which
 
+property_keys = [
+    "ro.product.vendor.name",
+    "ro.product.vendor.brand",
+    "ro.product.vendor.model",
+    "ro.product.vendor.device",
+    "ro.product.vendor.manufacturer",
+    "ro.product.vendor_dlkm.name",
+    "ro.product.vendor_dlkm.brand",
+    "ro.product.vendor_dlkm.model",
+    "ro.product.vendor_dlkm.device",
+    "ro.product.vendor_dlkm.manufacturer",
+    "ro.product.manufacturer",
+    "ro.product.name",
+    "ro.product.brand",
+    "ro.product.model",
+    "ro.product.device",
+    "ro.product.odm.name",
+    "ro.product.odm.brand",
+    "ro.product.odm.model",
+    "ro.product.odm.device",
+    "ro.product.odm.manufacturer"
+]
+
 def remove_overlay(args):
     if os.path.isdir(tools.config.defaults["overlay_rw"]):
         shutil.rmtree(tools.config.defaults["overlay_rw"])
@@ -46,6 +69,11 @@ def make_prop(args, cfg, full_props_path):
     props.append("andromeda.xdg_runtime_dir=" + tools.config.defaults["container_xdg_runtime_dir"])
     props.append("andromeda.pulse_runtime_path=" + tools.config.defaults["container_pulse_runtime_path"])
     props.append("andromeda.wayland_display=" + tools.config.defaults["container_wayland_display"])
+
+    for prop in property_keys:
+        value = helpers.props.host_get(args, prop)
+        if value:
+            props.append(prop + "=" + value)
 
     if not os.path.exists("/usr/libexec/andromeda-sensors"):
         props.append("andromeda.stub_sensors_hal=1")
