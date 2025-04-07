@@ -280,6 +280,9 @@ def make_base_props(args):
     # AIDL radio prop
     props.append("furios-aidl-radio.start=1")
 
+    # Device secure status
+    props.append("persist.sys.keyguard.secure=true")
+
     egl = tools.helpers.props.host_get(args, "ro.hardware.egl")
     dri, _ = tools.helpers.gpu.getDriNode(args)
 
