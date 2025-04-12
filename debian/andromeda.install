@@ -60,4 +60,4 @@ usr/share/dbus-1/system.d/io.furios.Andromeda.Container.conf
 usr/share/dbus-1/system.d/io.furios.Andromeda.Notification.conf
 usr/share/dbus-1/system.d/io.furios.Andromeda.StateChange.conf
 usr/share/desktop-directories/andromeda.directory
-usr/share/icons/hicolor/512x512/apps/andromeda.png
+usr/share/icons/hicolor/scalable/apps/andromeda.svg

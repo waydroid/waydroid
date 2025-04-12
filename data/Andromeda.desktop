@@ -2,7 +2,7 @@
 Type=Application
 Name=Andromeda
 Exec=andromeda
-Icon=/usr/share/icons/hicolor/512x512/apps/andromeda.png
+Icon=/usr/share/icons/hicolor/scalable/apps/andromeda.svg
 Categories=X-Andromeda-App;
 X-Purism-FormFactor=Workstation;Mobile;
 NoDisplay=true

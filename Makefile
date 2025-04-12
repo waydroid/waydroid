@@ -34,10 +34,10 @@ build:
 
 install:
 	install -d $(INSTALL_ANDROMEDA_DIR) $(INSTALL_BIN_DIR) $(INSTALL_DBUS_DIR)/system.d $(INSTALL_POLKIT_DIR)/actions
-	install -d $(INSTALL_APPS_DIR) $(INSTALL_ICONS_DIR)/hicolor/512x512/apps $(INSTALL_APPS_DIRECTORY_DIR) $(INSTALL_APPS_MENU_DIR) $(INSTALL_LIBEXEC_DIR)
+	install -d $(INSTALL_APPS_DIR) $(INSTALL_ICONS_DIR)/hicolor/scalable/apps $(INSTALL_APPS_DIRECTORY_DIR) $(INSTALL_APPS_MENU_DIR) $(INSTALL_LIBEXEC_DIR)
 	cp -a data tools andromeda.py $(INSTALL_ANDROMEDA_DIR)
 	ln -sf $(ANDROMEDA_DIR)/andromeda.py $(INSTALL_BIN_DIR)/andromeda
-	mv $(INSTALL_ANDROMEDA_DIR)/data/AppIcon.png $(INSTALL_ICONS_DIR)/hicolor/512x512/apps/andromeda.png
+	mv $(INSTALL_ANDROMEDA_DIR)/data/AppIcon.svg $(INSTALL_ICONS_DIR)/hicolor/scalable/apps/andromeda.svg
 	mv $(INSTALL_ANDROMEDA_DIR)/data/*.desktop $(INSTALL_APPS_DIR)
 	mv $(INSTALL_ANDROMEDA_DIR)/data/*.menu $(INSTALL_APPS_MENU_DIR)
 	mv $(INSTALL_ANDROMEDA_DIR)/data/*.directory $(INSTALL_APPS_DIRECTORY_DIR)
