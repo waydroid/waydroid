@@ -29,7 +29,18 @@ property_keys = [
     "ro.product.odm.brand",
     "ro.product.odm.model",
     "ro.product.odm.device",
-    "ro.product.odm.manufacturer"
+    "ro.product.odm.manufacturer",
+    "ro.soc.model",
+    "ro.soc.manufacturer",
+    "ro.vendor.soc.model",
+    "ro.vendor.soc.model.part_name",
+    "ro.vendor.soc.model.external_name",
+
+    # MediaTek specific props from here
+    "ro.vendor.mediatek.platform",
+    "ro.vendor.mediatek.version.branch",
+    "ro.vendor.mediatek.version.release",
+    "ro.mediatek.version.branch"
 ]
 
 def remove_overlay(args):
