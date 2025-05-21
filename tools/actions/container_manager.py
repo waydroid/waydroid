@@ -35,6 +35,10 @@ class DBusContainerManager(dbus.service.Object):
         # Convert each string value to variant
         return dict((k, dbus.String(v, variant_level=1)) for k, v in session.items())
 
+    @dbus.service.signal(dbus_interface="io.furios.Andromeda.ContainerManager", signature='s')
+    def SessionStateChanged(self, state):
+        pass
+
     @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
     def Start(self, session, sender, conn):
         dbus_info = dbus.Interface(conn.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False), "org.freedesktop.DBus")
@@ -45,10 +49,12 @@ class DBusContainerManager(dbus.service.Object):
         if str(uid) != "0" and str(pid) != session["pid"]:
             raise RuntimeError("Invalid session pid")
         do_start(self.args, session)
+        self.SessionStateChanged("started")
 
     @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='b', out_signature='')
     def Stop(self, quit_session):
         stop(self.args, quit_session)
+        self.SessionStateChanged("stopped")
 
     @dbus.service.method("io.furios.Andromeda.ContainerManager", in_signature='', out_signature='')
     def Freeze(self):
