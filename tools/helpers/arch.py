@@ -2,6 +2,21 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import platform
 import logging
+import ctypes
+
+def is_32bit_capable():
+    # man 2 personality
+    personality = ctypes.CDLL(None).personality
+    personality.restype = ctypes.c_int
+    personality.argtypes = [ctypes.c_ulong]
+    # linux/include/uapi/linux/personality.h
+    PER_LINUX32 = 0x0008
+    # mirror e.g. https://github.com/util-linux/util-linux/blob/v2.41/sys-utils/lscpu-cputype.c#L745-L756
+    pers = personality(PER_LINUX32)
+    if pers != -1: # success, revert back to previous persona (typically just PER_LINUX, 0x0000)
+        personality(pers)
+        return True
+    return False # unable to "impersonate" 32-bit host, nothing done
 
 def host():
     machine = platform.machine()
@@ -29,5 +44,8 @@ def maybe_remap(target):
             return "x86"
     elif target == "arm64" and platform.architecture()[0] == "32bit":
         return "arm"
+    elif target == "arm64" and not is_32bit_capable():
+        logging.info("AArch64 CPU does not appear to support AArch32, assuming arm64_only...")
+        return "arm64_only"
 
     return target
