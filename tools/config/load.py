@@ -6,10 +6,10 @@ import os
 import tools.config
 
 
-def load(args):
+def load(config_file):
     cfg = configparser.ConfigParser()
-    if os.path.isfile(args.config):
-        cfg.read(args.config)
+    if os.path.isfile(config_file):
+        cfg.read(config_file)
 
     if "waydroid" not in cfg:
         cfg["waydroid"] = {}
@@ -28,7 +28,10 @@ def load(args):
 
     if "properties" not in cfg:
         cfg["properties"] = {}
-    # no default values for property override
+
+    for key in tools.config.property_defaults:
+        if key in tools.config.property_keys and key not in cfg["properties"]:
+            cfg["properties"][key] = str(tools.config.property_defaults[key])
 
     return cfg
 
