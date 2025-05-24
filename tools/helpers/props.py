@@ -3,7 +3,6 @@
 from shutil import which
 import subprocess
 import logging
-import os
 import tools.helpers.run
 from tools.interfaces import IPlatform
 

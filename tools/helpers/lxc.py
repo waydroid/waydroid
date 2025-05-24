@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import subprocess
 import os
-import re
 import logging
 import glob
 import shutil
