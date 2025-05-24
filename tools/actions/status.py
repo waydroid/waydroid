@@ -1,6 +1,5 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
-import os
 import tools.config
 import tools.helpers.ipc
 import tools.helpers.net

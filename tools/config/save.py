@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import os
 import logging
-import tools.config
 
 
 def save(args, cfg):

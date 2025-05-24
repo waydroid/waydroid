@@ -3,11 +3,8 @@
 from shutil import which
 import logging
 import os
-import time
 import glob
 import signal
-import sys
-import uuid
 import tools.config
 from tools import helpers
 from tools import services

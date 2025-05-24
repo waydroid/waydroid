@@ -5,7 +5,6 @@ import os
 from tools import helpers
 from tools.helpers.version import versiontuple
 import tools.config
-import dbus
 
 def get_config(args):
     cfg = tools.config.load(args)

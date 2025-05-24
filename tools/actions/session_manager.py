@@ -2,10 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
 import os
-import time
 import signal
 import sys
-import shutil
 import tools.config
 import tools.helpers.ipc
 from tools import services
