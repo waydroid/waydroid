@@ -1,3 +1,11 @@
+waydroid (1.5.2) bullseye; urgency=medium
+
+  * arch: Separately identify arm64_only CPUs without AArch32 support
+  * data: Add a valid registered category to Waydroid.desktop for appstream
+  * Upver to 1.5.2
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Fri, 30 May 2025 19:45:21 +0200
+
 waydroid (1.5.1) bullseye; urgency=medium
 
   * lxc: Mount DMA-BUF Heaps
