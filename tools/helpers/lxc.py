@@ -434,10 +434,15 @@ def android_env_attach_options(args):
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
                "-n", "waydroid", "--clear-env", "--",
                "/system/bin/cat" ,"/data/system/environ/classpath"]
-    classpath = tools.helpers.run.user(args, command, output_return=True).strip()
-    for line in classpath.splitlines():
-        _, k, v = line.split(' ', 2)
-        local_env[k] = v
+    try:
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        out, _ = p.communicate()
+        if p.returncode == 0:
+            for line in out.decode().splitlines():
+                _, k, v = line.split(' ', 2)
+                local_env[k] = v
+    except:
+        pass
     env = [k + "=" + v for k, v in local_env.items()]
     return [x for var in env for x in ("--set-var", var)]
 
