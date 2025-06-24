@@ -12,7 +12,7 @@ from tools.config.save import save
 #
 # Exported variables (internal configuration)
 #
-version = "1.5.3"
+version = "1.5.4"
 tools_src = os.path.normpath(os.path.realpath(__file__) + "/../../..")
 
 # Keys saved in the config file (mostly what we ask in 'waydroid init')
