@@ -434,13 +434,15 @@ def android_env_attach_options(args):
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
                "-n", "waydroid", "--clear-env", "--",
                "/system/bin/cat" ,"/data/system/environ/classpath"]
+    allowed = ["CLASSPATH", "SYSTEMSERVER"]
     try:
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         out, _ = p.communicate()
         if p.returncode == 0:
             for line in out.decode().splitlines():
                 _, k, v = line.split(' ', 2)
-                local_env[k] = v
+                if any(pattern in k for pattern in allowed):
+                    local_env[k] = v
     except:
         pass
     env = [k + "=" + v for k, v in local_env.items()]
