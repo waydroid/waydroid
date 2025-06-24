@@ -1,3 +1,10 @@
+waydroid (1.5.4) bullseye; urgency=medium
+
+  * shell: Do not abort if classpath env file is missing
+  * shell: Filter imported environment
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Tue, 24 Jun 2025 11:18:15 +0200
+
 waydroid (1.5.3) bullseye; urgency=medium
 
   * Remove unused python imports
