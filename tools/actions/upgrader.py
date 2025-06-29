@@ -23,6 +23,11 @@ def migration(args):
             tools.helpers.run.user(args, ["chmod", "-R", "g-w,o-w"] + [os.path.join(args.work, f) for f in chmod_paths], check=False)
             tools.helpers.run.user(args, ["chmod", "g-w,o-w", args.work], check=False)
             os.remove(os.path.join(args.work, "session.cfg"))
+        if versiontuple(old_ver) <= versiontuple("1.6.0"):
+            # Because we now default adb to secure, disable auto_adb to avoid prompting the user on every session startup
+            cfg = tools.config.load(args)
+            cfg["waydroid"]["auto_adb"] = "False"
+            tools.config.save(args, cfg)
     except:
         pass
 
