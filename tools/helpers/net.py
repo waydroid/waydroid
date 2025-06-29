@@ -13,17 +13,27 @@ def adb_connect(args):
     """
     # Check if adb exists on the system.
     if not which("adb"):
-        return
+        raise RuntimeError("Could not find adb")
 
     # Start and 'warm up' the adb server
     tools.helpers.run.user(args, ["adb", "start-server"])
 
     ip = get_device_ip_address()
     if not ip:
-        return
+        raise RuntimeError("Unknown container IP address. Is Waydroid running?")
 
     tools.helpers.run.user(args, ["adb", "connect", ip])
     logging.info("Established ADB connection to Waydroid device at {}.".format(ip))
+
+def adb_disconnect(args):
+    if not which("adb"):
+        raise RuntimeError("Could not find adb")
+
+    ip = get_device_ip_address()
+    if not ip:
+        raise RuntimeError("Unknown container IP address. Was Waydroid ever running?")
+
+    tools.helpers.run.user(args, ["adb", "disconnect", ip])
 
 def get_device_ip_address():
     # The IP address is queried from the DHCP lease file.

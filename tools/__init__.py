@@ -130,6 +130,13 @@ def main():
                 actions.app_manager.showFullUI(args)
         elif args.action == "status":
             actions.status.print_status(args)
+        elif args.action == "adb":
+            if args.subaction == "connect":
+                helpers.net.adb_connect(args)
+            elif args.subaction == "disconnect":
+                helpers.net.adb_disconnect(args)
+            else:
+                logging.info("Run waydroid {} -h for usage information.".format(args.action))
         elif args.action == "log":
             if args.clear_log:
                 helpers.run.user(args, ["truncate", "-s", "0", args.log])

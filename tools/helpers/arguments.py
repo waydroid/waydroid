@@ -123,6 +123,13 @@ def arguments_logcat(subparser):
     ret = subparser.add_parser("logcat", help="show android logcat")
     return ret
 
+def arguments_adb(subparser):
+    ret = subparser.add_parser("adb", help="manage adb connection")
+    sub = ret.add_subparsers(title="subaction", dest="subaction")
+    sub.add_parser("connect", help="connect adb to the Android container")
+    sub.add_parser("disconnect", help="disconnect adb from the Android container")
+    return ret
+
 def arguments():
     parser = argparse.ArgumentParser(prog="waydroid")
 
@@ -160,6 +167,7 @@ def arguments():
     arguments_firstLaunch(sub)
     arguments_shell(sub)
     arguments_logcat(sub)
+    arguments_adb(sub)
 
     if argcomplete:
         argcomplete.autocomplete(parser, always_complete_options="long")

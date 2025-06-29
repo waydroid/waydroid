@@ -72,7 +72,10 @@ NoDisplay={str(hide).lower()}
         logging.info("Android with user {} is ready".format(uid))
 
         if cfg["waydroid"]["auto_adb"] == "True":
-            tools.helpers.net.adb_connect(args)
+            try:
+                tools.helpers.net.adb_connect(args)
+            except:
+                pass
 
         platformService = IPlatform.get_service(args)
         if platformService:
