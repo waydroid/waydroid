@@ -142,7 +142,7 @@ def start(args, session, unlocked_cb=None):
             for app in appsList:
                 updateDesktopFile(app)
             for existing in glob.iglob(f'{apps_dir}/waydroid.*.desktop'):
-                if os.path.basename(existing) not in map(lambda appInfo: f"waydroid.{appInfo["packageName"]}.desktop", appsList):
+                if os.path.basename(existing) not in map(lambda appInfo: f"waydroid.{appInfo['packageName']}.desktop", appsList):
                     os.remove(existing)
             multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
             updateWaydroidDesktopFile(multiwin == "true")
