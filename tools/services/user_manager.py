@@ -27,6 +27,7 @@ def start(args, session, unlocked_cb=None):
         "com.android.inputmethod.latin",
         "com.android.settings",
         "com.google.android.gms",
+        "org.lineageos.aperture",
         "org.lineageos.eleven",
         "org.lineageos.etar",
         "org.lineageos.jelly",
