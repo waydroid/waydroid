@@ -10,6 +10,10 @@ SERVICE_NAME = "waydroidusermonitor"
 TRANSACTION_userUnlocked = 1
 TRANSACTION_packageStateChanged = 2
 
+PACKAGE_ADDED = 0;
+PACKAGE_REMOVED = 1;
+PACKAGE_UPDATED = 2;
+
 def add_service(args, userUnlocked, packageStateChanged):
     helpers.drivers.loadBinderNodes(args)
     try:
