@@ -96,7 +96,7 @@ def set_permissions(args, perm_list=None, mode="777"):
 
 def start(args):
     try:
-        name = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+        name = dbus.service.BusName(helpers.instance.get_container_dbus_name(), dbus.SystemBus(), do_not_queue=True)
     except dbus.exceptions.NameExistsException:
         logging.error("Container service is already running")
         return
@@ -134,7 +134,8 @@ def do_start(args, session):
 
     # Networking
     command = [tools.config.tools_src +
-               "/data/scripts/waydroid-net.sh", "start"]
+               "/data/scripts/waydroid-net.sh", "start", args.instance]
+
     tools.helpers.run.user(args, command)
 
     # Sensors
@@ -202,7 +203,7 @@ def stop(args, quit_session=True):
 
         # Networking
         command = [tools.config.tools_src +
-                   "/data/scripts/waydroid-net.sh", "stop"]
+                   "/data/scripts/waydroid-net.sh", "stop", args.instance]
         tools.helpers.run.user(args, command, check=False)
 
         #TODO: remove NFC hacks

@@ -1,13 +1,12 @@
 # Copyright 2021 Oliver Smith
 # SPDX-License-Identifier: GPL-3.0-or-later
 import argparse
+import re
 
 try:
     import argcomplete
 except ImportError:
     argcomplete = False
-
-import tools.config
 
 """ This file is about parsing command line arguments passed to waydroid, as
     well as generating the help pages (waydroid -h). All this is done with
@@ -130,12 +129,12 @@ def arguments_adb(subparser):
     sub.add_parser("disconnect", help="disconnect adb from the Android container")
     return ret
 
-def arguments():
+def arguments(version):
     parser = argparse.ArgumentParser(prog="waydroid")
 
     # Other
     parser.add_argument("-V", "--version", action="version",
-                        version=tools.config.version)
+                        version=version)
 
     # Logging
     parser.add_argument("-l", "--log", dest="log", default=None,
@@ -151,6 +150,9 @@ def arguments():
                         help="do not output any log messages")
     parser.add_argument("-w", "--wait", dest="wait_for_init", action="store_true",
                         help="wait for init before running")
+    parser.add_argument("-n", "--instance", type=validate_instance_name,
+                     help="instance name (default is nothing)")
+
 
     # Actions
     sub = parser.add_subparsers(title="action", dest="action")
@@ -169,9 +171,15 @@ def arguments():
     arguments_logcat(sub)
     arguments_adb(sub)
 
+
     if argcomplete:
         argcomplete.autocomplete(parser, always_complete_options="long")
 
     # Parse and extend arguments (also backup unmodified result from argparse)
     args = parser.parse_args()
+
     return args
+
+def validate_instance_name(name):
+    if not re.match("^[a-zA-Z0-9_]+$", name):
+        raise argparse.ArgumentError(None, "instance name must consist of letters, numbers and underscores only")
