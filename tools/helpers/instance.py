@@ -1,5 +1,7 @@
 from tools.helpers.arguments import arguments
 
+# hack: we pass version because tools.config depends on this file and that would cause a circular dependency
+# we just need the instance name here anyway
 INSTANCE_NAME = arguments("").instance
 
 def get_container_dbus_name():
