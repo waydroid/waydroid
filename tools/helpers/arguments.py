@@ -183,3 +183,4 @@ def arguments(version):
 def validate_instance_name(name):
     if not re.match("^[a-zA-Z0-9_]+$", name):
         raise argparse.ArgumentError(None, "instance name must consist of letters, numbers and underscores only")
+    return name
