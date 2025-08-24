@@ -132,6 +132,8 @@ def do_start(args, session):
     if "session" in args:
         raise RuntimeError("Already tracking a session")
 
+    logging.info("Starting up container for a new session")
+
     # Networking
     command = [tools.config.tools_src +
                "/data/scripts/waydroid-net.sh", "start"]
@@ -192,6 +194,8 @@ def do_start(args, session):
     args.session = session
 
 def stop(args, quit_session=True):
+    logging.info("Stopping container")
+
     try:
         services.hardware_manager.stop(args)
         status = helpers.lxc.status(args)
@@ -232,6 +236,7 @@ def stop(args, quit_session=True):
 
         if "session" in args:
             if quit_session:
+                logging.info("Terminating session because the container was stopped")
                 try:
                     os.kill(int(args.session["pid"]), signal.SIGUSR1)
                 except:
