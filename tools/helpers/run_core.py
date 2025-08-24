@@ -35,18 +35,27 @@ def sanity_checks(output="log", output_return=False, check=None):
         raise RuntimeError("Can't use output_return with output: " + output)
 
 
+def forward_stream(pipe, level):
+    with pipe:
+        for line in iter(pipe.readline, b''):
+            logging.log(level, line.decode(errors="replace").rstrip())
+
+
 def background(args, cmd, working_dir=None):
     """ Run a subprocess in background and redirect its output to the log. """
-    ret = subprocess.Popen(cmd, stdout=args.logfd, stderr=args.logfd,
-                           cwd=working_dir)
-    logging.debug("New background process: pid={}, output=background".format(ret.pid))
-    return ret
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            cwd=working_dir)
+    threading.Thread(target=forward_stream, args=(proc.stdout, logging.DEBUG), daemon=True).start()
+    threading.Thread(target=forward_stream, args=(proc.stderr, logging.DEBUG), daemon=True).start()
+    logging.debug("New background process: pid={}, output=background".format(proc.pid))
+    return proc
 
 
 def pipe(args, cmd, working_dir=None):
     """ Run a subprocess in background and redirect its output to a pipe. """
-    ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=args.logfd,
+    ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                            cwd=working_dir)
+    threading.Thread(target=forward_stream, args=(proc.stderr, logging.DEBUG), daemon=True).start()
     logging.verbose("New background process: pid={}, output=pipe".format(ret.pid))
     return ret
 
@@ -69,7 +78,7 @@ def pipe_read(args, process, output_to_stdout=False, output_return=False,
         # Copy available output
         out = process.stdout.readline()
         if len(out):
-            args.logfd.buffer.write(out)
+            logging.debug(out.decode(errors="replace").rstrip())
             if output_to_stdout:
                 sys.stdout.buffer.write(out)
             if output_return:
@@ -77,7 +86,6 @@ def pipe_read(args, process, output_to_stdout=False, output_return=False,
             continue
 
         # No more output (flush buffers)
-        args.logfd.flush()
         if output_to_stdout:
             sys.stdout.flush()
         return
