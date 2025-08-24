@@ -71,7 +71,7 @@ def init(args):
     # Add file log handler
     if args.action == "container" and not args.details_to_stdout:
         os.chmod(args.log, 0o644)
-        handler = RotatingFileHandler(args.log, maxBytes=5*1024*1024)
+        handler = RotatingFileHandler(args.log, maxBytes=5*1024*1024, backupCount=1)
         handler.setFormatter(logging.Formatter("(%(process)d) [%(asctime)s] %(message)s",
                                       datefmt="%a, %d %b %Y %H:%M:%S"))
         root_logger.addHandler(handler)
