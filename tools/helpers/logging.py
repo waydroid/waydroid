@@ -73,7 +73,7 @@ def init(args):
         os.chmod(args.log, 0o644)
         handler = RotatingFileHandler(args.log, maxBytes=5*1024*1024)
         handler.setFormatter(logging.Formatter("(%(process)d) [%(asctime)s] %(message)s",
-                                      datefmt="%H:%M:%S"))
+                                      datefmt="%a, %d %b %Y %H:%M:%S"))
         root_logger.addHandler(handler)
 
 def disable():
