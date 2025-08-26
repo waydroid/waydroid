@@ -24,7 +24,16 @@ class DbusSessionManager(dbus.service.Object):
         do_stop(self.args, self.looper)
         stop_container(quit_session=False)
 
+def handle_disconnect(args, looper):
+    do_stop(args, looper)
+    stop_container(quit_session=False)
+
 def service(args, looper):
+    bus = dbus.SessionBus()
+    bus.set_exit_on_disconnect(False)
+    bus.add_signal_receiver(lambda: handle_disconnect(args, looper),
+                            signal_name='Disconnected',
+                            dbus_interface='org.freedesktop.DBus.Local')
     dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
     looper.run()
 
