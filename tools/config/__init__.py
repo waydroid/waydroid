@@ -8,6 +8,7 @@ import pwd
 #
 from tools.config.load import load, load_channels
 from tools.config.save import save
+from tools.helpers.instance import get_work_dir, get_data_dir
 
 #
 # Exported variables (internal configuration)
@@ -30,7 +31,7 @@ config_keys = ["arch",
 # overridden on the commandline)
 defaults = {
     "arch": "arm64",
-    "work": "/var/lib/waydroid",
+    "work": get_work_dir(),
     "vendor_type": "MAINLINE",
     "system_datetime": "0",
     "vendor_datetime": "0",
@@ -68,8 +69,7 @@ session_defaults = {
     "lcd_density": "0",
     "background_start": "true"
 }
-session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + \
-    "/waydroid/data"
+session_defaults["waydroid_data"] = session_defaults["xdg_data_home"] + get_data_dir()
 if session_defaults["pulse_runtime_path"] == "None":
     session_defaults["pulse_runtime_path"] = session_defaults["xdg_runtime_dir"] + "/pulse"
 

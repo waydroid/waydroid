@@ -154,6 +154,7 @@ def init(args):
         helpers.lxc.setup_host_perms(args)
         helpers.lxc.set_lxc_config(args)
         helpers.lxc.make_base_props(args)
+        helpers.dbus.setup_policy(args)
         if status != "STOPPED":
             logging.info("Starting container")
             try:

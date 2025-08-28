@@ -1,26 +1,41 @@
 #!/bin/sh -
 
 varrun="/run/waydroid-lxc"
+WORK="/var/lib/waydroid"
+iface_name="waydroid0"
+
+WAYDROID_INSTANCE=$2
+if [ ! -z "$WAYDROID_INSTANCE" ]; then
+    varrun="/run/waydroid-${WAYDROID_INSTANCE}-lxc"
+    WORK="/var/lib/waydroid.${WAYDROID_INSTANCE}"
+    iface_name="waydroid-${WAYDROID_INSTANCE}"
+fi
 varlib="/var/lib"
 net_link_key="lxc.net.0.link"
 case "$(lxc-info --version)" in [012].*) net_link_key="lxc.network.link" ;; esac
-vnic=$(awk "\$1 == \"$net_link_key\" {print \$3}" /var/lib/waydroid/lxc/waydroid/config)
-: ${vnic:=waydroid0}
+vnic=$(awk "\$1 == \"$net_link_key\" {print \$3}" $WORK/lxc/waydroid/config)
 
-if [ "$vnic" != "waydroid0" ]; then
+: ${vnic:=$iface_name}
+
+if [ "$vnic" != "$iface_name" ]; then
     echo "vnic is $vnic, bailing out"
     exit 0
 else 
-    echo "vnic is waydroid0"
+    echo "vnic is $iface_name"
 fi
 
+MD5HASH=$(echo -n "$WAYDROID_INSTANCE" | md5sum | cut -d ' ' -f1 )
+AS_DECIMAL=$(printf "%d" 0x$(echo "$MD5HASH" | cut -c1-8))
+SUB_ADDR=$(($AS_DECIMAL % 16 + 2))
+NET_ID=$(($AS_DECIMAL % 16 + 241))
+
 USE_LXC_BRIDGE="true"
-LXC_BRIDGE="${vnic}"
+LXC_BRIDGE="${iface_name}"
 LXC_BRIDGE_MAC="00:16:3e:00:00:01"
-LXC_ADDR="192.168.240.1"
+LXC_ADDR="192.168.${NET_ID}.${SUB_ADDR}" #change to compute based on WAYDROID_INSTANCE
 LXC_NETMASK="255.255.255.0"
-LXC_NETWORK="192.168.240.0/24"
-LXC_DHCP_RANGE="192.168.240.2,192.168.240.254"
+LXC_NETWORK="192.168.${NET_ID}.0/24"
+LXC_DHCP_RANGE="192.168.${NET_ID}.16,192.168.${NET_ID}.254"
 LXC_DHCP_MAX="253"
 LXC_DHCP_CONFILE=""
 LXC_DHCP_PING="true"
@@ -31,6 +46,8 @@ LXC_IPV6_ADDR=""
 LXC_IPV6_MASK=""
 LXC_IPV6_NETWORK=""
 LXC_IPV6_NAT="false"
+
+echo "LXC_ADDR: $LXC_ADDR"
 
 IPTABLES_BIN="$(command -v iptables-legacy)"
 if [ ! -n "$IPTABLES_BIN" ]; then

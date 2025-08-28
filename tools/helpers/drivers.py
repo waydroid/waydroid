@@ -7,26 +7,31 @@ import fcntl
 import struct
 import tools.config
 import tools.helpers.run
+from tools.helpers.instance import get_binderfs_dir, wrap_suffix
+
+def wrap_instance_suffix(input_array):
+    return [wrap_suffix(input) for input in input_array]
 
 
-BINDER_DRIVERS = [
+BINDER_DRIVERS = wrap_instance_suffix([
     "anbox-binder",
     "puddlejumper",
     "bonder",
     "binder"
-]
-VNDBINDER_DRIVERS = [
+])
+
+VNDBINDER_DRIVERS = wrap_instance_suffix([
     "anbox-vndbinder",
     "vndpuddlejumper",
     "vndbonder",
     "vndbinder"
-]
-HWBINDER_DRIVERS = [
+])
+HWBINDER_DRIVERS = wrap_instance_suffix([
     "anbox-hwbinder",
     "hwpuddlejumper",
     "hwbonder",
     "hwbinder"
-]
+])
 
 
 def isBinderfsLoaded(args):
@@ -56,7 +61,7 @@ def allocBinderNodes(args, binder_dev_nodes):
         return IOC(READ|WRITE, _type, nr, size)
 
     BINDER_CTL_ADD = IOWR(98, 1, 264)
-    binderctrlfd = open('/dev/binderfs/binder-control','rb')
+    binderctrlfd = open(f'{get_binderfs_dir()}/binder-control','rb')
 
     for node in binder_dev_nodes:
         node_struct = struct.pack(
@@ -71,6 +76,7 @@ def probeBinderDriver(args):
     has_binder = False
     has_vndbinder = False
     has_hwbinder = False
+    
     for node in BINDER_DRIVERS:
         if os.path.exists("/dev/" + node):
             has_binder = True
@@ -98,13 +104,14 @@ def probeBinderDriver(args):
                 logging.error(output.strip())
 
         if isBinderfsLoaded(args):
-            command = ["mkdir", "-p", "/dev/binderfs"]
+            print("Binderfs already loaded")
+            command = ["mkdir", "-p", get_binderfs_dir()]
             tools.helpers.run.user(args, command, check=False)
-            command = ["mount", "-t", "binder", "binder", "/dev/binderfs"]
+            command = ["mount", "-t", "binder", "binder", get_binderfs_dir()]
             tools.helpers.run.user(args, command, check=False)
             allocBinderNodes(args, binder_dev_nodes)
             command = ["ln", "-s"]
-            command.extend(glob.glob("/dev/binderfs/*"))
+            command.extend(glob.glob(f"{get_binderfs_dir()}/*"))
             command.append("/dev/")
             tools.helpers.run.user(args, command, check=False)
 
@@ -130,6 +137,7 @@ def setupBinderNodes(args):
             if os.path.exists("/dev/" + node):
                 has_binder = True
                 args.BINDER_DRIVER = node
+
         if not has_binder:
             raise OSError('Binder node "binder" for waydroid not found')
 

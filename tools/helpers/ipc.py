@@ -4,6 +4,7 @@
 # Currently implemented as FIFO
 import os
 import dbus
+from . import instance
 
 BASE_DIR = "/var/run/"
 
@@ -38,7 +39,7 @@ def notify_blocking(channel, msg):
         channel.write(msg)
 
 def DBusContainerService(object_path="/ContainerManager", intf="id.waydro.ContainerManager"):
-    return dbus.Interface(dbus.SystemBus().get_object("id.waydro.Container", object_path), intf)
+    return dbus.Interface(dbus.SystemBus().get_object(instance.get_container_dbus_name(), object_path), intf)
 
 def DBusSessionService(object_path="/SessionManager", intf="id.waydro.SessionManager"):
-    return dbus.Interface(dbus.SessionBus().get_object("id.waydro.Session", object_path), intf)
+    return dbus.Interface(dbus.SessionBus().get_object(instance.get_session_dbus_name(), object_path), intf)
