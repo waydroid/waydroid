@@ -284,8 +284,8 @@ def remote_init_server(args, params):
 def remote_init_client(args):
     # Local imports cause Gtk is intrusive
     import gi
-    gi.require_version("Gtk", "3.0")
-    from gi.repository import Gtk
+    gi.require_version("Gtk", "4.0")
+    from gi.repository import Gtk, Gio
 
     bus = dbus.SystemBus()
 
@@ -304,34 +304,34 @@ def remote_init_client(args):
                 pass
         GLib.idle_add(Gtk.main_quit)
 
-    class WaydroidInitWindow(Gtk.Window):
-        def __init__(self):
-            super().__init__(title="Initialize Waydroid")
+    class WaydroidInitWindow(Gtk.ApplicationWindow):
+        def __init__(self, app):
+            super().__init__(application=app, title="Initialize Waydroid")
             channels_cfg = tools.config.load_channels()
 
             self.set_default_size(600, 250)
             self.set_icon_name("waydroid")
 
-            grid = Gtk.Grid(row_spacing=6, column_spacing=6, margin=10, column_homogeneous=True)
+            grid = Gtk.Grid(row_spacing=6, column_spacing=6, column_homogeneous=True)
             grid.set_hexpand(True)
             grid.set_vexpand(True)
-            self.add(grid)
+            self.set_child(grid)
 
-            sysOtaLabel = Gtk.Label("System OTA")
+            sysOtaLabel = Gtk.Label.new("System OTA")
             sysOtaEntry = Gtk.Entry()
             sysOtaEntry.set_text(channels_cfg["channels"]["system_channel"])
             grid.attach(sysOtaLabel, 0, 0, 1, 1)
             grid.attach_next_to(sysOtaEntry ,sysOtaLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.sysOta = sysOtaEntry.get_buffer()
 
-            vndOtaLabel = Gtk.Label("Vendor OTA")
+            vndOtaLabel = Gtk.Label.new("Vendor OTA")
             vndOtaEntry = Gtk.Entry()
             vndOtaEntry.set_text(channels_cfg["channels"]["vendor_channel"])
             grid.attach(vndOtaLabel, 0, 1, 1, 1)
             grid.attach_next_to(vndOtaEntry, vndOtaLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.vndOta = vndOtaEntry.get_buffer()
 
-            sysTypeLabel = Gtk.Label("Android Type")
+            sysTypeLabel = Gtk.Label.new("Android Type")
             sysTypeCombo = Gtk.ComboBoxText()
             sysTypeCombo.set_entry_text_column(0)
             for t in ["VANILLA", "GAPPS"]:
@@ -341,12 +341,12 @@ def remote_init_client(args):
             grid.attach_next_to(sysTypeCombo, sysTypeLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.sysType = sysTypeCombo
 
-            downloadBtn = Gtk.Button("Download")
+            downloadBtn = Gtk.Button.new_with_label("Download")
             downloadBtn.connect("clicked", self.on_download_btn_clicked)
             grid.attach(downloadBtn, 1,3,1,1)
             self.downloadBtn = downloadBtn
 
-            doneBtn = Gtk.Button("Done")
+            doneBtn = Gtk.Button.new_with_label("Done")
             doneBtn.connect("clicked", lambda x: self.destroy())
             doneBtn.get_style_context().add_class('suggested-action')
             grid.attach_next_to(doneBtn, downloadBtn, Gtk.PositionType.RIGHT, 1, 1)
@@ -358,7 +358,7 @@ def remote_init_client(args):
             outTextView = Gtk.TextView()
             outTextView.set_property('editable', False)
             outTextView.set_property('cursor-visible', False)
-            outScrolledWindow.add(outTextView)
+            outScrolledWindow.set_child(outTextView)
             grid.attach(outScrolledWindow, 0, 4, 3, 1)
             self.outScrolledWindow = outScrolledWindow
             self.outTextView = outTextView
@@ -438,12 +438,15 @@ def remote_init_client(args):
                 draw("Done\n")
 
 
+    def on_activate(app):
+        win = WaydroidInitWindow(app)
+        win.connect("destroy", notify_and_quit)
+
+        win.outTextView.hide()
+        win.doneBtn.hide()
+        win.present()
+
     GLib.set_prgname("Waydroid")
-    win = WaydroidInitWindow()
-    win.connect("destroy", notify_and_quit)
-
-    win.show_all()
-    win.outTextView.hide()
-    win.doneBtn.hide()
-
-    Gtk.main()
+    app = Gtk.Application(flags=Gio.ApplicationFlags.NON_UNIQUE)
+    app.connect("activate", on_activate)
+    app.run(None)
