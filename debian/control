@@ -22,6 +22,7 @@ Depends: ${misc:Depends},
          dbus,
          polkitd | policykit-1,
 	 iptables
+Recommends: ca-certificates,
 Description: Android™ application support
  waydroid allows running a separate Android™ environment
  confined to a LXC container.
