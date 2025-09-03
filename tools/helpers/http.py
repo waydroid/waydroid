@@ -148,3 +148,5 @@ def retrieve(url, headers=None):
     # Handle 404
     except urllib.error.HTTPError as e:
         return e.code, ""
+    except urllib.error.URLError as e:
+        return -2, ""
