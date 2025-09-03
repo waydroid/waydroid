@@ -21,6 +21,7 @@ Depends: ${misc:Depends},
          python3-dbus,
          dbus,
          polkitd | policykit-1,
+         pipewire-pulse | pulseaudio,
 	 iptables
 Recommends: ca-certificates,
 Description: Android™ application support
