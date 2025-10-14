@@ -90,13 +90,13 @@ def start(args, session, unlocked_cb=None):
         desktop_file.set_string("Desktop Entry", "Icon", f"{waydroid_data}/icons/{packageName}.png")
         glib_key_file_prepend_string_list(desktop_file, "Desktop Entry", "Categories", ["X-WayDroid-App"])
         desktop_file.set_string_list("Desktop Entry", "X-Purism-FormFactor", ["Workstation", "Mobile"])
-        glib_key_file_prepend_string_list(desktop_file, "Desktop Entry", "Actions", ["app_settings"])
+        glib_key_file_prepend_string_list(desktop_file, "Desktop Entry", "Actions", ["app-settings"])
         if packageName in system_apps and not glib_key_file_has_value(desktop_file, "Desktop Entry", "NoDisplay"):
             desktop_file.set_boolean("Desktop Entry", "NoDisplay", True)
 
-        desktop_file.set_string("Desktop Action app_settings", "Name", "App Settings")
-        desktop_file.set_string("Desktop Action app_settings", "Exec", f"waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:{packageName}")
-        desktop_file.set_string("Desktop Action app_settings", "Icon", f"{waydroid_data}/icons/com.android.settings.png")
+        desktop_file.set_string("Desktop Action app-settings", "Name", "App Settings")
+        desktop_file.set_string("Desktop Action app-settings", "Exec", f"waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:{packageName}")
+        desktop_file.set_string("Desktop Action app-settings", "Icon", f"{waydroid_data}/icons/com.android.settings.png")
 
         desktop_file.save_to_file(desktop_file_path)
 
