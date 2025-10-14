@@ -6,6 +6,7 @@ import signal
 import sys
 import tools.config
 import tools.helpers.ipc
+from tools.helpers import instance
 from tools import services
 import dbus
 import dbus.service
@@ -39,7 +40,7 @@ def service(args, looper):
 
 def start(args, unlocked_cb=None, background=True):
     try:
-        name = dbus.service.BusName("id.waydro.Session", dbus.SessionBus(), do_not_queue=True)
+        name = dbus.service.BusName(instance.get_session_dbus_name(), dbus.SessionBus(), do_not_queue=True)
     except dbus.exceptions.NameExistsException:
         logging.error("Session is already running")
         if unlocked_cb:

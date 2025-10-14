@@ -13,6 +13,7 @@ from . import actions
 from . import config
 from . import helpers
 from .helpers import logging as tools_logging
+from .helpers import instance
 
 
 def main():
@@ -25,13 +26,18 @@ def main():
     args = None
     try:
         # Parse arguments, set up logging
-        args = helpers.arguments()
+        args = helpers.arguments(config.version)
         args.cache = {}
         args.work = config.defaults["work"]
         args.config = args.work + "/waydroid.cfg"
         args.log = args.work + "/waydroid.log"
         args.sudo_timer = True
         args.timeout = 1800
+
+        if args.instance:
+            print(f"Chosen instance: {args.instance}")
+        else:
+            print("No instance chosen, targetting default instance")
 
         if os.geteuid() == 0:
             if not os.path.exists(args.work):
@@ -49,13 +55,19 @@ def main():
                 args.action and args.action not in ("init", "first-launch", "log"):
             if args.wait_for_init:
                 try:
-                    dbus_name_scope = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+                    dbus_name_scope = dbus.service.BusName(instance.get_container_dbus_name(), dbus.SystemBus(), do_not_queue=True)
                     actions.wait_for_init(args)
                 except dbus.exceptions.NameExistsException:
-                    print('ERROR: WayDroid service is already awaiting initialization')
+                    if args.instance:
+                        print(f'ERROR: WayDroid instance "{args.instance}" is already awaiting initialization')
+                    else:
+                        print('ERROR: WayDroid service is already awaiting initialization')
                     return 1
             else:
-                print('ERROR: WayDroid is not initialized, run "waydroid init"')
+                if args.instance:
+                    print(f'ERROR: WayDroid instance "{args.instance}" is not initialized, run "waydroid init --instance {args.instance}"')
+                else:
+                    print('ERROR: WayDroid is not initialized, run "waydroid init"')
                 return 0
 
         # Initialize or require config
@@ -78,9 +90,9 @@ def main():
             if args.subaction == "start":
                 if dbus_name_scope is None:
                     try:
-                        dbus_name_scope = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+                        dbus_name_scope = dbus.service.BusName(instance.get_container_dbus_name(), dbus.SystemBus(), do_not_queue=True)
                     except dbus.exceptions.NameExistsException:
-                        print('ERROR: WayDroid container service is already running')
+                        print(f'ERROR: WayDroid container service ({instance.get_container_dbus_name()}) is already running')
                         return 1
                 actions.container_manager.start(args)
             elif args.subaction == "stop":
