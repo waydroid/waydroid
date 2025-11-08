@@ -10,7 +10,7 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     attributes:
       label: Waydroid version
       description: Output of `waydroid --version`
@@ -28,14 +28,14 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     attributes:
       label: Operating System
       placeholder: "Example: Ubuntu 20.04 amd64"
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     attributes:
       label: Kernel version
       description: Output of `uname --kernel-release`
@@ -43,30 +43,30 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     attributes:
       label: Desktop Environment
       placeholder: "Example: GNOME 40"
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     attributes:
-      label: GPU
+      label: GPUs
       placeholder: "Example: AMD Radeon™ RX 5700"
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: "Logs"
+      label: Logs
       description: Attach the following files while waydroid is running
       value: |
-        /var/lib/waydroid/waydroid.cfg
-        /var/lib/waydroid/waydroid.prop
-        /var/lib/waydroid/waydroid_base.prop
-        /var/lib/waydroid/waydroid.log
-        `sudo waydroid shell -- logcat -d | tee logcat.txt`
-        `sudo dmesg | tee dmesg.txt`
+        `xdg-open /var/lib/waydroid/waydroid.cfg`
+        `xdg-open /var/lib/waydroid/waydroid.prop`
+        `xdg-open /var/lib/waydroid/waydroid_base.prop`
+        `xdg-open /var/lib/waydroid/waydroid.log`
+        `sudo waydroid shell -- logcat -d | tee logcat.log && xdg-open logcat.log`
+        `sudo dmesg | tee dmesg.log && xdg-open dmesg.log`
     validations:
       required: true
