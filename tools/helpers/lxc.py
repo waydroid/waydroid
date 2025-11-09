@@ -5,6 +5,9 @@ import os
 import logging
 import glob
 import shutil
+import signal
+import stat
+import sys
 import time
 import platform
 import gbinder
@@ -495,10 +498,18 @@ def shell(args):
     else:
         command.append("/system/bin/sh")
 
+    def mock_sigint(signum, frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, mock_sigint)
+    signal.signal(signal.SIGHUP, mock_sigint)
+
+    perms = stat.S_IMODE(os.stat(sys.stdout.fileno()).st_mode)
     try:
         subprocess.run(command)
     except KeyboardInterrupt:
         pass
+    finally:
+        os.chmod(sys.stdout.fileno(), perms)
 
     if state == "FROZEN":
         freeze(args)
