@@ -130,6 +130,9 @@ def arguments_adb(subparser):
     sub.add_parser("disconnect", help="disconnect adb from the Android container")
     return ret
 
+def arguments_bugreport(subparser):
+    ret = subparser.add_parser("bugreport", help="create a bugreport archive interactively")
+
 def arguments():
     parser = argparse.ArgumentParser(prog="waydroid")
 
@@ -168,6 +171,7 @@ def arguments():
     arguments_shell(sub)
     arguments_logcat(sub)
     arguments_adb(sub)
+    arguments_bugreport(sub)
 
     if argcomplete:
         argcomplete.autocomplete(parser, always_complete_options="long")

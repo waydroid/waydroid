@@ -145,6 +145,8 @@ def main():
                     args, ["tail", "-n", args.lines, "-F", args.log], output="tui")
             except KeyboardInterrupt:
                 pass
+        elif args.action == "bugreport":
+            actions.bugreport(args)
         else:
             logging.info("Run waydroid -h for usage information.")
 

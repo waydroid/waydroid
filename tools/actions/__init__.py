@@ -7,3 +7,4 @@ from tools.actions.container_manager import start, stop, freeze, unfreeze
 from tools.actions.app_manager import install, remove, launch, list
 from tools.actions.status import print_status
 from tools.actions.prop import get, set
+from tools.actions.bugreport import bugreport
