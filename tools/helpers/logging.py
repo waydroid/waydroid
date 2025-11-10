@@ -4,6 +4,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 import sys
+import functools
 
 
 class stdout_logger(logging.StreamHandler):
@@ -79,3 +80,18 @@ def init(args):
 def disable():
     logger = logging.getLogger()
     logger.disabled = True
+
+def log_exceptions(func):
+    """
+    A decorator that wraps a D-Bus method.
+    It logs any exceptions to stderr before re-raising them.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            # Attempt to run the original method
+            return func(*args, **kwargs)
+        except Exception as e:
+            logging.exception("")
+            raise e
+    return wrapper

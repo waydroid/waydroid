@@ -175,6 +175,7 @@ class DbusInitializer(dbus.service.Object):
         self.worker_thread = None
         dbus.service.Object.__init__(self, bus, object_path)
 
+    @helpers.logging.log_exceptions
     @dbus.service.method("id.waydro.Initializer", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
     def Init(self, params, sender=None, conn=None):
         if self.worker_thread is not None:
@@ -189,6 +190,7 @@ class DbusInitializer(dbus.service.Object):
         else:
             raise PermissionError("Polkit: Authentication failed")
 
+    @helpers.logging.log_exceptions
     @dbus.service.method("id.waydro.Initializer", in_signature='', out_signature='')
     def Cancel(self):
         if self.worker_thread is not None:

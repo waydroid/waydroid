@@ -20,6 +20,7 @@ class DbusContainerManager(dbus.service.Object):
         self.looper = looper
         dbus.service.Object.__init__(self, bus, object_path)
 
+    @helpers.logging.log_exceptions
     @dbus.service.method("id.waydro.ContainerManager", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
     def Start(self, session, sender, conn):
         dbus_info = dbus.Interface(conn.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False), "org.freedesktop.DBus")
@@ -31,22 +32,26 @@ class DbusContainerManager(dbus.service.Object):
             raise RuntimeError("Invalid session pid")
         do_start(self.args, session)
 
+    @helpers.logging.log_exceptions
     @dbus.service.method("id.waydro.ContainerManager", in_signature='b', out_signature='')
     def Stop(self, quit_session):
         stop(self.args, quit_session)
 
+    @helpers.logging.log_exceptions
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
     def Freeze(self):
         if not actions.initializer.is_initialized(self.args):
             raise RuntimeError("Waydroid is not initialized")
         freeze(self.args)
 
+    @helpers.logging.log_exceptions
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
     def Unfreeze(self):
         if not actions.initializer.is_initialized(self.args):
             raise RuntimeError("Waydroid is not initialized")
         unfreeze(self.args)
 
+    @helpers.logging.log_exceptions
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='a{ss}')
     def GetSession(self):
         if not actions.initializer.is_initialized(self.args):
