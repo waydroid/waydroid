@@ -68,28 +68,27 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
 
         while not downloadEnded:
             currentSize = fromBytesToMB(os.path.getsize(destinationPath))
+
+            sizeChangeAt = time.time()
+            downloadSpeed = getDownloadSpeed(
+                lastSize, currentSize,
+                timeTaken=sizeChangeAt-lastSizeChangeAt
+            )
+
+            lastSize = currentSize
+            lastSizeChangeAt = sizeChangeAt
+
+            # make currentSize and downloadSpeed of a fix max len,
+            # to avoid previously printed chars to appear while \
+            # printing recursively
+            # currentSize is not going to exceed totalSize
+            currentSize = str(currentSize).rjust(totalSizeStrLen)
+            # assuming max downloadSpeed to be 9999.99 mbps
+            downloadSpeed = f"{str(downloadSpeed[0]).rjust(7)} {downloadSpeed[1]}"
             
-            if currentSize != lastSize:
-                sizeChangeAt = time.time()
-                downloadSpeed = getDownloadSpeed(
-                    lastSize, currentSize,
-                    timeTaken=sizeChangeAt-lastSizeChangeAt
-                )
-
-                lastSize = currentSize
-                lastSizeChangeAt = sizeChangeAt
-
-                # make currentSize and downloadSpeed of a fix max len,
-                # to avoid previously printed chars to appear while \
-                # printing recursively
-                # currentSize is not going to exceed totalSize
-                currentSize = str(currentSize).rjust(totalSizeStrLen)
-                # assuming max downloadSpeed to be 9999.99 mbps
-                downloadSpeed = f"{str(downloadSpeed[0]).rjust(7)} {downloadSpeed[1]}"
-                
-                # print progress bar
-                print(f"\r[Downloading] {currentSize} MB/{totalSize} MB    {downloadSpeed}(approx.)", end=" ")
-            time.sleep(.01)
+            # print progress bar
+            print(f"\r[Downloading] {currentSize} MB/{totalSize} MB    {downloadSpeed}(approx.)", end=" ")
+            time.sleep(2)
 
     # Create cache folder
     if not os.path.exists(args.work + "/cache_http"):
