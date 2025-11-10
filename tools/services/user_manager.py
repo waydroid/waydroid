@@ -47,9 +47,9 @@ def start(args, session, unlocked_cb=None):
             return []
 
     def glib_key_file_prepend_string_list(key_file, group, key, new_list):
-        old_list = glib_key_file_get_string_list(key_file, group, key)
-        prepend_list(old_list, new_list)
-        key_file.set_string_list(group, key, new_list)
+        lst = glib_key_file_get_string_list(key_file, group, key)
+        prepend_list(lst, new_list)
+        key_file.set_string_list(group, key, lst)
 
     def glib_key_file_has_value(key_file, group, key):
         try:
