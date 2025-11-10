@@ -165,7 +165,7 @@ def main():
         log_hint = "Run 'waydroid log' for details."
         if not args or not os.path.exists(args.log) or not args.action == "container":
             log_hint = ("Use '--details-to-stdout' to get more details:\n"
-                         f"  {sys.argv[0]} --details-to-stdout {" ".join(sys.argv[1:])}")
+                         f"  {sys.argv[0]} --details-to-stdout {' '.join(sys.argv[1:])}")
         print(log_hint)
         return 1
 
