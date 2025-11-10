@@ -58,7 +58,9 @@ def main():
                 print('ERROR: WayDroid is not initialized, run "waydroid init"')
                 return 0
 
-        # Initialize or require config
+        if args.action is None:
+            args.action = "first-launch"
+
         if args.action == "init":
             actionNeedRoot(args.action)
             actions.init(args)

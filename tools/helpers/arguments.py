@@ -105,7 +105,7 @@ def arguments_fullUI(subparser):
     return ret
 
 def arguments_firstLaunch(subparser):
-    ret = subparser.add_parser("first-launch", help="initialize waydroid and start it")
+    ret = subparser.add_parser("first-launch", help="start waydroid, prompting to initialize waydroid first if necessary (default)")
     return ret
 
 def arguments_shell(subparser):

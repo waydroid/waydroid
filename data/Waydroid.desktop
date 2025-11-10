@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Waydroid
-Exec=waydroid first-launch
+Exec=waydroid
 Icon=waydroid
 Categories=X-WayDroid-App;Utility;
 X-Purism-FormFactor=Workstation;Mobile;
