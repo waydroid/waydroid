@@ -147,6 +147,9 @@ def main():
         logging.info("See also: <https://github.com/waydroid>")
         logging.debug(traceback.format_exc())
 
+        if args and args.details_to_stdout:
+            return 1
+
         # Hints about the log file (print to stdout only)
         log_hint = "Run 'waydroid log' for details."
         if not args or not os.path.exists(args.log) or not args.action == "container":
