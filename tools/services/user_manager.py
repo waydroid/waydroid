@@ -101,30 +101,6 @@ def start(args, session, unlocked_cb=None):
         desktop_file.save_to_file(desktop_file_path)
 
 
-    def updateWaydroidDesktopFile(hide):
-        desktop_file_path = apps_dir + "/Waydroid.desktop"
-        # If the user has set the desktop file as read-only, we won't replace it
-        if os.path.isfile(desktop_file_path) and not os.access(desktop_file_path, os.W_OK):
-            logging.info(f"Desktop file '{desktop_file_path}' is not writeable, not updating it")
-            return
-
-        desktop_file = GLib.KeyFile()
-        try:
-            flags = GLib.KeyFileFlags.KEEP_COMMENTS | GLib.KeyFileFlags.KEEP_TRANSLATIONS
-            desktop_file.load_from_file(desktop_file_path, flags)
-        except:
-            pass
-
-        desktop_file.set_string("Desktop Entry", "Type", "Application")
-        desktop_file.set_string("Desktop Entry", "Name", "Waydroid")
-        desktop_file.set_string("Desktop Entry", "Exec", "waydroid show-full-ui")
-        glib_key_file_prepend_string_list(desktop_file, "Desktop Entry", "Categories", ["X-WayDroid-App", "Utility"])
-        desktop_file.set_string_list("Desktop Entry", "X-Purism-FormFactor", ["Workstation", "Mobile"])
-        desktop_file.set_string("Desktop Entry", "Icon", "waydroid")
-        desktop_file.set_boolean("Desktop Entry", "NoDisplay", hide)
-
-        desktop_file.save_to_file(desktop_file_path)
-
     def userUnlocked(uid):
         cfg = tools.config.load(args)
         logging.info("Android with user {} is ready".format(uid))
@@ -145,8 +121,6 @@ def start(args, session, unlocked_cb=None):
             for existing in glob.iglob(f'{apps_dir}/waydroid.*.desktop'):
                 if os.path.basename(existing) not in map(lambda appInfo: f"waydroid.{appInfo['packageName']}.desktop", appsList):
                     os.remove(existing)
-            multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
-            updateWaydroidDesktopFile(multiwin == "true")
         if unlocked_cb:
             unlocked_cb()
 
