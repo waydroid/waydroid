@@ -117,69 +117,56 @@ def setup_config(args):
     return True
 
 def init(args):
-    if not is_initialized(args) or args.force:
-        initializer_service = None
-        try:
-            initializer_service = tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer")
-        except dbus.DBusException:
-            pass
-        if not setup_config(args):
-            return
-        status = "STOPPED"
-        if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
-            status = helpers.lxc.status(args)
-        if status != "STOPPED":
+    if is_initialized(args) and not args.force:
+        logging.info("Already initialized")
+
+    if not setup_config(args):
+        return
+
+    status = "STOPPED"
+    session = None
+    if os.path.exists(tools.config.defaults["lxc"] + "/waydroid"):
+        status = helpers.lxc.status(args)
+    if status != "STOPPED":
+        if "running_init_in_service" in args:
+            session = args.session
+            tools.actions.container_manager.stop(args, False)
+        else:
             logging.info("Stopping container")
             try:
                 container = tools.helpers.ipc.DBusContainerService()
-                args.session = container.GetSession()
+                session = container.GetSession()
                 container.Stop(False)
             except Exception as e:
                 logging.debug(e)
-                tools.actions.container_manager.stop(args)
-        if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
-            helpers.images.get(args)
-        else:
-            helpers.images.remove_overlay(args)
-        if not os.path.isdir(tools.config.defaults["rootfs"]):
-            os.mkdir(tools.config.defaults["rootfs"])
-        if not os.path.isdir(tools.config.defaults["overlay"]):
-            os.mkdir(tools.config.defaults["overlay"])
-            os.mkdir(tools.config.defaults["overlay"]+"/vendor")
-        if not os.path.isdir(tools.config.defaults["overlay_rw"]):
-            os.mkdir(tools.config.defaults["overlay_rw"])
-            os.mkdir(tools.config.defaults["overlay_rw"]+"/system")
-            os.mkdir(tools.config.defaults["overlay_rw"]+"/vendor")
-        helpers.drivers.probeAshmemDriver(args)
-        helpers.lxc.setup_host_perms(args)
-        helpers.lxc.set_lxc_config(args)
-        helpers.lxc.make_base_props(args)
-        if status != "STOPPED":
-            logging.info("Starting container")
-            try:
-                container.Start(args.session)
-            except Exception as e:
-                logging.debug(e)
-                logging.error("Failed to restart container. Please do so manually.")
-
-        if "running_init_in_service" not in args or not args.running_init_in_service:
-            try:
-                if initializer_service:
-                    initializer_service.Done()
-            except dbus.DBusException:
-                pass
+                tools.actions.container_manager.stop(args, False)
+    if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
+        helpers.images.get(args)
     else:
-        logging.info("Already initialized")
-
-def wait_for_init(args):
-    helpers.ipc.create_channel("remote_init_output")
-
-    mainloop = GLib.MainLoop()
-    dbus_obj = DbusInitializer(mainloop, dbus.SystemBus(), '/Initializer', args)
-    mainloop.run()
-
-    # After init
-    dbus_obj.remove_from_connection()
+        helpers.images.remove_overlay(args)
+    if not os.path.isdir(tools.config.defaults["rootfs"]):
+        os.mkdir(tools.config.defaults["rootfs"])
+    if not os.path.isdir(tools.config.defaults["overlay"]):
+        os.mkdir(tools.config.defaults["overlay"])
+        os.mkdir(tools.config.defaults["overlay"]+"/vendor")
+    if not os.path.isdir(tools.config.defaults["overlay_rw"]):
+        os.mkdir(tools.config.defaults["overlay_rw"])
+        os.mkdir(tools.config.defaults["overlay_rw"]+"/system")
+        os.mkdir(tools.config.defaults["overlay_rw"]+"/vendor")
+    helpers.drivers.probeAshmemDriver(args)
+    helpers.lxc.setup_host_perms(args)
+    helpers.lxc.set_lxc_config(args)
+    helpers.lxc.make_base_props(args)
+    if status != "STOPPED":
+        try:
+            if "running_init_in_service" in args:
+                tools.actions.container_manager.do_start(args, session)
+            else:
+                logging.info("Starting container")
+                container.Start(session)
+        except Exception as e:
+            logging.debug(e)
+            logging.error("Failed to restart container. Please do so manually.")
 
 class DbusInitializer(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
@@ -196,11 +183,6 @@ class DbusInitializer(dbus.service.Object):
             threading.Thread(target=remote_init_server, args=(self.args, params)).start()
         else:
             raise PermissionError("Polkit: Authentication failed")
-
-    @dbus.service.method("id.waydro.Initializer", in_signature='', out_signature='')
-    def Done(self):
-        if is_initialized(self.args):
-            self.looper.quit()
 
 def ensure_polkit_auth(sender, conn, privilege):
     dbus_info = dbus.Interface(conn.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False), "org.freedesktop.DBus")
@@ -288,21 +270,6 @@ def remote_init_client(args):
     from gi.repository import Gtk
 
     bus = dbus.SystemBus()
-
-    if is_initialized(args):
-        try:
-            tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Done()
-        except dbus.DBusException:
-            pass
-        return
-
-    def notify_and_quit(caller):
-        if is_initialized(args):
-            try:
-                tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Done()
-            except dbus.DBusException:
-                pass
-        GLib.idle_add(Gtk.main_quit)
 
     class WaydroidInitWindow(Gtk.Window):
         def __init__(self):
@@ -440,7 +407,7 @@ def remote_init_client(args):
 
     GLib.set_prgname("Waydroid")
     win = WaydroidInitWindow()
-    win.connect("destroy", notify_and_quit)
+    win.connect("destroy", Gtk.main_quit)
 
     win.show_all()
     win.outTextView.hide()

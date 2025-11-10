@@ -4,10 +4,14 @@ Name=Waydroid
 Exec=waydroid
 Icon=waydroid
 Categories=X-WayDroid-App;Utility;
-Actions=stop;
+Actions=stop;initialize;
 X-Purism-FormFactor=Workstation;Mobile;
 
 [Desktop Action stop]
 Name=Stop Waydroid
 Exec=waydroid session stop
 Icon=waydroid
+
+[Desktop Action initialize]
+Name=Initialize Waydroid
+Exec=waydroid init --client

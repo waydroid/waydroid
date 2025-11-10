@@ -8,6 +8,7 @@ import signal
 import tools.config
 from tools import helpers
 from tools import services
+from tools import actions
 import dbus
 import dbus.service
 import dbus.exceptions
@@ -36,14 +37,20 @@ class DbusContainerManager(dbus.service.Object):
 
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
     def Freeze(self):
+        if not actions.initializer.is_initialized(self.args):
+            raise RuntimeError("Waydroid is not initialized")
         freeze(self.args)
 
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='')
     def Unfreeze(self):
+        if not actions.initializer.is_initialized(self.args):
+            raise RuntimeError("Waydroid is not initialized")
         unfreeze(self.args)
 
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='a{ss}')
     def GetSession(self):
+        if not actions.initializer.is_initialized(self.args):
+            raise RuntimeError("Waydroid is not initialized")
         try:
             session = self.args.session
             session["state"] = helpers.lxc.status(self.args)
@@ -52,7 +59,8 @@ class DbusContainerManager(dbus.service.Object):
             return {}
 
 def service(args, looper):
-    dbus_obj = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
+    initializer = actions.initializer.DbusInitializer(looper, dbus.SystemBus(), '/Initializer', args)
+    runner = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
 
 def set_permissions(args, perm_list=None, mode="777"):
@@ -101,36 +109,47 @@ def start(args):
         logging.error("Container service is already running")
         return
 
-    status = helpers.lxc.status(args)
-    if status == "STOPPED":
-        # Load binder and ashmem drivers
-        cfg = tools.config.load(args)
-        if cfg["waydroid"]["vendor_type"] == "MAINLINE":
-            if helpers.drivers.probeBinderDriver(args) != 0:
-                logging.error("Failed to load Binder driver")
-            helpers.drivers.probeAshmemDriver(args)
-        helpers.drivers.loadBinderNodes(args)
-        set_permissions(args, [
-            "/dev/" + args.BINDER_DRIVER,
-            "/dev/" + args.VNDBINDER_DRIVER,
-            "/dev/" + args.HWBINDER_DRIVER
-        ], "666")
+    mainloop = GLib.MainLoop()
 
-        mainloop = GLib.MainLoop()
-
-        def sigint_handler(data):
+    def sigint_handler(data):
+        try:
             stop(args)
-            mainloop.quit()
+        except:
+            pass
+        mainloop.quit()
 
-        GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, sigint_handler, None)
-        GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, sigint_handler, None)
-        service(args, mainloop)
-    else:
-        logging.error("WayDroid container is {}".format(status))
+    GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, sigint_handler, None)
+    GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, sigint_handler, None)
+    service(args, mainloop)
+
+prepared_drivers = False
+def prepare_drivers_once(args):
+    global prepared_drivers
+    if prepared_drivers:
+        return
+
+    # Load binder and ashmem drivers
+    cfg = tools.config.load(args)
+    if cfg["waydroid"]["vendor_type"] == "MAINLINE":
+        if helpers.drivers.probeBinderDriver(args) != 0:
+            logging.error("Failed to load Binder driver")
+        helpers.drivers.probeAshmemDriver(args)
+    helpers.drivers.loadBinderNodes(args)
+    set_permissions(args, [
+        "/dev/" + args.BINDER_DRIVER,
+        "/dev/" + args.VNDBINDER_DRIVER,
+        "/dev/" + args.HWBINDER_DRIVER
+    ], "666")
+    prepared_drivers = True
 
 def do_start(args, session):
+    if not actions.initializer.is_initialized(args):
+        raise RuntimeError("Waydroid is not initialized")
+
     if "session" in args:
         raise RuntimeError("Already tracking a session")
+
+    prepare_drivers_once(args)
 
     logging.info("Starting up container for a new session")
 
@@ -194,6 +213,9 @@ def do_start(args, session):
     args.session = session
 
 def stop(args, quit_session=True):
+    if not actions.initializer.is_initialized(args):
+        raise RuntimeError("Waydroid is not initialized")
+
     logging.info("Stopping container")
 
     try:

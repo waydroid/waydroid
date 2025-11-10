@@ -33,6 +33,7 @@ def arguments_init(subparser):
                      help="rom type (options: \"lineage\", \"bliss\" or OTA channel URL; default is LineageOS)")
     ret.add_argument("-s", "--system_type",
                      help="system type (options: VANILLA, FOSS or GAPPS; default is VANILLA)")
+    ret.add_argument("--client", help="run as user mode, connecting to the remote initializer service", action="store_true")
     return ret
 
 def arguments_status(subparser):
@@ -152,8 +153,6 @@ def arguments():
                         " logfiles (this may reduce performance)")
     parser.add_argument("-q", "--quiet", dest="quiet", action="store_true",
                         help="do not output any log messages")
-    parser.add_argument("-w", "--wait", dest="wait_for_init", action="store_true",
-                        help="wait for init before running")
 
     # Actions
     sub = parser.add_subparsers(title="action", dest="action")
