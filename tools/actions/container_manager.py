@@ -63,6 +63,10 @@ def service(args, looper):
     runner = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
     looper.run()
 
+    if initializer.worker_thread is not None:
+        initializer.worker_thread.kill()
+        initializer.worker_thread.join()
+
 def set_permissions(args, perm_list=None, mode="777"):
     def chmod(path, mode):
         if os.path.exists(path):

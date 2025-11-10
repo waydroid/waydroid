@@ -172,17 +172,40 @@ class DbusInitializer(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
         self.args = args
         self.looper = looper
+        self.worker_thread = None
         dbus.service.Object.__init__(self, bus, object_path)
 
     @dbus.service.method("id.waydro.Initializer", in_signature='a{ss}', out_signature='', sender_keyword="sender", connection_keyword="conn")
     def Init(self, params, sender=None, conn=None):
+        if self.worker_thread is not None:
+            self.worker_thread.kill()
+            self.worker_thread.join()
+
         channels_cfg = tools.config.load_channels()
         no_auth = params["system_channel"] == channels_cfg["channels"]["system_channel"] and \
                   params["vendor_channel"] == channels_cfg["channels"]["vendor_channel"]
         if no_auth or ensure_polkit_auth(sender, conn, "id.waydro.Initializer.Init"):
-            threading.Thread(target=remote_init_server, args=(self.args, params)).start()
+            self.worker_thread = remote_init_server(self.args, self, params)
         else:
             raise PermissionError("Polkit: Authentication failed")
+
+    @dbus.service.method("id.waydro.Initializer", in_signature='', out_signature='')
+    def Cancel(self):
+        if self.worker_thread is not None:
+            self.worker_thread.kill()
+            self.worker_thread.join()
+
+    @dbus.service.signal("id.waydro.Initializer", signature='s')
+    def ProgressChanged(self, message):
+        pass
+
+    @dbus.service.signal("id.waydro.Initializer", signature='')
+    def Finished(self):
+        pass
+
+    @dbus.service.signal("id.waydro.Initializer", signature='')
+    def Interrupted(self):
+        pass
 
 def ensure_polkit_auth(sender, conn, privilege):
     dbus_info = dbus.Interface(conn.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False), "org.freedesktop.DBus")
@@ -201,55 +224,7 @@ def ensure_polkit_auth(sender, conn, privilege):
     except dbus.DBusException:
         raise PermissionError("Polkit: Authentication timed out")
 
-def background_remote_init_process(args):
-    with helpers.ipc.open_channel("remote_init_output", "wb") as channel_out:
-        class StdoutRedirect(logging.StreamHandler):
-            def write(self, s):
-                channel_out.write(str.encode(s))
-            def flush(self):
-                pass
-            def emit(self, record):
-                if record.levelno >= logging.INFO:
-                    self.write(self.format(record) + self.terminator)
-
-        out = StdoutRedirect()
-        sys.stdout = sys.stderr = out
-        logging.getLogger().addHandler(out)
-
-        ctl_queue = queue.Queue()
-        def try_init(args):
-            try:
-                init(args)
-            except Exception as e:
-                print(str(e))
-            finally:
-                ctl_queue.put(0)
-
-        def poll_pipe():
-            poller = select.poll()
-            poller.register(channel_out, select.POLLERR)
-            poller.poll()
-            # When reaching here the client was terminated
-            ctl_queue.put(0)
-
-        init_thread = threading.Thread(target=try_init, args=(args,))
-        init_thread.daemon = True
-        init_thread.start()
-
-        poll_thread = threading.Thread(target=poll_pipe)
-        poll_thread.daemon = True
-        poll_thread.start()
-
-        # Join any one of the two threads
-        # Then exit the subprocess to kill the remaining thread.
-        # Can you believe this is the only way to kill a thread in python???
-        ctl_queue.get()
-
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-        logging.getLogger().removeHandler(out)
-
-def remote_init_server(args, params):
+def remote_init_server(args, dbus_obj, params):
     args.force = True
     args.images_path = ""
     args.rom_type = ""
@@ -258,18 +233,62 @@ def remote_init_server(args, params):
     args.system_type = params["system_type"]
     args.running_init_in_service = True
 
-    p = multiprocessing.Process(target=background_remote_init_process, args=(args,))
-    p.daemon = True
+    class StdoutRedirect(logging.StreamHandler):
+        def __init__(self, pipe):
+            logging.StreamHandler.__init__(self)
+            self.pipe = pipe
+        def write(self, s):
+            self.pipe.send(s)
+        def flush(self):
+            pass
+        def emit(self, record):
+            if record.levelno >= logging.INFO:
+                self.write(self.format(record) + self.terminator)
+
+    def init_proc(args, pipe):
+        out = StdoutRedirect(pipe)
+        sys.stdout = sys.stderr = out
+        logging.getLogger().addHandler(out)
+
+        try:
+            init(args)
+            sys.exit(0)
+        except KeyboardInterrupt:
+            sys.exit(1)
+        except Exception as e:
+            logging.exception("Exception during init")
+            sys.exit(1)
+        finally:
+            pipe.close()
+
+    parent_conn, child_conn = multiprocessing.Pipe(False)
+    p = multiprocessing.Process(target=init_proc, args=(args, child_conn,), daemon=True)
     p.start()
-    p.join()
+
+    def monitor_init(p, pipe):
+        try:
+            while True:
+                dbus_obj.ProgressChanged(pipe.recv())
+        except EOFError:
+            pass
+
+        p.join()
+        if p.exitcode == 0:
+            GLib.idle_add(dbus_obj.Finished)
+        else:
+            GLib.idle_add(dbus_obj.Interrupted)
+
+    t = threading.Thread(target=monitor_init, args=(p, parent_conn,), daemon=True)
+    t.kill = lambda: p.kill()
+    t.start()
+    return t
+
 
 def remote_init_client(args):
     # Local imports cause Gtk is intrusive
     import gi
     gi.require_version("Gtk", "3.0")
     from gi.repository import Gtk
-
-    bus = dbus.SystemBus()
 
     class WaydroidInitWindow(Gtk.Window):
         def __init__(self):
@@ -332,7 +351,10 @@ def remote_init_client(args):
             self.outBuffer = outTextView.get_buffer()
             self.outBuffer.create_mark("end", self.outBuffer.get_end_iter(), False)
 
-            self.open_channel = None
+            self.bus_signals = []
+            self.initializing = False
+
+            self.connect("destroy", self.on_destroy)
 
         def scroll_to_bottom(self):
             self.outTextView.scroll_mark_onscreen(self.outBuffer.get_mark("end"))
@@ -341,73 +363,73 @@ def remote_init_client(args):
             widget.set_sensitive(False)
             self.doneBtn.hide()
             self.outTextView.show()
-            init_params = (self.sysOta.get_text(), self.vndOta.get_text(), self.sysType.get_active_text())
-            init_runner = threading.Thread(target=self.run_init, args=init_params)
-            init_runner.daemon = True
-            init_runner.start()
+            self.run_init(self.sysOta.get_text(), self.vndOta.get_text(), self.sysType.get_active_text())
+
+        def draw(self, s):
+            if s.startswith('\r'):
+                last = self.outBuffer.get_iter_at_line(self.outBuffer.get_line_count()-1)
+                last.backward_char()
+                self.outBuffer.delete(last, self.outBuffer.get_end_iter())
+            self.outBuffer.insert(self.outBuffer.get_end_iter(), s)
+            self.scroll_to_bottom()
+
+        def on_progress(self, message):
+            self.draw(message)
+
+        def on_finished(self):
+            self.initializing = False
+            if is_initialized(args):
+                self.doneBtn.show()
+                self.draw("\nDone\n")
+
+        def on_interrupted(self):
+            self.initializing = False
+            self.draw("\nInterrupted\n")
+
+        def on_reply(self):
+            self.downloadBtn.set_sensitive(True)
+
+        def on_bus_error(self, e):
+            if e.get_dbus_name() == "org.freedesktop.DBus.Python.PermissionError":
+                self.draw(e.get_dbus_message().splitlines()[-1] + "\n")
+            else:
+                self.draw(str(e))
+            self.downloadBtn.set_sensitive(True)
+
+        def on_destroy(self, _):
+            if self.initializing:
+                try:
+                    tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Cancel()
+                except:
+                    pass
+            Gtk.main_quit()
 
         def run_init(self, systemOta, vendorOta, systemType):
-            def draw_sync(s):
-                if s.startswith('\r'):
-                    last = self.outBuffer.get_iter_at_line(self.outBuffer.get_line_count()-1)
-                    last.backward_char()
-                    self.outBuffer.delete(last, self.outBuffer.get_end_iter())
-                self.outBuffer.insert(self.outBuffer.get_end_iter(), s)
-                self.scroll_to_bottom()
-            def draw(s):
-                GLib.idle_add(draw_sync, s)
+            for signal in self.bus_signals:
+                signal.remove()
 
-            if self.open_channel is not None:
-                self.open_channel.close()
-                # Wait for other end to reset
-                time.sleep(1)
+            self.draw("\nWaiting for waydroid container service...\n")
+            self.bus_signals = []
+            self.initializing = True
 
-            draw("Waiting for waydroid container service...\n")
             try:
+                initializer = tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer")
+
+                self.bus_signals.append(initializer.connect_to_signal("ProgressChanged", self.on_progress))
+                self.bus_signals.append(initializer.connect_to_signal("Finished", self.on_finished))
+                self.bus_signals.append(initializer.connect_to_signal("Interrupted", self.on_interrupted))
+
                 params = {
                     "system_channel": self.sysOta.get_text(),
                     "vendor_channel": self.vndOta.get_text(),
                     "system_type": self.sysType.get_active_text()
                 }
-                tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Init(params, timeout=310)
-            except dbus.DBusException as e:
-                if e.get_dbus_name() == "org.freedesktop.DBus.Python.PermissionError":
-                    draw(e.get_dbus_message().splitlines()[-1] + "\n")
-                else:
-                    draw("The waydroid container service is not listening\n")
-                GLib.idle_add(self.downloadBtn.set_sensitive, True)
-                return
-
-            with helpers.ipc.open_channel("remote_init_output", "rb") as channel:
-                self.open_channel = channel
-                GLib.idle_add(self.downloadBtn.set_sensitive, True)
-                line = ""
-                try:
-                    while True:
-                        data = channel.read(1)
-                        if len(data) == 0:
-                            draw(line)
-                            break
-                        c = data.decode()
-                        if c == '\r':
-                            draw(line)
-                            line = c
-                        else:
-                            line += c
-                            if c == '\n':
-                                draw(line)
-                                line = ""
-                except:
-                    draw("\nInterrupted\n")
-
-            if is_initialized(args):
-                GLib.idle_add(self.doneBtn.show)
-                draw("Done\n")
-
+                initializer.Init(params, reply_handler=self.on_reply, error_handler=self.on_bus_error)
+            except Exception as e:
+                self.on_bus_error(e)
 
     GLib.set_prgname("Waydroid")
     win = WaydroidInitWindow()
-    win.connect("destroy", Gtk.main_quit)
 
     win.show_all()
     win.outTextView.hide()
