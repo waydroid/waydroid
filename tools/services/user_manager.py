@@ -6,6 +6,7 @@ import os
 import threading
 import tools.config
 import tools.helpers.net
+from pathlib import Path
 from tools.interfaces import IUserMonitor
 from tools.interfaces import IPlatform
 from gi.repository import GLib
@@ -58,6 +59,38 @@ def start(args, session, unlocked_cb=None):
         except:
             return False
 
+    # Migrate waydroid user configs after upgrade
+    def user_migration():
+        apps_dir = session["xdg_data_home"] + "/applications/"
+        state_dir = session["waydroid_user_state"]
+        if not any(glob.iglob(f'{apps_dir}/waydroid.*.desktop')):
+            # first ever run, no need to migrate
+            return
+
+        if not os.path.exists(os.path.join(state_dir, ".migrated-main-desktop-file")):
+            Path(os.path.join(apps_dir, "Waydroid.desktop")).unlink(missing_ok=True)
+            Path(os.path.join(state_dir, ".migrated-main-desktop-file")).touch()
+
+        if not os.path.exists(os.path.join(state_dir, ".migrated-app-settings-desktop-action")):
+            for app in glob.iglob(f'{apps_dir}/waydroid.*.desktop'):
+                try:
+                    desktop_file = GLib.KeyFile()
+                    flags = GLib.KeyFileFlags.KEEP_COMMENTS | GLib.KeyFileFlags.KEEP_TRANSLATIONS
+                    desktop_file.load_from_file(app, flags)
+                    try:
+                        desktop_file.remove_group("Desktop Action app_settings")
+                    except:
+                        pass
+                    try:
+                        actions = glib_key_file_get_string_list(desktop_file, "Desktop Entry", "Actions")
+                        actions.remove("app_settings")
+                        desktop_file.set_string_list("Desktop Entry", "Actions", actions)
+                    except:
+                        pass
+                    desktop_file.save_to_file(app)
+                except:
+                    continue
+            Path(os.path.join(state_dir, ".migrated-app-settings-desktop-action")).touch()
 
     # Creates, deletes, or updates desktop file
     def updateDesktopFile(appInfo):
@@ -104,6 +137,8 @@ def start(args, session, unlocked_cb=None):
     def userUnlocked(uid):
         cfg = tools.config.load(args)
         logging.info("Android with user {} is ready".format(uid))
+
+        user_migration()
 
         if cfg["waydroid"]["auto_adb"] == "True":
             try:
