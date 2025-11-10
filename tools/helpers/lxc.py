@@ -407,7 +407,10 @@ def start(args):
     tools.helpers.run.user(args, command, output="background")
     wait_for_running(args)
     # Workaround lxc-start changing stdout/stderr permissions to 700
-    os.chmod(args.log, 0o666)
+    try:
+        os.chmod(args.log, 0o666)
+    except:
+        pass
 
 def stop(args):
     command = ["lxc-stop", "-P",
