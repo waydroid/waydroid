@@ -63,15 +63,6 @@ class DbusContainerManager(dbus.service.Object):
         except AttributeError:
             return {}
 
-def service(args, looper):
-    initializer = actions.initializer.DbusInitializer(looper, dbus.SystemBus(), '/Initializer', args)
-    runner = DbusContainerManager(looper, dbus.SystemBus(), '/ContainerManager', args)
-    looper.run()
-
-    if initializer.worker_thread is not None:
-        initializer.worker_thread.kill()
-        initializer.worker_thread.join()
-
 def set_permissions(args, perm_list=None, mode="777"):
     def chmod(path, mode):
         if os.path.exists(path):
@@ -112,12 +103,6 @@ def set_permissions(args, perm_list=None, mode="777"):
         chmod(path, mode)
 
 def start(args):
-    try:
-        name = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
-    except dbus.exceptions.NameExistsException:
-        logging.error("Container service is already running")
-        return
-
     mainloop = GLib.MainLoop()
 
     def sigint_handler(data):
@@ -129,7 +114,21 @@ def start(args):
 
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, sigint_handler, None)
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, sigint_handler, None)
-    service(args, mainloop)
+
+    initializer = actions.initializer.DbusInitializer(mainloop, dbus.SystemBus(), '/Initializer', args)
+    container_manager = DbusContainerManager(mainloop, dbus.SystemBus(), '/ContainerManager', args)
+
+    try:
+        name = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+    except dbus.exceptions.NameExistsException:
+        logging.error("Container service is already running")
+        return
+
+    mainloop.run()
+
+    if initializer.worker_thread is not None:
+        initializer.worker_thread.kill()
+        initializer.worker_thread.join()
 
 prepared_drivers = False
 def prepare_drivers_once(args):
