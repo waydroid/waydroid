@@ -320,10 +320,14 @@ def remote_init_client(args):
             self.vndOta = vndOtaEntry.get_buffer()
 
             sysTypeLabel = Gtk.Label("Android Type")
-            sysTypeCombo = Gtk.ComboBoxText()
-            sysTypeCombo.set_entry_text_column(0)
-            for t in ["VANILLA", "GAPPS"]:
-                sysTypeCombo.append_text(t)
+            sysTypesStore = Gtk.ListStore(str, str)
+            sysTypesStore.append(["VANILLA", "Minimal Android"])
+            sysTypesStore.append(["GAPPS", "Android with Google Apps"])
+
+            sysTypeCombo = Gtk.ComboBox.new_with_model(sysTypesStore)
+            renderer_text = Gtk.CellRendererText()
+            sysTypeCombo.pack_start(renderer_text, True)
+            sysTypeCombo.add_attribute(renderer_text, "text", 1)
             sysTypeCombo.set_active(0)
             grid.attach(sysTypeLabel, 0, 2, 1, 1)
             grid.attach_next_to(sysTypeCombo, sysTypeLabel, Gtk.PositionType.RIGHT, 2, 1)
@@ -365,7 +369,8 @@ def remote_init_client(args):
             widget.set_sensitive(False)
             self.doneBtn.hide()
             self.outTextView.show()
-            self.run_init(self.sysOta.get_text(), self.vndOta.get_text(), self.sysType.get_active_text())
+            sysType = self.sysType.get_model()[self.sysType.get_active_iter()][0]
+            self.run_init(self.sysOta.get_text(), self.vndOta.get_text(), sysType)
 
         def draw(self, s):
             if s.startswith('\r'):
@@ -422,9 +427,9 @@ def remote_init_client(args):
                 self.bus_signals.append(initializer.connect_to_signal("Interrupted", self.on_interrupted))
 
                 params = {
-                    "system_channel": self.sysOta.get_text(),
-                    "vendor_channel": self.vndOta.get_text(),
-                    "system_type": self.sysType.get_active_text()
+                    "system_channel": systemOta,
+                    "vendor_channel": vendorOta,
+                    "system_type": systemType
                 }
                 initializer.Init(params, reply_handler=self.on_reply, error_handler=self.on_bus_error)
             except dbus.DBusException as e:
