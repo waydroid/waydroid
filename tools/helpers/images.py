@@ -10,13 +10,14 @@ import tools.config
 from tools import helpers
 from shutil import which
 
-def sha256sum(filename):
+# takes an open file object
+def sha256sum(f):
     h = hashlib.sha256()
     b = bytearray(128*1024)
     mv = memoryview(b)
-    with open(filename, 'rb', buffering=0) as f:
-        for n in iter(lambda: f.readinto(mv), 0):
-            h.update(mv[:n])
+    for n in iter(lambda: f.readinto(mv), 0):
+        h.update(mv[:n])
+    f.seek(0)
     return h.hexdigest()
 
 
@@ -36,16 +37,17 @@ def get(args):
             images_zip = helpers.http.download(
                 args, system_response['url'], system_response['filename'], cache=False)
             logging.info("Validating system image")
-            if sha256sum(images_zip) != system_response['id']:
-                try:
-                    os.remove(images_zip)
-                except:
-                    pass
-                raise ValueError("Downloaded system image hash doesn't match, expected: {}".format(
-                    system_response['id']))
-            logging.info("Extracting to " + args.images_path)
-            with zipfile.ZipFile(images_zip, 'r') as zip_ref:
-                zip_ref.extractall(args.images_path)
+            with open(images_zip, 'rb') as f:
+                if sha256sum(f) != system_response['id']:
+                    try:
+                        os.remove(images_zip)
+                    except:
+                        pass
+                    raise ValueError("Downloaded system image hash doesn't match, expected: {}".format(
+                        system_response['id']))
+                logging.info("Extracting to " + args.images_path)
+                with zipfile.ZipFile(f, 'r') as zip_ref:
+                    zip_ref.extractall(args.images_path)
             cfg["waydroid"]["system_datetime"] = str(system_response['datetime'])
             tools.config.save(args, cfg)
             os.remove(images_zip)
@@ -65,23 +67,24 @@ def get(args):
             images_zip = helpers.http.download(
                 args, vendor_response['url'], vendor_response['filename'], cache=False)
             logging.info("Validating vendor image")
-            if sha256sum(images_zip) != vendor_response['id']:
-                try:
-                    os.remove(images_zip)
-                except:
-                    pass
-                raise ValueError("Downloaded vendor image hash doesn't match, expected: {}".format(
-                    vendor_response['id']))
-            logging.info("Extracting to " + args.images_path)
-            with zipfile.ZipFile(images_zip, 'r') as zip_ref:
-                zip_ref.extractall(args.images_path)
+            with open(images_zip, 'rb') as f:
+                if sha256sum(f) != vendor_response['id']:
+                    try:
+                        os.remove(images_zip)
+                    except:
+                        pass
+                    raise ValueError("Downloaded vendor image hash doesn't match, expected: {}".format(
+                        vendor_response['id']))
+                logging.info("Extracting to " + args.images_path)
+                with zipfile.ZipFile(f, 'r') as zip_ref:
+                    zip_ref.extractall(args.images_path)
             cfg["waydroid"]["vendor_datetime"] = str(vendor_response['datetime'])
             tools.config.save(args, cfg)
             os.remove(images_zip)
             break
     remove_overlay(args)
 
-def validate(args, channel, image_zip):
+def validate(args, channel, f):
     # Verify that the zip comes from the channel
     cfg = tools.config.load(args)
     channel_url = cfg["waydroid"][channel]
@@ -89,27 +92,35 @@ def validate(args, channel, image_zip):
     if channel_request[0] != 200:
         return False
     channel_responses = json.loads(channel_request[1].decode('utf8'))["response"]
+    chksum = sha256sum(f)
     for build in channel_responses:
-        if sha256sum(image_zip) == build['id']:
+        if chksum == build['id']:
             return True
-    logging.warning(f"Could not verify the image {image_zip} against {channel_url}")
+    logging.warning(f"Could not verify the image {f.name} against {channel_url}")
     return False
 
 def replace(args, system_zip, system_time, vendor_zip, vendor_time):
     cfg = tools.config.load(args)
     args.images_path = cfg["waydroid"]["images_path"]
     if os.path.exists(system_zip):
-        with zipfile.ZipFile(system_zip, 'r') as zip_ref:
-            zip_ref.extractall(args.images_path)
+        with open(system_zip, 'rb') as f:
+            if validate(args, "system_ota", f):
+                with zipfile.ZipFile(f, 'r') as zip_ref:
+                    zip_ref.extractall(args.images_path)
+                cfg["waydroid"]["system_datetime"] = str(system_time)
+            else:
+                logging.warning("Failed to validate update system image, ignoring")
         os.remove(system_zip)
-        cfg["waydroid"]["system_datetime"] = str(system_time)
-        tools.config.save(args, cfg)
     if os.path.exists(vendor_zip):
-        with zipfile.ZipFile(vendor_zip, 'r') as zip_ref:
-            zip_ref.extractall(args.images_path)
+        with open(vendor_zip, 'rb') as f:
+            if validate(args, "vendor_ota", f):
+                with zipfile.ZipFile(f, 'r') as zip_ref:
+                    zip_ref.extractall(args.images_path)
+                cfg["waydroid"]["vendor_datetime"] = str(vendor_time)
+            else:
+                logging.warning("Failed to validate update vendor image, ignoring")
         os.remove(vendor_zip)
-        cfg["waydroid"]["vendor_datetime"] = str(vendor_time)
-        tools.config.save(args, cfg)
+    tools.config.save(args, cfg)
     remove_overlay(args)
 
 def remove_overlay(args):
