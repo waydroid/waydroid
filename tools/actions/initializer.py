@@ -427,8 +427,10 @@ def remote_init_client(args):
                     "system_type": self.sysType.get_active_text()
                 }
                 initializer.Init(params, reply_handler=self.on_reply, error_handler=self.on_bus_error)
-            except Exception as e:
+            except dbus.DBusException as e:
                 self.on_bus_error(e)
+            except Exception as e:
+                self.draw(f"{e}\n")
 
     GLib.set_prgname("Waydroid")
     win = WaydroidInitWindow()
