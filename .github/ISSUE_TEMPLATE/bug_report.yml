@@ -60,7 +60,9 @@ body:
   - type: textarea
     attributes:
       label: "Logs"
-      description: Attach the following files while waydroid is running
+      description: |
+        Run `waydroid bugreport` to generate an archive of log-files, and attach it here.
+        If unavailable, manually attach the files listed below instead
       value: |
         /var/lib/waydroid/waydroid.cfg
         /var/lib/waydroid/waydroid.prop
