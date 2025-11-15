@@ -3,3 +3,4 @@
 from tools.services.user_manager import start, stop
 from tools.services.clipboard_manager import start, stop
 from tools.services.hardware_manager import start, stop
+from tools.services.notification_manager import start, stop
