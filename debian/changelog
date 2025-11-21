@@ -1,3 +1,52 @@
+waydroid (1.6.0) bullseye; urgency=medium
+
+  * prop: Enable the "ro.adb.secure" property (#1096)
+  * net: Disable adb auto-connect by default
+  * upgrade: Migrate auto_adb to False on first upgrade
+  * net: Add "waydroid adb connect" action
+  * user_manager: Rework desktop file handling
+  * user_manager: Fix quotes f-string
+  * user_manager: Mark new LineageOS Camera app as a system app
+  * logging: Use RotatingFileHandler to trim logfile at 5MB
+  * logging: Add date to the logfile format
+  * container: Add some additional logging
+  * logging: Actually enable logfile rotation
+  * session_manager: Stop the container on logout
+  * session_manager: Stop the container on SIGHUP
+  * Update Android version from 11 to 13 in README
+  * tools/helpers/http.py: also handle urllib.error.URLError exceptions instead of showing traceback
+  * debian/control: add Recommends on ca-certificates
+  * debian/control: add Depends on pipewire-pulse | pulseaudio
+  * Remove underscore from .desktop action name
+  * lxc: Restore permissions on the shell command stdout file
+  * tools: Print suggestion to use --details-to-stdout
+  * tools: Add bugreport action
+  * Makefile: Install relative bin symlink instead of absolute
+  * debian: Never fail postinst script
+  * fix: remove '"' that may cause SyntaxErrors for some Python versions
+  * user_manager: Fixup desktop file mangling to preserve user-added actions
+  * user_manager: Always show Waydroid desktop launcher
+  * tools: Run waydroid without any additional command-line arguments
+  * data: Add desktop action to stop Waydroid session
+  * user_manager: Add user migration steps to cleanup stale desktop files
+  * init: Allow re-initializing while container daemon is running
+  * init: Use DBus for reporting progress
+  * http: Report progress slower
+  * tools: Make sure to log exceptions caught in DBus method calls
+  * tools: Do not hint about --details-to-stdout when already set
+  * lxc: Fixup starting when logfile does not exist
+  * logging: Fixup starting when logfile does not exist
+  * container_manager: Avoid potential race with DBus object vs name registration
+  * images: Fix TOCTOU bugs in checksum verification
+  * initializer: Fixup bus exception handling
+  * initializer: Show meaningful text description in system type selection
+  * github: Mention "waydroid bugreport" to attach logs
+  * readme: Add icon, links to website and FAQ
+  * services: Add new notification manager
+  * Upver to 1.6.0
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Fri, 21 Nov 2025 23:05:38 +0100
+
 waydroid (1.5.4) bullseye; urgency=medium
 
   * shell: Do not abort if classpath env file is missing
