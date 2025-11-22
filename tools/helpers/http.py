@@ -33,25 +33,25 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
         return round(int(numBytes)/1000000, decimalPlaces)
     
     def getDownloadSpeed(lastSize, currentSize, timeTaken, decimalPlaces=2):
-        # sizes are in mb and timeTaken in seconds
-        speedUnit = "mbps"
+        # sizes are in MB and timeTaken in seconds
+        speedUnit = "MB/s"
         sizeDifference = currentSize-lastSize
 
         if sizeDifference < 1:
-            # sizeDifference is less than 1 mb
-            # convert sizeDifference to kb and speedUnit to kbps,
+            # sizeDifference is less than 1 MB
+            # convert sizeDifference to kB and speedUnit to kB/s,
             # for better readability
             sizeDifference*=1000
-            speedUnit = "kbps"
+            speedUnit = "kB/s"
         
-        # sizeDifference mb(or kb) was downloaded in timeTaken seconds
-        # so downloadSpeed = sizeDifference/timeTaken mbps(or kbps)
+        # sizeDifference MB(or kB) was downloaded in timeTaken seconds
+        # so downloadSpeed = sizeDifference/timeTaken MB/s(or kB/s)
         return (round(sizeDifference/timeTaken, decimalPlaces), speedUnit)
 
     # Show progress while downloading
     downloadEnded = False
     def progress(totalSize, destinationPath):
-        # convert totalSize to mb before hand,
+        # convert totalSize to MB before hand,
         # it's value won't change inside while loop and
         # will be unnecessarily calculated every .01 seconds 
         totalSize = fromBytesToMB(totalSize)
@@ -64,7 +64,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
         lastSize = 0
         lastSizeChangeAt = time.time()
 
-        downloadSpeed = 0, "mbps"
+        downloadSpeed = 0, "MB/s"
 
         while not downloadEnded:
             currentSize = fromBytesToMB(os.path.getsize(destinationPath))
@@ -83,7 +83,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
             # printing recursively
             # currentSize is not going to exceed totalSize
             currentSize = str(currentSize).rjust(totalSizeStrLen)
-            # assuming max downloadSpeed to be 9999.99 mbps
+            # assuming max downloadSpeed to be 9999.99 MB/s
             downloadSpeed = f"{str(downloadSpeed[0]).rjust(7)} {downloadSpeed[1]}"
             
             # print progress bar
