@@ -4,7 +4,7 @@ import logging
 import os
 from tools import helpers
 import tools.config
-
+import stat
 import sys
 import threading
 import multiprocessing
@@ -50,7 +50,11 @@ def setup_config(args):
     preinstalled_images_paths = tools.config.defaults["preinstalled_images_paths"]
     for preinstalled_images in preinstalled_images_paths:
         if os.path.isdir(preinstalled_images):
-            if os.path.isfile(preinstalled_images + "/system.img") and os.path.isfile(preinstalled_images + "/vendor.img"):
+            system_path = preinstalled_images + "/system.img"
+            vendor_path = preinstalled_images + "/vendor.img"
+            system_exists = os.path.isfile(system_path) or stat.S_ISBLK(os.stat(system_path).st_mode)
+            vendor_exists = os.path.isfile(vendor_path) or stat.S_ISBLK(os.stat(vendor_path).st_mode)
+            if system_exists and vendor_exists:
                 has_preinstalled_images = True
                 args.images_path = preinstalled_images
                 break
