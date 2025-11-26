@@ -53,7 +53,7 @@ def setup_config(args):
             system_path = preinstalled_images + "/system.img"
             vendor_path = preinstalled_images + "/vendor.img"
             are_files = os.path.isfile(system_path) and os.path.isfile(vendor_path)
-            are_links = pathlib.Path.is_block_device(system_path) and pathlib.Path.is_block_device(vendor_path)
+            are_links = pathlib.Path.is_block_device(pathlib.Path(system_path)) and pathlib.Path.is_block_device(pathlib.Path(vendor_path))
             if are_files or are_links:
                 has_preinstalled_images = True
                 args.images_path = preinstalled_images
