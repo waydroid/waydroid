@@ -36,6 +36,7 @@ def getDriNode(args):
 def getVulkanDriver(args, dev):
     mapping = {
         "i915": "intel",
+        "xe": "intel",
         "amdgpu": "radeon",
         "radeon": "radeon",
         "panfrost": "panfrost",
