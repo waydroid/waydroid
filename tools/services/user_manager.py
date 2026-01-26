@@ -1,7 +1,6 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
-import os
 import threading
 import tools.config
 import tools.helpers.net
@@ -12,6 +11,7 @@ from tools.interfaces import IPlatform
 from gi.repository import GLib
 
 stopping = False
+
 
 def start(args, session, unlocked_cb=None):
 
@@ -95,18 +95,19 @@ def start(args, session, unlocked_cb=None):
         if appInfo is None:
             return
 
+        packageName = appInfo["packageName"]
+        desktop_file_path = apps_dir / f"waydroid.{packageName}.desktop"
+
         showApp = False
         for cat in appInfo["categories"]:
             if cat.strip() == "android.intent.category.LAUNCHER":
                 showApp = True
-        if not showApp:
-            try:
-                os.remove(desktop_file_path)
-            except:
-                pass
+                break
 
-        packageName = appInfo["packageName"]
-        desktop_file_path = apps_dir / f"waydroid.{packageName}.desktop"
+        if not showApp:
+            # Remove the desktop file if it exists and do not create a new one.
+            desktop_file_path.unlink(missing_ok=True)
+            return
 
         desktop_file = GLib.KeyFile()
         with suppress(GLib.GError):
@@ -129,7 +130,6 @@ def start(args, session, unlocked_cb=None):
 
         desktop_file.save_to_file(str(desktop_file_path))
 
-
     def userUnlocked(uid):
         cfg = tools.config.load(args)
         logging.info("Android with user {} is ready".format(uid))
@@ -137,10 +137,8 @@ def start(args, session, unlocked_cb=None):
         user_migration()
 
         if cfg["waydroid"]["auto_adb"] == "True":
-            try:
+            with suppress(RuntimeError):
                 tools.helpers.net.adb_connect(args)
-            except:
-                pass
 
         platformService = IPlatform.get_service(args)
         if platformService:
@@ -171,6 +169,7 @@ def start(args, session, unlocked_cb=None):
     stopping = False
     args.user_manager = threading.Thread(target=service_thread)
     args.user_manager.start()
+
 
 def stop(args):
     global stopping
