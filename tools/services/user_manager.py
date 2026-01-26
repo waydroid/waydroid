@@ -1,6 +1,5 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
-import glob
 import logging
 import os
 import threading
@@ -15,8 +14,12 @@ from gi.repository import GLib
 stopping = False
 
 def start(args, session, unlocked_cb=None):
-    waydroid_data = session["waydroid_data"]
-    apps_dir = session["xdg_data_home"] + "/applications/"
+
+    apps_dir = Path(session["xdg_data_home"]) / "applications"
+    apps_dir.mkdir(0o700, exist_ok=True)
+
+    waydroid_user_state_dir = Path(session["waydroid_user_state"])
+    waydroid_data_icons_dir = Path(session["waydroid_data"]) / "icons"
 
     system_apps = [
         "com.android.calculator2",
@@ -35,7 +38,6 @@ def start(args, session, unlocked_cb=None):
         "org.lineageos.jelly",
         "org.lineageos.recorder"
     ]
-
 
     def prepend_list(old_list, new_list):
         for s in reversed(new_list):
@@ -62,30 +64,31 @@ def start(args, session, unlocked_cb=None):
 
     # Migrate waydroid user configs after upgrade
     def user_migration():
-        apps_dir = session["xdg_data_home"] + "/applications/"
-        state_dir = session["waydroid_user_state"]
-        if not any(glob.iglob(f'{apps_dir}/waydroid.*.desktop')):
+        if not any(apps_dir.glob('waydroid.*.desktop')):
             # first ever run, no need to migrate
             return
 
-        if not os.path.exists(os.path.join(state_dir, ".migrated-main-desktop-file")):
-            Path(os.path.join(apps_dir, "Waydroid.desktop")).unlink(missing_ok=True)
-            Path(os.path.join(state_dir, ".migrated-main-desktop-file")).touch()
+        migrated_main_path = waydroid_user_state_dir / ".migrated-main-desktop-file"
+        if not migrated_main_path.exists():
+            main_app_path = apps_dir / "Waydroid.desktop"
+            main_app_path.unlink(missing_ok=True)
+            migrated_main_path.touch()
 
-        if not os.path.exists(os.path.join(state_dir, ".migrated-app-settings-desktop-action")):
-            for app in glob.iglob(f'{apps_dir}/waydroid.*.desktop'):
+        migrated_apps_path = waydroid_user_state_dir / ".migrated-app-settings-desktop-action"
+        if not migrated_apps_path.exists():
+            for app in apps_dir.glob("waydroid.*.desktop"):
                 with suppress(GLib.GError):
                     desktop_file = GLib.KeyFile()
                     flags = GLib.KeyFileFlags.KEEP_COMMENTS | GLib.KeyFileFlags.KEEP_TRANSLATIONS
-                    desktop_file.load_from_file(app, flags)
+                    desktop_file.load_from_file(str(app), flags)
                     with suppress(GLib.GError):
                         desktop_file.remove_group("Desktop Action app_settings")
                     with suppress(GLib.GError, ValueError):
                         actions = glib_key_file_get_string_list(desktop_file, "Desktop Entry", "Actions")
                         actions.remove("app_settings")
                         desktop_file.set_string_list("Desktop Entry", "Actions", actions)
-                    desktop_file.save_to_file(app)
-            Path(os.path.join(state_dir, ".migrated-app-settings-desktop-action")).touch()
+                    desktop_file.save_to_file(str(app))
+            migrated_apps_path.touch()
 
     # Creates, deletes, or updates desktop file
     def updateDesktopFile(appInfo):
@@ -103,17 +106,17 @@ def start(args, session, unlocked_cb=None):
                 pass
 
         packageName = appInfo["packageName"]
+        desktop_file_path = apps_dir / f"waydroid.{packageName}.desktop"
 
-        desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
         desktop_file = GLib.KeyFile()
         with suppress(GLib.GError):
             flags = GLib.KeyFileFlags.KEEP_COMMENTS | GLib.KeyFileFlags.KEEP_TRANSLATIONS
-            desktop_file.load_from_file(desktop_file_path, flags)
+            desktop_file.load_from_file(str(desktop_file_path), flags)
 
         desktop_file.set_string("Desktop Entry", "Type", "Application")
         desktop_file.set_string("Desktop Entry", "Name", appInfo["name"])
         desktop_file.set_string("Desktop Entry", "Exec", f"waydroid app launch {packageName}")
-        desktop_file.set_string("Desktop Entry", "Icon", f"{waydroid_data}/icons/{packageName}.png")
+        desktop_file.set_string("Desktop Entry", "Icon", str(waydroid_data_icons_dir / f"{packageName}.png"))
         glib_key_file_prepend_string_list(desktop_file, "Desktop Entry", "Categories", ["X-WayDroid-App"])
         desktop_file.set_string_list("Desktop Entry", "X-Purism-FormFactor", ["Workstation", "Mobile"])
         glib_key_file_prepend_string_list(desktop_file, "Desktop Entry", "Actions", ["app-settings"])
@@ -122,9 +125,9 @@ def start(args, session, unlocked_cb=None):
 
         desktop_file.set_string("Desktop Action app-settings", "Name", "App Settings")
         desktop_file.set_string("Desktop Action app-settings", "Exec", f"waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:{packageName}")
-        desktop_file.set_string("Desktop Action app-settings", "Icon", f"{waydroid_data}/icons/com.android.settings.png")
+        desktop_file.set_string("Desktop Action app-settings", "Icon", str(waydroid_data_icons_dir / "com.android.settings.png"))
 
-        desktop_file.save_to_file(desktop_file_path)
+        desktop_file.save_to_file(str(desktop_file_path))
 
 
     def userUnlocked(uid):
@@ -141,26 +144,21 @@ def start(args, session, unlocked_cb=None):
 
         platformService = IPlatform.get_service(args)
         if platformService:
-            if not os.path.exists(apps_dir):
-                os.mkdir(apps_dir, 0o700)
             appsList = platformService.getAppsInfo()
             for app in appsList:
                 updateDesktopFile(app)
-            for existing in glob.iglob(f'{apps_dir}/waydroid.*.desktop'):
-                if os.path.basename(existing) not in map(lambda appInfo: f"waydroid.{appInfo['packageName']}.desktop", appsList):
-                    os.remove(existing)
+            for existing in apps_dir.glob("waydroid.*.desktop"):
+                if existing.name not in map(lambda appInfo: f"waydroid.{appInfo['packageName']}.desktop", appsList):
+                    existing.unlink()
         if unlocked_cb:
             unlocked_cb()
 
     def packageStateChanged(mode, packageName, uid):
         platformService = IPlatform.get_service(args)
         if platformService:
-            desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
+            desktop_file_path = apps_dir / f"waydroid.{packageName}.desktop"
             if mode == IUserMonitor.PACKAGE_REMOVED:
-                try:
-                    os.remove(desktop_file_path)
-                except:
-                    pass
+                desktop_file_path.unlink(missing_ok=True)
             else:
                 appInfo = platformService.getAppInfo(packageName)
                 updateDesktopFile(appInfo)
