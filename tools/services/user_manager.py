@@ -7,6 +7,7 @@ import threading
 import tools.config
 import tools.helpers.net
 from pathlib import Path
+from contextlib import suppress
 from tools.interfaces import IUserMonitor
 from tools.interfaces import IPlatform
 from gi.repository import GLib
@@ -44,7 +45,7 @@ def start(args, session, unlocked_cb=None):
     def glib_key_file_get_string_list(key_file, group, key):
         try:
             return key_file.get_string_list(group, key)
-        except:
+        except GLib.GError:
             return []
 
     def glib_key_file_prepend_string_list(key_file, group, key, new_list):
@@ -56,7 +57,7 @@ def start(args, session, unlocked_cb=None):
         try:
             key_file.get_value(group, key)
             return True
-        except:
+        except GLib.GError:
             return False
 
     # Migrate waydroid user configs after upgrade
@@ -73,23 +74,17 @@ def start(args, session, unlocked_cb=None):
 
         if not os.path.exists(os.path.join(state_dir, ".migrated-app-settings-desktop-action")):
             for app in glob.iglob(f'{apps_dir}/waydroid.*.desktop'):
-                try:
+                with suppress(GLib.GError):
                     desktop_file = GLib.KeyFile()
                     flags = GLib.KeyFileFlags.KEEP_COMMENTS | GLib.KeyFileFlags.KEEP_TRANSLATIONS
                     desktop_file.load_from_file(app, flags)
-                    try:
+                    with suppress(GLib.GError):
                         desktop_file.remove_group("Desktop Action app_settings")
-                    except:
-                        pass
-                    try:
+                    with suppress(GLib.GError, ValueError):
                         actions = glib_key_file_get_string_list(desktop_file, "Desktop Entry", "Actions")
                         actions.remove("app_settings")
                         desktop_file.set_string_list("Desktop Entry", "Actions", actions)
-                    except:
-                        pass
                     desktop_file.save_to_file(app)
-                except:
-                    continue
             Path(os.path.join(state_dir, ".migrated-app-settings-desktop-action")).touch()
 
     # Creates, deletes, or updates desktop file
@@ -111,11 +106,9 @@ def start(args, session, unlocked_cb=None):
 
         desktop_file_path = apps_dir + "/waydroid." + packageName + ".desktop"
         desktop_file = GLib.KeyFile()
-        try:
+        with suppress(GLib.GError):
             flags = GLib.KeyFileFlags.KEEP_COMMENTS | GLib.KeyFileFlags.KEEP_TRANSLATIONS
             desktop_file.load_from_file(desktop_file_path, flags)
-        except:
-            pass
 
         desktop_file.set_string("Desktop Entry", "Type", "Application")
         desktop_file.set_string("Desktop Entry", "Name", appInfo["name"])
