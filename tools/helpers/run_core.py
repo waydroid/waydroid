@@ -53,11 +53,11 @@ def background(args, cmd, working_dir=None):
 
 def pipe(args, cmd, working_dir=None):
     """ Run a subprocess in background and redirect its output to a pipe. """
-    ret = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                            cwd=working_dir)
     threading.Thread(target=forward_stream, args=(proc.stderr, logging.DEBUG), daemon=True).start()
-    logging.verbose("New background process: pid={}, output=pipe".format(ret.pid))
-    return ret
+    logging.verbose("New background process: pid={}, output=pipe".format(proc.pid))
+    return proc
 
 
 def pipe_read(args, process, output_to_stdout=False, output_return=False,

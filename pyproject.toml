@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+[tool.autopep8]
+max-line-length = 131
+
+[tool.isort]
+line_length = 131
+
+[tool.ruff]
+line-length = 131
+
+[tool.ruff.lint]
+select = [
+	# Standard errors and warnings
+	"E",
+	"W",
+	"F",
+]
+ignore = [
+	"E501", # Do not enforce line length limit for now.
+	"E722", # TODO: Remove this once the usage of bare "except" is refactored.
+	"F401", # TODO: Remove this once unused imports are removed.
+	"F811", # TODO: Remove this once redefined variables are refactored.
+	"F841", # TODO: Remove this once all unused variables are removed.
+]

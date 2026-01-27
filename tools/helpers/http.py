@@ -27,11 +27,11 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
                           with a 404 Not Found error. Only display a warning on
                           stdout (no matter if loglevel is changed).
         :returns: path to the downloaded file in the cache or None on 404 """
-    
+
     # helper functions for progress
     def fromBytesToMB(numBytes, decimalPlaces=2):
         return round(int(numBytes)/1000000, decimalPlaces)
-    
+
     def getDownloadSpeed(lastSize, currentSize, timeTaken, decimalPlaces=2):
         # sizes are in MB and timeTaken in seconds
         speedUnit = "MB/s"
@@ -43,7 +43,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
             # for better readability
             sizeDifference*=1000
             speedUnit = "kB/s"
-        
+
         # sizeDifference MB(or kB) was downloaded in timeTaken seconds
         # so downloadSpeed = sizeDifference/timeTaken MB/s(or kB/s)
         return (round(sizeDifference/timeTaken, decimalPlaces), speedUnit)
@@ -53,7 +53,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
     def progress(totalSize, destinationPath):
         # convert totalSize to MB before hand,
         # it's value won't change inside while loop and
-        # will be unnecessarily calculated every .01 seconds 
+        # will be unnecessarily calculated every .01 seconds
         totalSize = fromBytesToMB(totalSize)
 
         # this value will be used to figure out maximum chars
@@ -85,7 +85,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
             currentSize = str(currentSize).rjust(totalSizeStrLen)
             # assuming max downloadSpeed to be 9999.99 MB/s
             downloadSpeed = f"{str(downloadSpeed[0]).rjust(7)} {downloadSpeed[1]}"
-            
+
             # print progress bar
             print(f"\r[Downloading] {currentSize} MB/{totalSize} MB    {downloadSpeed}(approx.)", end=" ")
             time.sleep(2)

@@ -468,11 +468,11 @@ def shell(args):
     command = ["lxc-attach", "-P", tools.config.defaults["lxc"],
                "-n", "waydroid", "--clear-env"]
     command.extend(android_env_attach_options(args))
-    if args.uid!=None:
+    if args.uid is not None:
         command.append("--uid="+str(args.uid))
-    if args.gid!=None:
+    if args.gid is not None:
         command.append("--gid="+str(args.gid))
-    elif args.uid!=None:
+    elif args.uid is not None:
         command.append("--gid="+str(args.uid))
     if args.nolsm or args.allcaps or args.nocgroup:
         elevatedprivs = "--elevated-privileges="
@@ -493,7 +493,7 @@ def shell(args):
             elevatedprivs+="CGROUP"
             addpipe = True
         command.append(elevatedprivs)
-    if args.context!=None and not args.nolsm:
+    if args.context is not None and not args.nolsm:
         command.append("--context="+args.context)
     command.append("--")
     if args.COMMAND:

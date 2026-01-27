@@ -117,7 +117,7 @@ def probeAshmemDriver(args):
 
     if not os.path.exists("/dev/ashmem"):
         return -1
-    
+
     return 0
 
 def setupBinderNodes(args):

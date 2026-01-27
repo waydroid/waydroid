@@ -59,7 +59,7 @@ def start(args, unlocked_cb=None, background=True):
     else:
         xdg_runtime_dir = session["xdg_runtime_dir"]
         if xdg_runtime_dir == "None" or not xdg_runtime_dir:
-            logging.error(f"XDG_RUNTIME_DIR is not set; please don't start a Waydroid session with 'sudo'!")
+            logging.error("XDG_RUNTIME_DIR is not set; please don't start a Waydroid session with 'sudo'!")
             sys.exit(1)
         wayland_socket_path = os.path.join(xdg_runtime_dir, wayland_display)
     if not os.path.exists(wayland_socket_path):
