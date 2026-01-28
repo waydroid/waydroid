@@ -86,6 +86,9 @@ def generate_nodes_lxc_config(args):
     # TUN/TAP device node for VPN
     make_entry("/dev/net/tun", "dev/tun")
 
+    # Wi-Fi
+    make_entry("/dev/rfkill", "dev/rfkill")
+
     # Low memory killer sys node
     make_entry("/sys/module/lowmemorykiller", options="bind,create=dir,optional 0 0")
 
@@ -178,7 +181,39 @@ def set_lxc_config(args):
     tools.helpers.run.user(args, command)
 
     # Create empty file
+    open(os.path.join(lxc_path, "config_network"), mode="w").close()
     open(os.path.join(lxc_path, "config_session"), mode="w").close()
+
+def generate_network_lxc_config(args):
+    cfg = tools.config.load(args)
+    lxc_ver = get_lxc_version(args)
+
+    if lxc_ver <= 2:
+        lxc_net_prefix = "lxc.network"
+    else:
+        lxc_net_prefix = "lxc.net.0"
+
+    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+    config_nodes_tmp_path = args.work + "/config_network"
+    config_nodes = open(config_nodes_tmp_path, "w")
+
+    if cfg["waydroid"]["use_virtwifi"] == "True":
+        config_nodes.write(f"{lxc_net_prefix}.type = phys\n")
+        config_nodes.write(f"{lxc_net_prefix}.name = wlan0\n")
+        config_nodes.write(f"{lxc_net_prefix}.link = waydroid-wifi1\n")
+    else:
+        config_nodes.write(f"{lxc_net_prefix}.type = veth\n")
+        config_nodes.write(f"{lxc_net_prefix}.name = eth0\n")
+        config_nodes.write(f"{lxc_net_prefix}.link = waydroid0\n")
+
+    config_nodes.write(f"{lxc_net_prefix}.flags = up\n")
+    config_nodes.write(f"{lxc_net_prefix}.hwaddr = 00:16:3e:f9:d3:03\n")
+    config_nodes.write(f"{lxc_net_prefix}.mtu = 1500\n")
+
+    config_nodes.close()
+    command = ["mv", config_nodes_tmp_path, lxc_path]
+    tools.helpers.run.user(args, command)
+
 
 def generate_session_lxc_config(args, session):
     nodes = []

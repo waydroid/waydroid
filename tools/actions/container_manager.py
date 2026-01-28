@@ -88,6 +88,9 @@ def set_permissions(args, perm_list=None, mode="777"):
             "/dev/graphics",
             "/dev/pvr_sync",
             "/dev/ion",
+
+            # Wi-Fi
+            "/dev/rfkill"
         ]
 
         # DRM render nodes
@@ -151,6 +154,8 @@ def prepare_drivers_once(args):
     prepared_drivers = True
 
 def do_start(args, session):
+    cfg = tools.config.load(args)
+
     if not actions.initializer.is_initialized(args):
         raise RuntimeError("Waydroid is not initialized")
 
@@ -164,7 +169,7 @@ def do_start(args, session):
     # Networking
     command = [tools.config.tools_src +
                "/data/scripts/waydroid-net.sh", "start"]
-    tools.helpers.run.user(args, command)
+    tools.helpers.run.user(args, command, env={"LXC_USE_VIRTWIFI": cfg["waydroid"]["use_virtwifi"]})
 
     # Sensors
     if which("waydroid-sensord"):
@@ -201,8 +206,12 @@ def do_start(args, session):
     # Set permissions
     set_permissions(args)
 
+    # Create network-specific LXC config file
+    helpers.lxc.generate_network_lxc_config(args)
+
     # Create session-specific LXC config file
     helpers.lxc.generate_session_lxc_config(args, session)
+
     # Backwards compatibility
     with open(tools.config.defaults["lxc"] + "/waydroid/config") as f:
         if "config_session" not in f.read():
