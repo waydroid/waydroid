@@ -230,7 +230,8 @@ start_virtwifi() {
 
     # set interface to unmanaged in NetworkManager, otherwise it might interfere with hostapd
     if command -v nmcli > /dev/null; then
-        nmcli dev set waydroid-wifi0 managed no
+        nmcli dev set waydroid-wifi0 managed no || true
+        nmcli dev set waydroid-wifi1 managed no || true
     fi
 
     sleep 1
