@@ -210,23 +210,31 @@ start() {
             --dhcp-authoritative $LXC_IPV6_ARG || cleanup
 
     touch "${varrun}"/network_up
+
+    if [ "x$LXC_USE_VIRTWIFI" = "xTrue" ]; then
+        start_virtwifi
+    fi
+
     FAILED=0
 }
 
 start_virtwifi() {
-    [ -d /sys/devices/virtual/mac80211_hwsim ] && modprobe -r mac80211_hwsim
-    modprobe mac80211_hwsim radios=2
+    if [ -d /sys/devices/virtual/mac80211_hwsim ]; then
+        modprobe -r mac80211_hwsim
+    fi
+
+    modprobe mac80211_hwsim radios=2 support_p2p_device=1
 
     ip link set `basename /sys/devices/virtual/mac80211_hwsim/hwsim0/net/*` name waydroid-wifi0
     ip link set `basename /sys/devices/virtual/mac80211_hwsim/hwsim1/net/*` name waydroid-wifi1
 
     # set interface to unmanaged in NetworkManager, otherwise it might interfere with hostapd
     if command -v nmcli > /dev/null; then
-        nmcli dev set waydroid-wifi0 managed no || true
+        nmcli dev set waydroid-wifi0 managed no
     fi
 
     sleep 1
-    hostapd -P "${varrun}"/hostapd.pid -B `dirname $0`/../configs/hostapd.conf
+    hostapd -P "${varrun}"/hostapd.pid -B `dirname $0`/../configs/hostapd-virtwifi.conf
 
     touch "${varrun}"/virtwifi_up
 }
@@ -294,7 +302,6 @@ stop() {
 case "$1" in
     start)
         start
-        [ "x$LXC_USE_VIRTWIFI" = "xTrue" ] && start_virtwifi
     ;;
 
     stop)
