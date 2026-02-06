@@ -122,6 +122,7 @@ def arguments_shell(subparser):
 
 def arguments_logcat(subparser):
     ret = subparser.add_parser("logcat", help="show android logcat")
+    ret.add_argument('ARGS', nargs='*', help="arguments to pass to logcat")
     return ret
 
 def arguments_adb(subparser):

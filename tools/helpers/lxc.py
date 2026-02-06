@@ -519,6 +519,8 @@ def shell(args):
 
 def logcat(args):
     args.COMMAND = ["/system/bin/logcat"]
+    if args.ARGS:
+        args.COMMAND.extend(args.ARGS)
     args.uid = None
     args.gid = None
     args.nolsm = None
