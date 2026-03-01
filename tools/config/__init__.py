@@ -23,7 +23,8 @@ config_keys = ["arch",
                "vendor_datetime",
                "suspend_action",
                "mount_overlays",
-               "auto_adb"]
+               "auto_adb",
+               "use_virtwifi"]
 
 # Config file/commandline default values
 # $WORK gets replaced with the actual value for args.work (which may be
@@ -41,6 +42,7 @@ defaults = {
     "suspend_action": "freeze",
     "mount_overlays": "True",
     "auto_adb": "False",
+    "use_virtwifi": "False",
     "container_xdg_runtime_dir": "/run/xdg",
     "container_wayland_display": "wayland-0",
 }

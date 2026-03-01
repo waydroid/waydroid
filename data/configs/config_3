@@ -7,11 +7,4 @@ lxc.no_new_privs = 1
 
 lxc.init.cmd = /init
 
-lxc.net.0.type = veth
-lxc.net.0.flags = up
-lxc.net.0.link = waydroid0
-lxc.net.0.name = eth0
-lxc.net.0.hwaddr = 00:16:3e:f9:d3:03
-lxc.net.0.mtu = 1500
-
 lxc.pty.max = 10

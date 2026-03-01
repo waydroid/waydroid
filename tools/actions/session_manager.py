@@ -46,6 +46,7 @@ def start(args, unlocked_cb=None, background=True):
             unlocked_cb()
         return
 
+    cfg = tools.config.load(args)
     session = copy.copy(tools.config.session_defaults)
 
     # TODO: also support WAYLAND_SOCKET?
@@ -80,6 +81,7 @@ def start(args, unlocked_cb=None, background=True):
     session["lcd_density"] = dpi
 
     session["background_start"] = "true" if background else "false"
+    session["use_virtwifi"] = "true" if cfg["waydroid"]["use_virtwifi"] == "True" else "false"
 
     mainloop = GLib.MainLoop()
 
