@@ -116,10 +116,10 @@ def start(args):
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, sigint_handler, None)
 
     initializer = actions.initializer.DbusInitializer(mainloop, dbus.SystemBus(), '/Initializer', args)
-    container_manager = DbusContainerManager(mainloop, dbus.SystemBus(), '/ContainerManager', args)
+    _container_manager = DbusContainerManager(mainloop, dbus.SystemBus(), '/ContainerManager', args)
 
     try:
-        name = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
+        _name = dbus.service.BusName("id.waydro.Container", dbus.SystemBus(), do_not_queue=True)
     except dbus.exceptions.NameExistsException:
         logging.error("Container service is already running")
         return

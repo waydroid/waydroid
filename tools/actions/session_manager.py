@@ -34,12 +34,12 @@ def service(args, looper):
     bus.add_signal_receiver(lambda: handle_disconnect(args, looper),
                             signal_name='Disconnected',
                             dbus_interface='org.freedesktop.DBus.Local')
-    dbus_obj = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
+    _session_manager = DbusSessionManager(looper, dbus.SessionBus(), '/SessionManager', args)
     looper.run()
 
 def start(args, unlocked_cb=None, background=True):
     try:
-        name = dbus.service.BusName("id.waydro.Session", dbus.SessionBus(), do_not_queue=True)
+        _name = dbus.service.BusName("id.waydro.Session", dbus.SessionBus(), do_not_queue=True)
     except dbus.exceptions.NameExistsException:
         logging.error("Session is already running")
         if unlocked_cb:
