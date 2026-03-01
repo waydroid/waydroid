@@ -21,5 +21,4 @@ ignore = [
 	"E722", # TODO: Remove this once the usage of bare "except" is refactored.
 	"F401", # TODO: Remove this once unused imports are removed.
 	"F811", # TODO: Remove this once redefined variables are refactored.
-	"F841", # TODO: Remove this once all unused variables are removed.
 ]

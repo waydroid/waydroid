@@ -142,10 +142,10 @@ def retrieve(url, headers=None):
         with urllib.request.urlopen(req) as response:
             return 200, response.read()
     # Handle malformed URL
-    except ValueError as e:
+    except ValueError:
         return -1, ""
     # Handle 404
     except urllib.error.HTTPError as e:
         return e.code, ""
-    except urllib.error.URLError as e:
+    except urllib.error.URLError:
         return -2, ""
