@@ -106,7 +106,7 @@ Waydroid will collect logs for up to 5 minutes. You may interrupt this operation
         sleep_progress(5 * 60)
     else:
         print("Session did not start\n")
-        dmesg_process = dmesg([], logfile("dmesg.txt"))
+        procs.append(dmesg([], logfile("dmesg.txt")))
 
     for p in procs:
         p.terminate()

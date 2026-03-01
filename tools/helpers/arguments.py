@@ -134,6 +134,7 @@ def arguments_adb(subparser):
 
 def arguments_bugreport(subparser):
     ret = subparser.add_parser("bugreport", help="create a bugreport archive interactively")
+    return ret
 
 def arguments():
     parser = argparse.ArgumentParser(prog="waydroid")

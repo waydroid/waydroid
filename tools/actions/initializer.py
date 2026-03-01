@@ -255,7 +255,7 @@ def remote_init_proc_entry(args, pipe):
         sys.exit(0)
     except KeyboardInterrupt:
         sys.exit(1)
-    except Exception as e:
+    except Exception:
         logging.exception("Exception during init")
         sys.exit(1)
     finally:

@@ -12,7 +12,6 @@ stopping = False
 bus_signals = []
 
 def start(args, session):
-    waydroid_data = session["waydroid_data"]
 
     def onListenerDeath(listener):
         listeners.remove(listener)
