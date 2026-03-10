@@ -62,7 +62,7 @@ def start(args, session):
         pending_tokens[int(notification_id)] = str(token)
 
     def onActionInvoked(notification_id, action_id):
-        token = pending_tokens.pop(int(notification_id))
+        token = pending_tokens.pop(int(notification_id), "")
         for listener in listeners:
             listener.onActionInvoked(int(notification_id), str(action_id), str(token))
 
