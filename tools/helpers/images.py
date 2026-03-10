@@ -148,6 +148,7 @@ def make_prop(args, cfg, full_props_path):
     add_prop("waydroid.host.gid", "group_id")
     add_prop("waydroid.host_data_path", "waydroid_data")
     add_prop("waydroid.background_start", "background_start")
+    add_prop("waydroid.virtwifi.enabled", "use_virtwifi")
     props.append("waydroid.xdg_runtime_dir=" + tools.config.defaults["container_xdg_runtime_dir"])
     props.append("waydroid.pulse_runtime_path=" + tools.config.defaults["container_pulse_runtime_path"])
     props.append("waydroid.wayland_display=" + tools.config.defaults["container_wayland_display"])

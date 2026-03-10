@@ -2,20 +2,23 @@
 
 varrun="/run/waydroid-lxc"
 varlib="/var/lib"
-net_link_key="lxc.net.0.link"
-case "$(lxc-info --version)" in [012].*) net_link_key="lxc.network.link" ;; esac
+net_prefix="lxc.net.0"
+case "$(lxc-info --version)" in [012].*) net_prefix="lxc.network" ;; esac
+net_link_key="$net_prefix.link"
 vnic=$(awk "\$1 == \"$net_link_key\" {print \$3}" /var/lib/waydroid/lxc/waydroid/config)
 : ${vnic:=waydroid0}
 
-if [ "$vnic" != "waydroid0" ]; then
+if [ "$vnic" = "waydroid0" ]; then
+    echo "vnic is waydroid0"
+elif [ "$vnic" = "waydroid-wifi1" ]; then
+    echo "vnic is waydroid-wifi"
+else
     echo "vnic is $vnic, bailing out"
     exit 0
-else 
-    echo "vnic is waydroid0"
 fi
 
 USE_LXC_BRIDGE="true"
-LXC_BRIDGE="${vnic}"
+LXC_BRIDGE="waydroid0"
 LXC_BRIDGE_MAC="00:16:3e:00:00:01"
 LXC_ADDR="192.168.240.1"
 LXC_NETMASK="255.255.255.0"
@@ -26,6 +29,7 @@ LXC_DHCP_CONFILE=""
 LXC_DHCP_PING="true"
 LXC_DOMAIN=""
 LXC_USE_NFT="false"
+LXC_ROOTFS="/var/lib/waydroid/rootfs"
 
 LXC_IPV6_ADDR=""
 LXC_IPV6_MASK=""
@@ -128,7 +132,7 @@ add rule ip lxc postrouting ip saddr ${LXC_NETWORK} ip daddr != ${LXC_NETWORK} c
 start() {
     [ "x$USE_LXC_BRIDGE" = "xtrue" ] || { exit 0; }
 
-    [ ! -f "${varrun}/network_up" ] || { echo "waydroid-net is already running"; exit 0; }
+    [ ! -f "${varrun}/network_up" ] || { echo "waydroid-net is already running"; return 0; }
 
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         stop force || true
@@ -206,8 +210,36 @@ start() {
             --dhcp-authoritative $LXC_IPV6_ARG || cleanup
 
     touch "${varrun}"/network_up
+
+    if [ "x$LXC_USE_VIRTWIFI" = "xTrue" ]; then
+        start_virtwifi
+    fi
+
     FAILED=0
 }
+
+start_virtwifi() {
+    if [ -d /sys/devices/virtual/mac80211_hwsim ]; then
+        modprobe -r mac80211_hwsim
+    fi
+
+    modprobe mac80211_hwsim radios=2 support_p2p_device=1
+
+    ip link set `basename /sys/devices/virtual/mac80211_hwsim/hwsim0/net/*` name waydroid-wifi0
+    ip link set `basename /sys/devices/virtual/mac80211_hwsim/hwsim1/net/*` name waydroid-wifi1
+
+    # set interface to unmanaged in NetworkManager, otherwise it might interfere with hostapd
+    if command -v nmcli > /dev/null; then
+        nmcli dev set waydroid-wifi0 managed no || true
+        nmcli dev set waydroid-wifi1 managed no || true
+    fi
+
+    sleep 1
+    hostapd -P "${varrun}"/hostapd.pid -B `dirname $0`/../configs/hostapd-virtwifi.conf
+
+    touch "${varrun}"/virtwifi_up
+}
+
 
 stop_iptables() {
     $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p udp --dport 67 -j ACCEPT
@@ -244,6 +276,12 @@ stop() {
 
     [ -f "${varrun}/network_up" ] || [ "$1" = "force" ] || { echo "waydroid-net isn't running"; exit 1; }
 
+    if [ -f "${varrun}/virtwifi_up" ]; then
+        modprobe -r mac80211_hwsim
+        pid=`cat "${varrun}"/hostapd.pid 2>/dev/null` && kill -9 $pid
+        rm -f "${varrun}"/hostapd.pid
+    fi
+
     if [ -d /sys/class/net/${LXC_BRIDGE} ]; then
         _ifdown
         if use_nft; then
@@ -258,7 +296,7 @@ stop() {
         ls /sys/class/net/${LXC_BRIDGE}/brif/* > /dev/null 2>&1 || ip link delete ${LXC_BRIDGE}
     fi
 
-    rm -f "${varrun}"/network_up
+    rm -f "${varrun}"/network_up "${varrun}"/virtwifi_up
 }
 
 # See how we were called.

@@ -11,6 +11,7 @@ lxc.mount.auto = cgroup:ro sys:ro proc
 
 lxc.console.path = none
 
+lxc.include = /var/lib/waydroid/lxc/waydroid/config_network
 lxc.include = /var/lib/waydroid/lxc/waydroid/config_nodes
 lxc.include = /var/lib/waydroid/lxc/waydroid/config_session
 
