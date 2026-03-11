@@ -28,8 +28,8 @@ def migration(args):
             cfg = tools.config.load(args)
             cfg["waydroid"]["auto_adb"] = "False"
             tools.config.save(args, cfg)
-    except:
-        pass
+    except Exception as e:
+        logging.debug("Error during migration: %s", e)
 
 def upgrade(args):
     get_config(args)

@@ -1,9 +1,11 @@
 # Copyright 2023 Maximilian Wende
 # SPDX-License-Identifier: GPL-3.0-or-later
-from shutil import which
+
 import tools.helpers.run
 import logging
 import re
+from contextlib import suppress
+from shutil import which
 
 def adb_connect(args):
     """
@@ -37,10 +39,8 @@ def adb_disconnect(args):
 
 def get_device_ip_address():
     # The IP address is queried from the DHCP lease file.
-    lease_file = "/var/lib/misc/dnsmasq.waydroid0.leases"
-
-    try:
-        with open(lease_file) as f:
-            return re.search(r"(\d{1,3}\.){3}\d{1,3}\s", f.read()).group().strip()
-    except:
-        pass
+    with suppress(IOError):
+        with open("/var/lib/misc/dnsmasq.waydroid0.leases") as f:
+            match = re.search(r"(\d{1,3}\.){3}\d{1,3}\s", f.read())
+            if match:
+                return match.group().strip()

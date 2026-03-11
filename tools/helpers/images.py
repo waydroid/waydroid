@@ -7,6 +7,7 @@ import hashlib
 import shutil
 import os
 import tools.config
+from contextlib import suppress
 from tools import helpers
 from shutil import which
 
@@ -39,10 +40,8 @@ def get(args):
             logging.info("Validating system image")
             with open(images_zip, 'rb') as f:
                 if sha256sum(f) != system_response['id']:
-                    try:
+                    with suppress(OSError):
                         os.remove(images_zip)
-                    except:
-                        pass
                     raise ValueError("Downloaded system image hash doesn't match, expected: {}".format(
                         system_response['id']))
                 logging.info("Extracting to " + args.images_path)
@@ -69,10 +68,8 @@ def get(args):
             logging.info("Validating vendor image")
             with open(images_zip, 'rb') as f:
                 if sha256sum(f) != vendor_response['id']:
-                    try:
+                    with suppress(OSError):
                         os.remove(images_zip)
-                    except:
-                        pass
                     raise ValueError("Downloaded vendor image hash doesn't match, expected: {}".format(
                         vendor_response['id']))
                 logging.info("Extracting to " + args.images_path)
@@ -157,10 +154,9 @@ def make_prop(args, cfg, full_props_path):
     if dpi != "0":
         props.append("ro.sf.lcd_density=" + dpi)
 
-    final_props = open(full_props_path, "w")
-    for prop in props:
-        final_props.write(prop + "\n")
-    final_props.close()
+    with open(full_props_path, "w") as f:
+        for prop in props:
+            f.write(prop + "\n")
     os.chmod(full_props_path, 0o644)
 
 def mount_rootfs(args, images_dir, session):
