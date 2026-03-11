@@ -419,8 +419,8 @@ def remote_init_client(args):
             if self.initializing:
                 try:
                     tools.helpers.ipc.DBusContainerService("/Initializer", "id.waydro.Initializer").Cancel()
-                except:
-                    pass
+                except Exception as e:
+                    logging.debug("Unexpected error while cancelling initializer: %s", e)
             Gtk.main_quit()
 
         def run_init(self, systemOta, vendorOta, systemType):

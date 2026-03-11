@@ -13,6 +13,7 @@ import platform
 import gbinder
 import tools.config
 import tools.helpers.run
+from contextlib import suppress
 
 def get_lxc_version(args):
     if shutil.which("lxc-info") is not None:
@@ -134,7 +135,7 @@ def get_apparmor_status(args):
     try:
         with open("/sys/kernel/security/apparmor/profiles", "r") as f:
             enabled &= (LXC_APPARMOR_PROFILE in f.read())
-    except:
+    except Exception:
         enabled = False
     return enabled
 
@@ -242,7 +243,7 @@ def make_base_props(args):
         try:
             sm = gbinder.ServiceManager("/dev/hwbinder")
             return intf in sm.list_sync()
-        except:
+        except Exception:
             return False
 
     props = []
@@ -385,7 +386,7 @@ def status(args):
     command = ["lxc-info", "-P", tools.config.defaults["lxc"], "-n", "waydroid", "-sH"]
     try:
         return tools.helpers.run.user(args, command, output_return=True).strip()
-    except:
+    except Exception:
         logging.info("Couldn't get LXC status. Assuming STOPPED.")
         return "STOPPED"
 
@@ -407,10 +408,8 @@ def start(args):
     tools.helpers.run.user(args, command, output="background")
     wait_for_running(args)
     # Workaround lxc-start changing stdout/stderr permissions to 700
-    try:
+    with suppress(OSError):
         os.chmod(args.log, 0o666)
-    except:
-        pass
 
 def stop(args):
     command = ["lxc-stop", "-P",
@@ -445,7 +444,7 @@ def android_env_attach_options(args):
                "-n", "waydroid", "--clear-env", "--",
                "/system/bin/cat" ,"/data/system/environ/classpath"]
     allowed = ["CLASSPATH", "SYSTEMSERVER"]
-    try:
+    with suppress(Exception):
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
         out, _ = p.communicate()
         if p.returncode == 0:
@@ -453,8 +452,6 @@ def android_env_attach_options(args):
                 _, k, v = line.split(' ', 2)
                 if any(pattern in k for pattern in allowed):
                     local_env[k] = v
-    except:
-        pass
     env = [k + "=" + v for k, v in local_env.items()]
     return [x for var in env for x in ("--set-var", var)]
 

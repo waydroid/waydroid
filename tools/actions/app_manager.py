@@ -64,7 +64,7 @@ def maybeLaunchLater(args, launchNow):
         tools.helpers.ipc.DBusSessionService()
         try:
             tools.helpers.ipc.DBusContainerService().Unfreeze()
-        except:
+        except Exception:
             logging.error("Failed to unfreeze container. Trying to launch anyways...")
         launchNow()
     except dbus.DBusException:

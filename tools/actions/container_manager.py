@@ -1,11 +1,13 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
-from shutil import which
+
 import logging
 import os
 import glob
 import signal
 import tools.config
+from contextlib import suppress
+from shutil import which
 from tools import helpers
 from tools import services
 from tools import actions
@@ -106,10 +108,8 @@ def start(args):
     mainloop = GLib.MainLoop()
 
     def sigint_handler(data):
-        try:
+        with suppress(Exception):
             stop(args)
-        except:
-            pass
         mainloop.quit()
 
     GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, sigint_handler, None)
@@ -181,7 +181,7 @@ def do_start(args, session):
         try:
             os.mkdir("/sys/fs/cgroup/schedtune/probe0")
             os.mkdir("/sys/fs/cgroup/schedtune/probe0/probe1")
-        except:
+        except OSError:
             command = ["umount", "-l", "/sys/fs/cgroup/schedtune"]
             tools.helpers.run.user(args, command, check=False)
         finally:
@@ -259,21 +259,17 @@ def stop(args, quit_session=True):
         helpers.images.umount_rootfs(args)
 
         # Backwards compatibility
-        try:
+        with suppress(Exception):
             helpers.mount.umount_all(args, tools.config.defaults["data"])
-        except:
-            pass
 
         if "session" in args:
             if quit_session:
                 logging.info("Terminating session because the container was stopped")
-                try:
+                with suppress(OSError):
                     os.kill(int(args.session["pid"]), signal.SIGUSR1)
-                except:
-                    pass
             del args.session
-    except:
-        pass
+    except Exception as e:
+        logging.debug("Error while stopping container: %s", e)
 
 def restart(args):
     status = helpers.lxc.status(args)

@@ -18,7 +18,6 @@ select = [
 ]
 ignore = [
 	"E501", # Do not enforce line length limit for now.
-	"E722", # TODO: Remove this once the usage of bare "except" is refactored.
 	"F401", # TODO: Remove this once unused imports are removed.
 	"F811", # TODO: Remove this once redefined variables are refactored.
 ]

@@ -57,21 +57,26 @@ def sleep_progress(seconds):
 def bugreport(args):
     tmp = tempfile.mkdtemp()
 
-    print("\
-The following information will be collected:\n\
-  - System kernel logs (kmsg)\n\
-  - Android system and user logs (logcat)\n\
-  - Waydroid container manager logs (/var/lib/waydroid/waydroid.log)\n\
-  - Waydroid configuration files (/var/lib/waydroid/*)\n\
-\n\
-The information will be stored on your machine.\n\
-")
+    print("""\
+The following information will be collected:
+  - System kernel logs (kmsg)
+  - Android system and user logs (logcat)
+  - Waydroid container manager logs (/var/lib/waydroid/waydroid.log)
+  - Waydroid configuration files (/var/lib/waydroid/*)
 
-    print("Please authenticate as administrator in order to read system logs.")
+The information will be stored on your machine.
+
+Please authenticate as administrator in order to read system logs.
+""")
+
     try:
-        subprocess.run(["sudo", "-v"])
+        subprocess.run(["sudo", "-v"], check=True)
         print()
-    except:
+    except FileNotFoundError:
+        print("The 'sudo' command is not available. Cannot read system logs.")
+        return
+    except subprocess.CalledProcessError:
+        print("Authentication failed or was cancelled.")
         return
 
     procs = []
