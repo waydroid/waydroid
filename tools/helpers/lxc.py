@@ -297,6 +297,12 @@ def make_base_props(args):
     if vulkan:
         props.append("ro.hardware.vulkan=" + vulkan)
 
+    # Install ETC2/EAC compat layer for Intel GPUs if enabled
+    cfg = tools.config.load(args)
+    compat_layer = cfg["properties"].get("waydroid.vulkan_compat_layer", "")
+    if vulkan == "intel" and compat_layer.lower() == "true":
+        tools.helpers.gpu.installVulkanCompatLayer(args)
+
     treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
     if treble != "true":
         camera = find_hal("camera")

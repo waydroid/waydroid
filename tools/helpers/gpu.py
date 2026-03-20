@@ -1,5 +1,8 @@
 import glob
+import logging
 import os
+import shutil
+import tools.config
 import tools.helpers.props
 
 unsupported = ["nvidia"]
@@ -60,3 +63,29 @@ def getVulkanDriver(args, dev):
     if kernel_driver in mapping:
         return mapping[kernel_driver]
     return ""
+
+def installVulkanCompatLayer(args):
+    # Install VkLayer_waydroid_compat into vendor overlay to mask
+    # ETC2/EAC formats on Intel GPUs (prevents AHB crash)
+    layer_dir = os.path.join(tools.config.defaults["overlay"], "vendor",
+                             "lib64", "vulkan")
+    data_dir = os.path.join(tools.config.tools_src, "data")
+
+    layer_so = "VkLayer_waydroid_compat.so"
+    layer_json = "VkLayer_waydroid_compat.json"
+
+    src_so = os.path.join(data_dir, layer_so)
+    src_json = os.path.join(data_dir, layer_json)
+
+    if not os.path.isfile(src_so):
+        logging.warning("Vulkan compat layer not found at %s, skipping",
+                        src_so)
+        return
+
+    os.makedirs(layer_dir, exist_ok=True)
+
+    shutil.copy2(src_so, os.path.join(layer_dir, layer_so))
+    if os.path.isfile(src_json):
+        shutil.copy2(src_json, os.path.join(layer_dir, layer_json))
+    logging.info("Installed Vulkan compat layer to %s", layer_dir)
+
