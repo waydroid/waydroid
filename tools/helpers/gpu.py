@@ -2,6 +2,7 @@ import glob
 import logging
 import os
 import shutil
+import subprocess
 import tools.config
 import tools.helpers.props
 
@@ -73,14 +74,28 @@ def installVulkanCompatLayer(args):
 
     layer_so = "VkLayer_waydroid_compat.so"
     layer_json = "VkLayer_waydroid_compat.json"
+    layer_src = "VkLayer_waydroid_compat.c"
 
+    src_c = os.path.join(data_dir, layer_src)
     src_so = os.path.join(data_dir, layer_so)
     src_json = os.path.join(data_dir, layer_json)
 
+    # Build the .so from source if it doesn't exist yet
     if not os.path.isfile(src_so):
-        logging.warning("Vulkan compat layer not found at %s, skipping",
-                        src_so)
-        return
+        if not os.path.isfile(src_c):
+            logging.warning("Vulkan compat layer source not found at %s",
+                            src_c)
+            return
+        logging.info("Building Vulkan compat layer from source...")
+        try:
+            subprocess.check_call(
+                ["cc", "-shared", "-fPIC", "-O2", "-o", src_so, src_c],
+                stderr=subprocess.STDOUT)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            logging.warning("Failed to build Vulkan compat layer. "
+                            "Install a C compiler (gcc or clang) and "
+                            "vulkan headers, then retry")
+            return
 
     os.makedirs(layer_dir, exist_ok=True)
 
