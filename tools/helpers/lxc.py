@@ -297,11 +297,11 @@ def make_base_props(args):
     if vulkan:
         props.append("ro.hardware.vulkan=" + vulkan)
 
-    # Install ETC2/EAC compat layer for Intel GPUs if enabled
+    # Enable ETC2/EAC compat layer for Intel GPUs if configured
+    # (layer .so ships pre-built in vendor image from android_hardware_waydroid)
     cfg = tools.config.load(args)
     compat_layer = cfg["properties"].get("waydroid.vulkan_compat_layer", "")
     if vulkan == "intel" and compat_layer.lower() == "true":
-        tools.helpers.gpu.installVulkanCompatLayer(args)
         props.append("debug.vulkan.layers=VK_LAYER_WAYDROID_compat")
 
     treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
