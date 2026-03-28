@@ -1,8 +1,9 @@
 [Desktop Entry]
 Type=Application
 Name=Waydroid
+GenericName=Android Container
 Exec=waydroid
-Comment=A container-based approach to boot a full Android system
+Comment=Run Android apps in a containerized environment.
 Icon=waydroid
 Categories=X-WayDroid-App;Utility;
 Actions=stop;initialize;
