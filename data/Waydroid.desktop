@@ -2,6 +2,7 @@
 Type=Application
 Name=Waydroid
 Exec=waydroid
+Comment=A container-based approach to boot a full Android system
 Icon=waydroid
 Categories=X-WayDroid-App;Utility;
 Actions=stop;initialize;
