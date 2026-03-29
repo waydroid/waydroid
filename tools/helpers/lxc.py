@@ -14,6 +14,7 @@ import gbinder
 import tools.config
 import tools.helpers.run
 from contextlib import suppress
+from pathlib import Path
 
 def get_lxc_version(args):
     if shutil.which("lxc-info") is not None:
@@ -171,15 +172,13 @@ def set_lxc_config(args):
 
     nodes = generate_nodes_lxc_config(args)
     config_nodes_tmp_path = args.work + "/config_nodes"
-    config_nodes = open(config_nodes_tmp_path, "w")
-    for node in nodes:
-        config_nodes.write(node + "\n")
-    config_nodes.close()
+    with open(config_nodes_tmp_path, "w") as f:
+        f.writelines(node + "\n" for node in nodes)
     command = ["mv", config_nodes_tmp_path, lxc_path]
     tools.helpers.run.user(args, command)
 
     # Create empty file
-    open(os.path.join(lxc_path, "config_session"), mode="w").close()
+    Path(os.path.join(lxc_path, "config_session")).touch()
 
 def generate_session_lxc_config(args, session):
     nodes = []
@@ -212,10 +211,8 @@ def generate_session_lxc_config(args, session):
 
     lxc_path = tools.config.defaults["lxc"] + "/waydroid"
     config_nodes_tmp_path = args.work + "/config_session"
-    config_nodes = open(config_nodes_tmp_path, "w")
-    for node in nodes:
-        config_nodes.write(node + "\n")
-    config_nodes.close()
+    with open(config_nodes_tmp_path, "w") as f:
+        f.writelines(node + "\n" for node in nodes)
     command = ["mv", config_nodes_tmp_path, lxc_path]
     tools.helpers.run.user(args, command)
 
@@ -348,10 +345,8 @@ def make_base_props(args):
                 props.pop(idx)
         props.append(k+"="+v)
 
-    base_props = open(args.work + "/waydroid_base.prop", "w")
-    for prop in props:
-        base_props.write(prop + "\n")
-    base_props.close()
+    with open(args.work + "/waydroid_base.prop", "w") as f:
+        f.writelines(prop + "\n" for prop in props)
 
 
 def setup_host_perms(args):

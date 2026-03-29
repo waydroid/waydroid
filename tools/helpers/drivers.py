@@ -1,5 +1,6 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 import logging
 import os
 import glob
@@ -7,6 +8,7 @@ import fcntl
 import struct
 import tools.config
 import tools.helpers.run
+from contextlib import suppress
 
 
 BINDER_DRIVERS = [
@@ -56,15 +58,11 @@ def allocBinderNodes(args, binder_dev_nodes):
         return IOC(READ|WRITE, _type, nr, size)
 
     BINDER_CTL_ADD = IOWR(98, 1, 264)
-    binderctrlfd = open('/dev/binderfs/binder-control','rb')
-
-    for node in binder_dev_nodes:
-        node_struct = struct.pack(
-            '256sII', bytes(node, 'utf-8'), 0, 0)
-        try:
-            fcntl.ioctl(binderctrlfd.fileno(), BINDER_CTL_ADD, node_struct)
-        except FileExistsError:
-            pass
+    with open('/dev/binderfs/binder-control', 'rb') as f:
+        for node in binder_dev_nodes:
+            node_struct = struct.pack('256sII', bytes(node, 'utf-8'), 0, 0)
+            with suppress(FileExistsError):
+                fcntl.ioctl(f.fileno(), BINDER_CTL_ADD, node_struct)
 
 def probeBinderDriver(args):
     binder_dev_nodes = []
