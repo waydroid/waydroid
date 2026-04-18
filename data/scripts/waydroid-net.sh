@@ -199,7 +199,7 @@ start() {
         mkdir "${varlib}"/misc
     fi
 
-    dnsmasq $LXC_DHCP_CONFILE_ARG $LXC_DOMAIN_ARG $LXC_DHCP_PING_ARG -u ${DNSMASQ_USER} \
+    dnsmasq "$LXC_DHCP_CONFILE_ARG" $LXC_DOMAIN_ARG $LXC_DHCP_PING_ARG -u ${DNSMASQ_USER} \
             --strict-order --bind-interfaces --pid-file="${varrun}"/dnsmasq.pid \
             --listen-address ${LXC_ADDR} --dhcp-range ${LXC_DHCP_RANGE} \
             --dhcp-lease-max=${LXC_DHCP_MAX} --dhcp-no-override \
