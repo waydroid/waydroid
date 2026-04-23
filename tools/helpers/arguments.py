@@ -15,7 +15,7 @@ import tools.config
     the "args" variable, which is prominently passed to most functions all
     over the waydroid code base.
 
-    See tools/helpers/args.py for more information about the args variable. """
+    See tools/helpers/arguments.py for more information about the args variable. """
 
 def arguments_init(subparser):
     ret = subparser.add_parser("init", help="set up waydroid specific"
