@@ -14,6 +14,7 @@ stopping = False
 
 
 def start(args, session, unlocked_cb=None):
+    no_applications = tools.config.load(args)["waydroid"]["no_applications"] == "True"
 
     apps_dir = Path(session["xdg_data_home"]) / "applications"
     apps_dir.mkdir(0o700, exist_ok=True)
@@ -36,7 +37,7 @@ def start(args, session, unlocked_cb=None):
         "org.lineageos.eleven",
         "org.lineageos.etar",
         "org.lineageos.jelly",
-        "org.lineageos.recorder"
+        "org.lineageos.recorder",
     ]
 
     def prepend_list(old_list, new_list):
@@ -64,8 +65,17 @@ def start(args, session, unlocked_cb=None):
 
     # Migrate waydroid user configs after upgrade
     def user_migration():
-        if not any(apps_dir.glob('waydroid.*.desktop')):
+        if not any(apps_dir.glob("waydroid.*.desktop")):
             # first ever run, no need to migrate
+            return
+
+        if no_applications:
+            # clean the desktop files just in case
+            for file in apps_dir.glob("waydroid.*.desktop"):
+                try:
+                    file.unlink(True)
+                except Exception as e:
+                    logging.warning(f"Unable to link previous desktop file: {e}")
             return
 
         migrated_main_path = waydroid_user_state_dir / ".migrated-main-desktop-file"
@@ -92,6 +102,10 @@ def start(args, session, unlocked_cb=None):
 
     # Creates, deletes, or updates desktop file
     def updateDesktopFile(appInfo):
+        # this shouldn't do anything in this case
+        if no_applications:
+            return
+
         if appInfo is None:
             return
 
@@ -125,7 +139,11 @@ def start(args, session, unlocked_cb=None):
             desktop_file.set_boolean("Desktop Entry", "NoDisplay", True)
 
         desktop_file.set_string("Desktop Action app-settings", "Name", "App Settings")
-        desktop_file.set_string("Desktop Action app-settings", "Exec", f"waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:{packageName}")
+        desktop_file.set_string(
+            "Desktop Action app-settings",
+            "Exec",
+            f"waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:{packageName}",
+        )
         desktop_file.set_string("Desktop Action app-settings", "Icon", str(waydroid_data_icons_dir / "com.android.settings.png"))
 
         desktop_file.save_to_file(str(desktop_file_path))

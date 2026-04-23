@@ -23,7 +23,8 @@ config_keys = ["arch",
                "vendor_datetime",
                "suspend_action",
                "mount_overlays",
-               "auto_adb"]
+               "auto_adb",
+               "no_applications"]
 
 # Config file/commandline default values
 # $WORK gets replaced with the actual value for args.work (which may be
@@ -43,6 +44,7 @@ defaults = {
     "auto_adb": "False",
     "container_xdg_runtime_dir": "/run/xdg",
     "container_wayland_display": "wayland-0",
+    "no_applications": "False"
 }
 defaults["images_path"] = defaults["work"] + "/images"
 defaults["rootfs"] = defaults["work"] + "/rootfs"
