@@ -73,9 +73,9 @@ def start(args, session, unlocked_cb=None):
             # clean the desktop files just in case
             for file in apps_dir.glob("waydroid.*.desktop"):
                 try:
-                    file.unlink(True)
+                    file.unlink(missing_ok=True)
                 except Exception as e:
-                    logging.warning(f"Unable to link previous desktop file: {e}")
+                    logging.warning(f"Unable to remove desktop file: {e}")
             return
 
         migrated_main_path = waydroid_user_state_dir / ".migrated-main-desktop-file"
