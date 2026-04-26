@@ -22,7 +22,9 @@ LXC_NETMASK="255.255.255.0"
 LXC_NETWORK="192.168.240.0/24"
 LXC_DHCP_RANGE="192.168.240.2,192.168.240.254"
 LXC_DHCP_MAX="253"
-LXC_DHCP_CONFILE=""
+# Allow an external dnsmasq config to be injected without changing the
+# default hermetic /dev/null behavior.
+: "${LXC_DHCP_CONFILE:=${WAYDROID_DNSMASQ_CONF:-}}"
 LXC_DHCP_PING="true"
 LXC_DOMAIN=""
 LXC_USE_NFT="false"
@@ -197,7 +199,7 @@ start() {
         mkdir "${varlib}"/misc
     fi
 
-    dnsmasq $LXC_DHCP_CONFILE_ARG $LXC_DOMAIN_ARG $LXC_DHCP_PING_ARG -u ${DNSMASQ_USER} \
+    dnsmasq "$LXC_DHCP_CONFILE_ARG" $LXC_DOMAIN_ARG $LXC_DHCP_PING_ARG -u ${DNSMASQ_USER} \
             --strict-order --bind-interfaces --pid-file="${varrun}"/dnsmasq.pid \
             --listen-address ${LXC_ADDR} --dhcp-range ${LXC_DHCP_RANGE} \
             --dhcp-lease-max=${LXC_DHCP_MAX} --dhcp-no-override \
