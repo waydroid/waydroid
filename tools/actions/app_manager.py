@@ -59,7 +59,7 @@ def remove(args):
     except dbus.DBusException:
         logging.error("WayDroid session is stopped")
 
-def maybeLaunchLater(args, launchNow):
+def maybeLaunchLater(args, launchNow, background=False):
     try:
         tools.helpers.ipc.DBusSessionService()
         try:
@@ -69,9 +69,11 @@ def maybeLaunchLater(args, launchNow):
         launchNow()
     except dbus.DBusException:
         logging.error("Starting waydroid session")
-        tools.actions.session_manager.start(args, launchNow, background=False)
+        tools.actions.session_manager.start(args, launchNow, background=background)
 
 def launch(args):
+    cfg = tools.config.load(args)
+    background = cfg["waydroid"].get("show_boot_animation", "False") == "True"
     def justLaunch():
         platformService = IPlatform.get_service(args)
         if platformService:
@@ -87,7 +89,7 @@ def launch(args):
                     2, "policy_control", "immersive.full=*")
         else:
             logging.error("Failed to access IPlatform service")
-    maybeLaunchLater(args, justLaunch)
+    maybeLaunchLater(args, justLaunch, background)
 
 def list(args):
     try:
@@ -132,6 +134,8 @@ def showFullUI(args):
     maybeLaunchLater(args, justShow)
 
 def intent(args):
+    cfg = tools.config.load(args)
+    background = cfg["waydroid"].get("show_boot_animation", "False") == "True"
     def justLaunch():
         platformService = IPlatform.get_service(args)
         if platformService:
@@ -150,4 +154,4 @@ def intent(args):
                     2, "policy_control", "immersive.full=*")
         else:
             logging.error("Failed to access IPlatform service")
-    maybeLaunchLater(args, justLaunch)
+    maybeLaunchLater(args, justLaunch, background)
