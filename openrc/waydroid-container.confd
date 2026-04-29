@@ -1,0 +1,4 @@
+# Configuration for /etc/init.d/waydroid-container
+
+# umask for waydroid-container
+#umask=0022
