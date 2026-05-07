@@ -13,8 +13,9 @@ TRANSACTION_suspend = 3
 TRANSACTION_reboot = 4
 TRANSACTION_upgrade = 5
 TRANSACTION_upgrade2 = 6
+TRANSACTION_shutdownRequest = 7
 
-def add_service(args, enableNFC, enableBluetooth, suspend, reboot, upgrade):
+def add_service(args, enableNFC, enableBluetooth, suspend, reboot, upgrade, shutdownRequest):
     helpers.drivers.loadBinderNodes(args)
     try:
         serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER, args.SERVICE_MANAGER_PROTOCOL, args.BINDER_PROTOCOL)
@@ -55,6 +56,10 @@ def add_service(args, enableNFC, enableBluetooth, suspend, reboot, upgrade):
             arg3 = reader.read_string16()
             status, arg4 = reader.read_int64()
             upgrade(arg1, arg2, arg3, arg4)
+            local_response.append_int32(0)
+        elif code == TRANSACTION_shutdownRequest:
+            arg1 = reader.read_string16()
+            shutdownRequest(arg1)
             local_response.append_int32(0)
         else:
             return local_response, -99999 # Some error unknown to binder to force a RemoteException
