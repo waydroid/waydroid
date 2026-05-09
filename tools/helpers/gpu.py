@@ -39,7 +39,6 @@ def getVulkanDriver(args, dev):
         "i915": "intel",
         "xe": "intel",
         "amdgpu": "radeon",
-        "radeon": "radeon",
         "panfrost": "panfrost",
         "msm": "freedreno",
         "msm_dpu": "freedreno",
