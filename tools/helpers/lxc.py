@@ -243,6 +243,16 @@ def make_base_props(args):
         except Exception:
             return False
 
+    def find_aidl(intf):
+        if args.vendor_type == "MAINLINE":
+            return False
+
+        try:
+            sm = gbinder.ServiceManager("/dev/binder")
+            return intf in sm.list_sync()
+        except:
+            return False
+
     props = []
 
     if not os.path.exists("/dev/ashmem"):
@@ -258,6 +268,8 @@ def make_base_props(args):
     gralloc = find_hal("gralloc")
     if not gralloc:
         if find_hidl("android.hardware.graphics.allocator@4.0::IAllocator/default"):
+            gralloc = "android"
+        elif find_aidl("android.hardware.graphics.allocator.IAllocator/default"):
             gralloc = "android"
     if not gralloc:
         if dri:
