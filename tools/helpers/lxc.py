@@ -85,6 +85,10 @@ def generate_nodes_lxc_config(args):
     make_entry("none", "dev/pts", "devpts", "defaults,mode=644,ptmxmode=666,create=dir 0 0", False)
     make_entry("/dev/uhid")
 
+    # Input device nodes (gamepads, joysticks, etc.)
+    make_entry("/dev/input", options="bind,create=dir,optional 0 0")
+    make_entry("/dev/uinput")
+
     # TUN/TAP device node for VPN
     make_entry("/dev/net/tun", "dev/tun")
 
@@ -125,6 +129,16 @@ def generate_nodes_lxc_config(args):
     make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
 
     return nodes
+
+def write_nodes_config(args):
+    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+    nodes = generate_nodes_lxc_config(args)
+    config_nodes_tmp_path = args.work + "/config_nodes"
+    with open(config_nodes_tmp_path, "w") as f:
+        f.writelines(node + "\n" for node in nodes)
+    command = ["mv", config_nodes_tmp_path, lxc_path]
+    tools.helpers.run.user(args, command)
+    Path(os.path.join(lxc_path, "config_session")).touch()
 
 LXC_APPARMOR_PROFILE = "lxc-waydroid"
 def get_apparmor_status(args):
@@ -170,15 +184,7 @@ def set_lxc_config(args):
         command = ["sed", "-i", "-E", "/lxc.aa_profile|lxc.apparmor.profile/ s/unconfined/{}/g".format(LXC_APPARMOR_PROFILE), lxc_path + "/config"]
         tools.helpers.run.user(args, command)
 
-    nodes = generate_nodes_lxc_config(args)
-    config_nodes_tmp_path = args.work + "/config_nodes"
-    with open(config_nodes_tmp_path, "w") as f:
-        f.writelines(node + "\n" for node in nodes)
-    command = ["mv", config_nodes_tmp_path, lxc_path]
-    tools.helpers.run.user(args, command)
-
-    # Create empty file
-    Path(os.path.join(lxc_path, "config_session")).touch()
+    write_nodes_config(args)
 
 def generate_session_lxc_config(args, session):
     nodes = []

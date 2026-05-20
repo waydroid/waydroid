@@ -16,6 +16,38 @@ import dbus.service
 import dbus.exceptions
 from gi.repository import GLib
 
+
+def _input_devices():
+    devices = set()
+    for pattern in ["event*", "js*", "hidraw*"]:
+        devices.update(glob.glob("/dev/input/" + pattern))
+    return sorted(devices)
+
+def _add_input_devices(args, devices):
+    lxc_path = tools.config.defaults["lxc"]
+    for path in devices:
+        with suppress(OSError):
+            os.chmod(path, 0o666)
+        ret = tools.helpers.run.user(args, [
+            "lxc-device", "-P", lxc_path, "-n", "waydroid", "add", path
+        ], check=False)
+        if ret == 0:
+            logging.info("input: added {}".format(path))
+        else:
+            logging.info("input: lxc-device {} failed ({})".format(path, ret))
+
+_input_seen = set()
+
+def _input_hotplug(args):
+    global _input_seen
+    current = set(_input_devices())
+    new = current - _input_seen
+    if new:
+        logging.info("input: hotplug detected {}".format(", ".join(sorted(new))))
+        _add_input_devices(args, sorted(new))
+        _input_seen = current
+    return True
+
 class DbusContainerManager(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
         self.args = args
@@ -100,6 +132,9 @@ def set_permissions(args, perm_list=None, mode="777"):
         perm_list.extend(glob.glob("/dev/video*"))
         # DMA-BUF Heaps
         perm_list.extend(glob.glob("/dev/dma_heap/*"))
+        # Input devices (gamepads, joysticks, etc.)
+        perm_list.extend(glob.glob("/dev/input/event*"))
+        perm_list.extend(glob.glob("/dev/input/js*"))
 
     for path in perm_list:
         chmod(path, mode)
@@ -154,7 +189,7 @@ def do_start(args, session):
     if not actions.initializer.is_initialized(args):
         raise RuntimeError("Waydroid is not initialized")
 
-    if "session" in args:
+    if "session" in args and args.session is not None:
         raise RuntimeError("Already tracking a session")
 
     prepare_drivers_once(args)
@@ -165,6 +200,11 @@ def do_start(args, session):
     command = [tools.config.tools_src +
                "/data/scripts/waydroid-net.sh", "start"]
     tools.helpers.run.user(args, command)
+
+    # Regenerate device node config
+    cfg = tools.config.load(args)
+    args.vendor_type = cfg["waydroid"]["vendor_type"]
+    helpers.lxc.write_nodes_config(args)
 
     # Sensors
     if which("waydroid-sensord"):
@@ -262,7 +302,7 @@ def stop(args, quit_session=True):
         with suppress(Exception):
             helpers.mount.umount_all(args, tools.config.defaults["data"])
 
-        if "session" in args:
+        if "session" in args and args.session is not None:
             if quit_session:
                 logging.info("Terminating session because the container was stopped")
                 with suppress(OSError):
