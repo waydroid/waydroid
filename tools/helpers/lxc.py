@@ -130,16 +130,6 @@ def generate_nodes_lxc_config(args):
 
     return nodes
 
-def write_nodes_config(args):
-    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
-    nodes = generate_nodes_lxc_config(args)
-    config_nodes_tmp_path = args.work + "/config_nodes"
-    with open(config_nodes_tmp_path, "w") as f:
-        f.writelines(node + "\n" for node in nodes)
-    command = ["mv", config_nodes_tmp_path, lxc_path]
-    tools.helpers.run.user(args, command)
-    Path(os.path.join(lxc_path, "config_session")).touch()
-
 LXC_APPARMOR_PROFILE = "lxc-waydroid"
 def get_apparmor_status(args):
     enabled = False
@@ -183,8 +173,16 @@ def set_lxc_config(args):
     if get_apparmor_status(args):
         command = ["sed", "-i", "-E", "/lxc.aa_profile|lxc.apparmor.profile/ s/unconfined/{}/g".format(LXC_APPARMOR_PROFILE), lxc_path + "/config"]
         tools.helpers.run.user(args, command)
+    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+    nodes = generate_nodes_lxc_config(args)
+    config_nodes_tmp_path = args.work + "/config_nodes"
+    with open(config_nodes_tmp_path, "w") as f:
+        f.writelines(node + "\n" for node in nodes)
+    command = ["mv", config_nodes_tmp_path, lxc_path]
+    tools.helpers.run.user(args, command)
 
-    write_nodes_config(args)
+    # Create empty file
+    Path(os.path.join(lxc_path, "config_session")).touch()
 
 def generate_session_lxc_config(args, session):
     nodes = []
