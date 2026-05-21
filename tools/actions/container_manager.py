@@ -17,37 +17,6 @@ import dbus.exceptions
 from gi.repository import GLib
 
 
-def _input_devices():
-    devices = set()
-    for pattern in ["event*", "js*", "hidraw*"]:
-        devices.update(glob.glob("/dev/input/" + pattern))
-    return sorted(devices)
-
-def _add_input_devices(args, devices):
-    lxc_path = tools.config.defaults["lxc"]
-    for path in devices:
-        with suppress(OSError):
-            os.chmod(path, 0o666)
-        ret = tools.helpers.run.user(args, [
-            "lxc-device", "-P", lxc_path, "-n", "waydroid", "add", path
-        ], check=False)
-        if ret == 0:
-            logging.info("input: added {}".format(path))
-        else:
-            logging.info("input: lxc-device {} failed ({})".format(path, ret))
-
-_input_seen = set()
-
-def _input_hotplug(args):
-    global _input_seen
-    current = set(_input_devices())
-    new = current - _input_seen
-    if new:
-        logging.info("input: hotplug detected {}".format(", ".join(sorted(new))))
-        _add_input_devices(args, sorted(new))
-        _input_seen = current
-    return True
-
 class DbusContainerManager(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
         self.args = args
@@ -189,7 +158,7 @@ def do_start(args, session):
     if not actions.initializer.is_initialized(args):
         raise RuntimeError("Waydroid is not initialized")
 
-    if "session" in args and args.session is not None:
+    if "session" in args:
         raise RuntimeError("Already tracking a session")
 
     prepare_drivers_once(args)
@@ -204,7 +173,14 @@ def do_start(args, session):
     # Regenerate device node config
     cfg = tools.config.load(args)
     args.vendor_type = cfg["waydroid"]["vendor_type"]
-    helpers.lxc.write_nodes_config(args)
+    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+    nodes = helpers.lxc.generate_nodes_lxc_config(args)
+    config_nodes_tmp_path = args.work + "/config_nodes"
+    with open(config_nodes_tmp_path, "w") as f:
+        f.writelines(node + "\n" for node in nodes)
+    command = ["mv", config_nodes_tmp_path, lxc_path]
+    tools.helpers.run.user(args, command)
+    open(os.path.join(lxc_path, "config_session"), "a").close()
 
     # Sensors
     if which("waydroid-sensord"):

@@ -86,7 +86,16 @@ def generate_nodes_lxc_config(args):
     make_entry("/dev/uhid")
 
     # Input device nodes (gamepads, joysticks, etc.)
-    make_entry("/dev/input", options="bind,create=dir,optional 0 0")
+    input_nodes = set()
+    for pattern in [
+            "/dev/input/by-id/*-event-joystick",
+            "/dev/input/by-path/*-event-joystick"]:
+        for path in glob.glob(pattern):
+            input_nodes.add(os.path.realpath(path))
+    for n in sorted(input_nodes):
+        make_entry(n)
+    for n in glob.glob("/dev/input/js*"):
+        make_entry(n)
     make_entry("/dev/uinput")
 
     # TUN/TAP device node for VPN
