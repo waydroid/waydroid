@@ -337,6 +337,84 @@ def make_base_props(args):
     if prop_fp != "":
         props.append("ro.build.fingerprint=" + prop_fp)
 
+# Generate necessary dalvik_dex2oat props which are used to dex2oat background compile dex files based on CPU's core quantity
+    dalvik_dex2oat = [
+        "dalvik.vm.background-dex2oat-cpu-set",
+        "dalvik.vm.background-dex2oat-threads",
+        "dalvik.vm.boot-dex2oat-cpu-set",
+        "dalvik.vm.boot-dex2oat-threads",
+        "dalvik.vm.dex2oat-cpu-set",
+        "dalvik.vm.dex2oat-threads"]
+    cpus_count = os.cpu_count()
+    list_cpu = []
+    for cpus in range(cpus_count):
+        list_cpu.append(str(cpus))
+        cpus_range = ','.join(list_cpu)
+    count = 0
+    for prop in dalvik_dex2oat:
+        if "cpu-set" in prop:
+            dalvik_dex2oat[count] += f"={cpus_range}"
+        elif "threads" in prop:
+            dalvik_dex2oat[count] += f"={cpus_count}"
+        count+=1  
+        
+    props.extend(dalvik_dex2oat)
+
+# Generate necessary dalvik_vm props based on total physical ram
+    mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')  # from https://stackoverflow.com/questions/22102999/get-total-physical-memory-in-python
+    mem_gib = round(mem_bytes/(1024.**3)) # Is necessary to round mem_gib to get human ram value
+    dalvik_vm = [
+        "dalvik.vm.heapstartsize",
+        "dalvik.vm.heapgrowthlimit",
+        "dalvik.vm.heapsize",
+        "dalvik.vm.heapminfree",
+        "dalvik.vm.heapmaxfree",
+        "dalvik.vm.heaptargetutilization"]
+    
+    if mem_gib >= 2 and mem_gib < 4:
+       dalvik_vm[0]+="=8m"
+       dalvik_vm[1]+="=192m"
+       dalvik_vm[3]+="=512k"
+       dalvik_vm[4]+="=8m"
+       dalvik_vm[5]+="=0.75"
+    elif mem_gib >= 4 and mem_gib < 6:
+       dalvik_vm[0]+="=8m"
+       dalvik_vm[1]+="=256m"
+       dalvik_vm[2]+="=512m"
+       dalvik_vm[3]+="=8m"
+       dalvik_vm[4]+= "=16m"
+       dalvik_vm[5]+= "=0.6"
+    elif mem_gib >= 6 and mem_gib < 8:
+       dalvik_vm[0]+= "=16m"
+       dalvik_vm[1]+="=256m"
+       dalvik_vm[2]+="=512m"
+       dalvik_vm[3]+="=8m"
+       dalvik_vm[4]+= "=32m"
+       dalvik_vm[5]+="=0.5"
+    elif mem_gib >= 8 and mem_gib < 12:
+       dalvik_vm[0]+="=24m"
+       dalvik_vm[1]+="=256m"
+       dalvik_vm[2]+="=512m"
+       dalvik_vm[3]+="=8m"
+       dalvik_vm[4]+="=48m"
+       dalvik_vm[5]+="=0.46"  
+    elif mem_gib >= 12 and mem_gib <  16:
+       dalvik_vm[0]+="=24m"
+       dalvik_vm[1]+="=384m"
+       dalvik_vm[2]+="=512m"
+       dalvik_vm[3]+="=8m"
+       dalvik_vm[4]+="=56m"
+       dalvik_vm[5]+="=0.42"
+    elif mem_gib >= 16:
+       dalvik_vm[0]+="=32m"
+       dalvik_vm[1]+="=448m"
+       dalvik_vm[2]+="=640m"
+       dalvik_vm[3]+="=16m"
+       dalvik_vm[4]+="=64m"
+       dalvik_vm[5]+="=0.4"   
+        
+    props.extend(dalvik_vm)
+    
     # now append/override with values in [properties] section of waydroid.cfg
     cfg = tools.config.load(args)
     for k, v in cfg["properties"].items():
@@ -347,8 +425,7 @@ def make_base_props(args):
 
     with open(args.work + "/waydroid_base.prop", "w") as f:
         f.writelines(prop + "\n" for prop in props)
-
-
+    
 def setup_host_perms(args):
     if not os.path.exists(tools.config.defaults["host_perms"]):
         os.mkdir(tools.config.defaults["host_perms"])
