@@ -417,7 +417,17 @@ def make_base_props(args):
         props.extend(dalvik_vm)
     except Exception as e:
         logging.info(f"Error: Can't be possible to generate Dalvik's VM properties: {e}")    
-        
+
+    # Detect if System has Low Memory RAM
+    try:
+        mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+        mem_gib = round(mem_bytes / (1024.**3))
+        if mem_gib <= 5:
+            logging.info("Low Memory Ram detected: Adding Low Memory RAM property")
+            props.append("ro.config.low_ram=true")
+    except Exception as e:
+        logging.info(f"Can´t be possible detect if your system has a Low Memory RAM: {e}")
+    
     # now append/override with values in [properties] section of waydroid.cfg
     cfg = tools.config.load(args)
     for k, v in cfg["properties"].items():
