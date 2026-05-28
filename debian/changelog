@@ -1,3 +1,17 @@
+waydroid (1.6.3) bullseye; urgency=medium
+
+  * tools: Fix all occurrences of unused variable warning
+  * tools: Fix all occurrences of catching bare exceptions
+  * tools: Fix "file is not always closed" CodeQL warning
+  * notification_manager: Handle missing ActivationToken signal
+  * Add comment to desktop file
+  * protocol: Use aidl5 for service manager on API 35+
+  * protocol: Use aidl6 for service manager on API 36+
+  * hardware_manager: Handle Android reboot/shutdown properly
+  * gpu: Remove radeon from Vulkan driver map
+
+ -- Alessandro Astone <ales.astone@gmail.com>  Thu, 28 May 2026 22:00:52 +0200
+
 waydroid (1.6.2) bullseye; urgency=medium
 
   * gpu: add support for xe kernel driver
