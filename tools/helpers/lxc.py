@@ -356,8 +356,7 @@ def make_base_props(args):
     # Generate necessary dalvik_vm props based on total physical ram
     try:
         dalvik_vm = []
-        host_arch = True if "64bit" in platform.architecture() else False
-        if host_arch:
+        if platform.architecture()[0] == "64bit":
             dalvik_vm.append("dalvik.vm.dex2oat64.enabled=true")
         mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
         mem_gib = round(mem_bytes / (1024.**3))
