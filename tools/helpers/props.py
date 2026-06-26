@@ -14,10 +14,12 @@ def host_get(args, prop):
     else:
         return ""
 
+
 def host_set(args, prop, value):
     if which("setprop") is not None:
         command = ["setprop", prop, value]
         tools.helpers.run.user(args, command)
+
 
 def get(args, prop):
     platformService = IPlatform.get_service(args)
@@ -26,6 +28,7 @@ def get(args, prop):
     else:
         logging.error("Failed to access IPlatform service")
 
+
 def set(args, prop, value):
     platformService = IPlatform.get_service(args)
     if platformService:
@@ -33,13 +36,14 @@ def set(args, prop, value):
     else:
         logging.error("Failed to access IPlatform service")
 
+
 def file_get(args, file, prop):
     with open(file) as build_prop:
         for line in build_prop:
             line = line.strip()
             if len(line) == 0 or line[0] == "#":
                 continue
-            k,v = line.partition("=")[::2]
+            k, v = line.partition("=")[::2]
             if k == prop:
                 return v
     return ""

@@ -25,7 +25,7 @@ def adb_connect(args):
         raise RuntimeError("Unknown container IP address. Is Waydroid running?")
 
     tools.helpers.run.user(args, ["adb", "connect", ip])
-    logging.info("Established ADB connection to Waydroid device at {}.".format(ip))
+    logging.info(f"Established ADB connection to Waydroid device at {ip}.")
 
 def adb_disconnect(args):
     if not which("adb"):

@@ -11,10 +11,11 @@ from contextlib import suppress
 from tools import helpers
 from shutil import which
 
+
 # takes an open file object
 def sha256sum(f):
     h = hashlib.sha256()
-    b = bytearray(128*1024)
+    b = bytearray(128 * 1024)
     mv = memoryview(b)
     for n in iter(lambda: f.readinto(mv), 0):
         h.update(mv[:n])
@@ -28,7 +29,7 @@ def get(args):
     system_request = helpers.http.retrieve(system_ota)
     if system_request[0] != 200:
         raise ValueError(
-            "Failed to get system OTA channel: {}, error: {}".format(args.system_ota, system_request[0]))
+            f"Failed to get system OTA channel: {args.system_ota}, error: {system_request[0]}")
     system_responses = json.loads(system_request[1].decode('utf8'))["response"]
     if len(system_responses) < 1:
         raise ValueError("No images found on system channel")
@@ -81,6 +82,7 @@ def get(args):
             break
     remove_overlay(args)
 
+
 def validate(args, channel, f):
     # Verify that the zip comes from the channel
     cfg = tools.config.load(args)
@@ -95,6 +97,7 @@ def validate(args, channel, f):
             return True
     logging.warning(f"Could not verify the image {f.name} against {channel_url}")
     return False
+
 
 def replace(args, system_zip, system_time, vendor_zip, vendor_time):
     cfg = tools.config.load(args)
@@ -120,11 +123,13 @@ def replace(args, system_zip, system_time, vendor_zip, vendor_time):
     tools.config.save(args, cfg)
     remove_overlay(args)
 
+
 def remove_overlay(args):
     if os.path.isdir(tools.config.defaults["overlay_rw"]):
         shutil.rmtree(tools.config.defaults["overlay_rw"])
     if os.path.isdir(tools.config.defaults["overlay_work"]):
         shutil.rmtree(tools.config.defaults["overlay_work"])
+
 
 def make_prop(args, cfg, full_props_path):
     if not os.path.isfile(args.work + "/waydroid_base.prop"):
@@ -159,6 +164,7 @@ def make_prop(args, cfg, full_props_path):
             f.write(prop + "\n")
     os.chmod(full_props_path, 0o644)
 
+
 def mount_rootfs(args, images_dir, session):
     cfg = tools.config.load(args)
     helpers.mount.mount(args, images_dir + "/system.img",
@@ -167,16 +173,16 @@ def mount_rootfs(args, images_dir, session):
         try:
             helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"],
                                                tools.config.defaults["rootfs"]],
-                                    tools.config.defaults["rootfs"],
-                                    upper_dir=tools.config.defaults["overlay_rw"] + "/system",
-                                    work_dir=tools.config.defaults["overlay_work"] + "/system")
+                                        tools.config.defaults["rootfs"],
+                                        upper_dir=tools.config.defaults["overlay_rw"] + "/system",
+                                        work_dir=tools.config.defaults["overlay_work"] + "/system")
         except RuntimeError:
             cfg["waydroid"]["mount_overlays"] = "False"
             tools.config.save(args, cfg)
             logging.warning("Mounting overlays failed. The feature has been disabled.")
 
     helpers.mount.mount(args, images_dir + "/vendor.img",
-                           tools.config.defaults["rootfs"] + "/vendor")
+                        tools.config.defaults["rootfs"] + "/vendor")
     if cfg["waydroid"]["mount_overlays"] == "True":
         helpers.mount.mount_overlay(args, [tools.config.defaults["overlay"] + "/vendor",
                                            tools.config.defaults["rootfs"] + "/vendor"],
@@ -199,6 +205,7 @@ def mount_rootfs(args, images_dir, session):
     make_prop(args, session, args.work + "/waydroid.prop")
     helpers.mount.bind_file(args, args.work + "/waydroid.prop",
                             tools.config.defaults["rootfs"] + "/vendor/waydroid.prop")
+
 
 def umount_rootfs(args):
     helpers.mount.umount_all(args, tools.config.defaults["rootfs"])

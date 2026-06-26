@@ -47,7 +47,7 @@ def add_service(args, registerListener, notify, closeNotification):
 
     def response_handler(req, code, flags):
         logging.debug(
-            "{}: Received transaction: {}".format(SERVICE_NAME, code))
+            f"{SERVICE_NAME}: Received transaction: {code}")
         reader = req.init_reader()
         local_response = response.new_reply()
         if code == TRANSACTION_registerListener:
@@ -69,7 +69,7 @@ def add_service(args, registerListener, notify, closeNotification):
                     actions.append(Action(reader.read_string16(), reader.read_string16()))
             image_data = None
             _, parcel_null_flag = reader.read_int32()
-            if (parcel_null_flag != kNullParcelableFlag):
+            if parcel_null_flag != kNullParcelableFlag:
                 _, parcel_size = reader.read_int32()
                 image_data = ImageData(
                     reader.read_int32()[1],
@@ -101,8 +101,7 @@ def add_service(args, registerListener, notify, closeNotification):
             status = serviceManager.add_service_sync(SERVICE_NAME, response)
 
             if status:
-                logging.error("Failed to add service {}: {}".format(
-                    SERVICE_NAME, status))
+                logging.error(f"Failed to add service {SERVICE_NAME}: {status}")
                 args.notificationLoop.quit()
 
     response = serviceManager.new_local_object(INTERFACE, response_handler)
@@ -114,4 +113,4 @@ def add_service(args, registerListener, notify, closeNotification):
         serviceManager.remove_handler(status)
         del serviceManager
     else:
-        logging.error("Failed to add presence handler: {}".format(status))
+        logging.error(f"Failed to add presence handler: {status}")

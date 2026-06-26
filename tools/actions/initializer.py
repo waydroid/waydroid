@@ -1,20 +1,20 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
+import argparse
 import logging
+import multiprocessing
 import os
-from tools import helpers
-import tools.config
 import stat
 import sys
 import threading
-import multiprocessing
-import select
-import queue
-import time
+
 import dbus
 import dbus.service
-import argparse
 from gi.repository import GLib
+
+import tools.config
+from tools import helpers
+
 
 def is_initialized(args):
     return os.path.isfile(args.config) and os.path.isdir(tools.config.defaults["rootfs"])
@@ -60,7 +60,7 @@ def setup_config(args):
                 args.images_path = preinstalled_images
                 break
             else:
-                logging.warning("Found directory {} but missing system or vendor image, ignoring...".format(preinstalled_images))
+                logging.warning(f"Found directory {preinstalled_images} but missing system or vendor image, ignoring...")
 
     if not args.images_path:
         args.images_path = tools.config.defaults["images_path"]
@@ -88,12 +88,11 @@ def setup_config(args):
         logging.error("ERROR: You must provide 'System OTA' and 'Vendor OTA' URLs.")
         return False
 
-    args.system_ota = args.system_channel + "/" + args.rom_type + \
-        "/waydroid_" + args.arch + "/" + args.system_type + ".json"
+    args.system_ota = args.system_channel + f"/{args.rom_type}/waydroid_{args.arch}/{args.system_type}.json"
     system_request = helpers.http.retrieve(args.system_ota)
     if system_request[0] != 200:
         raise ValueError(
-            "Failed to get system OTA channel: {}, error: {}".format(args.system_ota, system_request[0]))
+            f"Failed to get system OTA channel: {args.system_ota}, error: {system_request[0]}")
 
     device_codename = helpers.props.host_get(args, "ro.product.device")
     args.vendor_type = None
@@ -108,7 +107,7 @@ def setup_config(args):
 
     if not args.vendor_type:
         raise ValueError(
-            "Failed to get vendor OTA channel: {}".format(vendor_ota))
+            f"Failed to get vendor OTA channel: {vendor_ota}")
 
     if args.system_ota != cfg["waydroid"].get("system_ota"):
         cfg["waydroid"]["system_datetime"] = tools.config.defaults["system_datetime"]

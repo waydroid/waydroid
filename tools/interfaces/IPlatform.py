@@ -43,7 +43,7 @@ class IPlatform:
                 rep1 = reader.read_string16()
                 return rep1
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
         return None
 
@@ -62,7 +62,7 @@ class IPlatform:
             if exception == 0:
                 return
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
         return
 
@@ -96,7 +96,7 @@ class IPlatform:
                             appinfo["categories"].append(reader.read_string16())
                         apps_list.append(appinfo)
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
         return apps_list
 
@@ -129,7 +129,7 @@ class IPlatform:
 
                     return appinfo
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
         return None
 
@@ -148,7 +148,7 @@ class IPlatform:
                 status, ret = reader.read_int32()
                 return ret
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
         return None
 
@@ -167,7 +167,7 @@ class IPlatform:
                 status, ret = reader.read_int32()
                 return ret
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
         return None
 
@@ -183,7 +183,7 @@ class IPlatform:
             reader = reply.init_reader()
             status, exception = reader.read_int32()
             if exception != 0:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
     def launchIntent(self, arg1, arg2):
         request = self.client.new_request()
@@ -201,7 +201,7 @@ class IPlatform:
                 rep1 = reader.read_string16()
                 return rep1
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
         return None
 
     def getAppName(self, arg1):
@@ -219,7 +219,7 @@ class IPlatform:
                 rep1 = reader.read_string16()
                 return rep1
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
         return None
 
@@ -237,7 +237,7 @@ class IPlatform:
             reader = reply.init_reader()
             status, exception = reader.read_int32()
             if exception != 0:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
     def settingsGetString(self, arg1, arg2):
         request = self.client.new_request()
@@ -255,7 +255,7 @@ class IPlatform:
                 rep1 = reader.read_string16()
                 return rep1
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
         return None
 
@@ -273,7 +273,7 @@ class IPlatform:
             reader = reply.init_reader()
             status, exception = reader.read_int32()
             if exception != 0:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
     def settingsGetInt(self, arg1, arg2):
         request = self.client.new_request()
@@ -291,7 +291,7 @@ class IPlatform:
                 status, rep1 = reader.read_int32()
                 return rep1
             else:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
         return None
 
@@ -311,10 +311,10 @@ def get_service(args):
     tries = 1000
 
     remote, status = serviceManager.get_service_sync(SERVICE_NAME)
-    while(not remote):
+    while not remote:
         if tries > 0:
             logging.warning(
-                "Failed to get service {}, trying again...".format(SERVICE_NAME))
+                f"Failed to get service {SERVICE_NAME}, trying again...")
             time.sleep(1)
             remote, status = serviceManager.get_service_sync(SERVICE_NAME)
             tries = tries - 1

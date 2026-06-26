@@ -18,7 +18,7 @@ def print_status(args):
             print("Container:\t" + session["state"])
             print("Vendor type:\t" + cfg["waydroid"]["vendor_type"])
             print("IP address:\t" + (tools.helpers.net.get_device_ip_address() or "UNKNOWN"))
-            print("Session user:\t{}({})".format(session["user_name"], session["user_id"]))
+            print(f"Session user:\t{session["user_name"]}({session["user_id"]})")
             print("Wayland display:\t" + session["wayland_display"])
         else:
             print_stopped()

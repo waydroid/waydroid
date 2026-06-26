@@ -27,7 +27,7 @@ class IStatusBarService:
             reader = reply.init_reader()
             status, exception = reader.read_int32()
             if exception != 0:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
     def collapse(self):
         request = self.client.new_request()
@@ -40,7 +40,7 @@ class IStatusBarService:
             reader = reply.init_reader()
             status, exception = reader.read_int32()
             if exception != 0:
-                logging.error("Failed with code: {}".format(exception))
+                logging.error(f"Failed with code: {exception}")
 
 def get_service(args):
     helpers.drivers.loadBinderNodes(args)
@@ -58,10 +58,10 @@ def get_service(args):
     tries = 1000
 
     remote, status = serviceManager.get_service_sync(SERVICE_NAME)
-    while(not remote):
+    while not remote:
         if tries > 0:
             logging.warning(
-                "Failed to get service {}, trying again...".format(SERVICE_NAME))
+                f"Failed to get service {SERVICE_NAME}, trying again...")
             time.sleep(1)
             remote, status = serviceManager.get_service_sync(SERVICE_NAME)
             tries = tries - 1

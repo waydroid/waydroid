@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Currently implemented as FIFO
-import os
 import dbus
 
 def DBusContainerService(object_path="/ContainerManager", intf="id.waydro.ContainerManager"):

@@ -1,11 +1,10 @@
 # Copyright 2021 Oliver Smith
 # SPDX-License-Identifier: GPL-3.0-or-later
-import logging
-from logging.handlers import RotatingFileHandler
-import os
-import sys
 import functools
+import logging
+import os
 from contextlib import suppress
+from logging.handlers import RotatingFileHandler
 
 
 class stdout_logger(logging.StreamHandler):

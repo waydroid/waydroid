@@ -50,7 +50,7 @@ def remove(args):
         if platformService:
             ret = platformService.removeApp(args.PACKAGE)
             if ret != 0:
-                logging.error("Failed to uninstall package: {}".format(args.PACKAGE))
+                logging.error(f"Failed to uninstall package: {args.PACKAGE}")
         else:
             logging.error("Failed to access IPlatform service")
 

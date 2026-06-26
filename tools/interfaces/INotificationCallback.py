@@ -1,7 +1,4 @@
 import gbinder
-import logging
-from tools import helpers
-from gi.repository import GLib
 
 INTERFACE = "lineageos.waydroid.INotifications.INotificationCallback"
 

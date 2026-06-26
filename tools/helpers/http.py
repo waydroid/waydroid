@@ -46,7 +46,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
 
         # sizeDifference MB(or kB) was downloaded in timeTaken seconds
         # so downloadSpeed = sizeDifference/timeTaken MB/s(or kB/s)
-        return (round(sizeDifference/timeTaken, decimalPlaces), speedUnit)
+        return round(sizeDifference / timeTaken, decimalPlaces), speedUnit
 
     # Show progress while downloading
     downloadEnded = False
@@ -64,7 +64,6 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
         lastSize = 0
         lastSizeChangeAt = time.time()
 
-        downloadSpeed = 0, "MB/s"
 
         while not downloadEnded:
             currentSize = fromBytesToMB(os.path.getsize(destinationPath))
@@ -96,7 +95,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
 
     # Check if file exists in cache
     prefix = prefix.replace("/", "_")
-    path = (args.work + "/cache_http/" + prefix + "_" +
+    path = (args.work + f"/cache_http/{prefix}_"  +
             hashlib.sha256(url.encode("utf-8")).hexdigest())
     if os.path.exists(path):
         if cache:
@@ -104,7 +103,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
         tools.helpers.run.user(args, ["rm", path])
 
     # Download the file
-    logging.log(loglevel, "Downloading " + url)
+    logging.log(loglevel, f"Downloading {url}")
     try:
         with urllib.request.urlopen(url) as response:
             with open(path, "wb") as handle:
@@ -115,7 +114,7 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
     # Handle 404
     except urllib.error.HTTPError as e:
         if e.code == 404 and allow_404:
-            logging.warning("WARNING: file not found: " + url)
+            logging.warning(f"WARNING: file not found: {url}")
             return None
         raise
     downloadEnded = True
@@ -132,7 +131,7 @@ def retrieve(url, headers=None):
         :returns: status and str with the content of the response
     """
     # Download the file
-    logging.verbose("Retrieving " + url)
+    logging.verbose(f"Retrieving {url}")
 
     if headers is None:
         headers = {}

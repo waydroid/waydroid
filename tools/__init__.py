@@ -5,6 +5,8 @@ import sys
 import logging
 import os
 import traceback
+from argparse import Namespace
+
 import dbus.mainloop.glib
 import dbus
 import dbus.exceptions
@@ -14,7 +16,8 @@ from . import config
 from . import helpers
 from .helpers import logging as tools_logging
 
-def prep_args(args):
+
+def prep_args(args:Namespace):
     args.cache = {}
     args.work = config.defaults["work"]
     args.config = args.work + "/waydroid.cfg"
@@ -22,14 +25,15 @@ def prep_args(args):
     args.sudo_timer = True
     args.timeout = 1800
 
+
 def main():
-    def actionNeedRoot(action):
+    def action_need_root(action):
         if os.geteuid() != 0:
             raise RuntimeError(
-                "Action \"{}\" needs root access".format(action))
+                f"Action '{action}' needs root access")
 
     # Wrap everything to display nice error messages
-    args = None
+    args: Namespace = Namespace()
     try:
         # Parse arguments, set up logging
         args = helpers.arguments()
@@ -58,10 +62,10 @@ def main():
             if args.client:
                 actions.remote_init_client(args)
             else:
-                actionNeedRoot(args.action)
+                action_need_root(args.action)
                 actions.init(args)
         elif args.action == "upgrade":
-            actionNeedRoot(args.action)
+            action_need_root(args.action)
             actions.upgrade(args)
         elif args.action == "session":
             if args.subaction == "start":
@@ -70,36 +74,20 @@ def main():
                 actions.session_manager.stop(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    f"Run waydroid {args.action} -h for usage information.")
         elif args.action == "container":
-            actionNeedRoot(args.action)
-            if args.subaction == "start":
-                actions.container_manager.start(args)
-            elif args.subaction == "stop":
-                actions.container_manager.stop(args)
-            elif args.subaction == "restart":
-                actions.container_manager.restart(args)
-            elif args.subaction == "freeze":
-                actions.container_manager.freeze(args)
-            elif args.subaction == "unfreeze":
-                actions.container_manager.unfreeze(args)
+            action_need_root(args.action)
+            if args.subaction in ['start', 'stop', "restart", 'freeze', 'unfreeze']:
+                getattr(actions.container_manager, args.subaction)(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    f"Run waydroid {args.action} -h for usage information.")
         elif args.action == "app":
-            if args.subaction == "install":
-                actions.app_manager.install(args)
-            elif args.subaction == "remove":
-                actions.app_manager.remove(args)
-            elif args.subaction == "launch":
-                actions.app_manager.launch(args)
-            elif args.subaction == "intent":
-                actions.app_manager.intent(args)
-            elif args.subaction == "list":
-                actions.app_manager.list(args)
+            if args.subaction in ["install", "remove", "launch", "intent", "list"]:
+                getattr(actions.app_manager, args.subaction)(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    f"Run waydroid {args.action} -h for usage information.")
         elif args.action == "prop":
             if args.subaction == "get":
                 actions.prop.get(args)
@@ -107,12 +95,12 @@ def main():
                 actions.prop.set(args)
             else:
                 logging.info(
-                    "Run waydroid {} -h for usage information.".format(args.action))
+                    f"Run waydroid {args.action} -h for usage information.")
         elif args.action == "shell":
-            actionNeedRoot(args.action)
+            action_need_root(args.action)
             helpers.lxc.shell(args)
         elif args.action == "logcat":
-            actionNeedRoot(args.action)
+            action_need_root(args.action)
             helpers.lxc.logcat(args)
         elif args.action == "show-full-ui":
             actions.app_manager.showFullUI(args)
@@ -129,7 +117,7 @@ def main():
             elif args.subaction == "disconnect":
                 helpers.net.adb_disconnect(args)
             else:
-                logging.info("Run waydroid {} -h for usage information.".format(args.action))
+                logging.info(f"Run waydroid {args.action} -h for usage information.")
         elif args.action == "log":
             if args.clear_log:
                 helpers.run.user(args, ["truncate", "-s", "0", args.log])
@@ -150,7 +138,7 @@ def main():
         if not args:
             logging.getLogger().setLevel(logging.DEBUG)
 
-        logging.info("ERROR: " + str(e))
+        logging.info(f"ERROR: {e}")
         logging.info("See also: <https://github.com/waydroid>")
         logging.debug(traceback.format_exc())
 
@@ -161,7 +149,7 @@ def main():
         log_hint = "Run 'waydroid log' for details."
         if not args or not os.path.exists(args.log) or not args.action == "container":
             log_hint = ("Use '--details-to-stdout' to get more details:\n"
-                         f"  {sys.argv[0]} --details-to-stdout {' '.join(sys.argv[1:])}")
+                        f"  {sys.argv[0]} --details-to-stdout {' '.join(sys.argv[1:])}")
         print(log_hint)
         return 1
 

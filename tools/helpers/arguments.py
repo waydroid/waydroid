@@ -17,12 +17,13 @@ import tools.config
 
     See tools/helpers/args.py for more information about the args variable. """
 
+
 def arguments_init(subparser):
     ret = subparser.add_parser("init", help="set up waydroid specific"
-                               " configs and install images")
+                                            " configs and install images")
     ret.add_argument("-i", "--images_path",
-                        help="custom path to waydroid images (default in"
-                             " /var/lib/waydroid/images)")
+                     help="custom path to waydroid images (default in"
+                          " /var/lib/waydroid/images)")
     ret.add_argument("-f", "--force", action="store_true",
                      help="re-initialize configs and images")
     ret.add_argument("-c", "--system_channel",
@@ -33,19 +34,23 @@ def arguments_init(subparser):
                      help="rom type (options: \"lineage\", \"bliss\" or OTA channel URL; default is LineageOS)")
     ret.add_argument("-s", "--system_type",
                      help="system type (options: VANILLA, FOSS or GAPPS; default is VANILLA)")
-    ret.add_argument("--client", help="run as user mode, connecting to the remote initializer service", action="store_true")
+    ret.add_argument("--client", help="run as user mode, connecting to the remote initializer service",
+                     action="store_true")
     return ret
+
 
 def arguments_status(subparser):
     ret = subparser.add_parser("status",
                                help="quick check for the waydroid")
     return ret
 
+
 def arguments_upgrade(subparser):
     ret = subparser.add_parser("upgrade", help="upgrade images")
     ret.add_argument("-o", "--offline", action="store_true",
                      help="just for updating configs")
     return ret
+
 
 def arguments_log(subparser):
     ret = subparser.add_parser("log", help="follow the waydroid logfile")
@@ -55,12 +60,14 @@ def arguments_log(subparser):
                      action="store_true", dest="clear_log")
     return ret
 
+
 def arguments_session(subparser):
     ret = subparser.add_parser("session", help="session controller")
     sub = ret.add_subparsers(title="subaction", dest="subaction")
     sub.add_parser("start", help="start session")
     sub.add_parser("stop", help="stop session")
     return ret
+
 
 def arguments_container(subparser):
     ret = subparser.add_parser("container", help="container controller")
@@ -71,6 +78,7 @@ def arguments_container(subparser):
     sub.add_parser("freeze", help="freeze container")
     sub.add_parser("unfreeze", help="unfreeze container")
     return ret
+
 
 def arguments_app(subparser):
     ret = subparser.add_parser("app", help="applications controller")
@@ -89,41 +97,52 @@ def arguments_app(subparser):
     sub.add_parser("list", help="list installed applications")
     return ret
 
+
 def arguments_prop(subparser):
     ret = subparser.add_parser("prop", help="android properties controller")
     sub = ret.add_subparsers(title="subaction", dest="subaction")
     get = sub.add_parser(
         "get", help="get value of property from container")
     get.add_argument('key', help="key of the property to get")
-    set = sub.add_parser(
+    set_ = sub.add_parser(
         "set", help="set value to property on container")
-    set.add_argument('key', help="key of the property to set")
-    set.add_argument('value', help="value of the property to set")
+    set_.add_argument('key', help="key of the property to set")
+    set_.add_argument('value', help="value of the property to set")
     return ret
+
 
 def arguments_fullUI(subparser):
     ret = subparser.add_parser("show-full-ui", help="show android full screen in window")
     return ret
 
+
 def arguments_firstLaunch(subparser):
-    ret = subparser.add_parser("first-launch", help="start waydroid, prompting to initialize waydroid first if necessary (default)")
+    ret = subparser.add_parser("first-launch",
+                               help="start waydroid, prompting to initialize waydroid first if necessary (default)")
     return ret
+
 
 def arguments_shell(subparser):
     ret = subparser.add_parser("shell", help="run remote shell command")
     ret.add_argument("-u", "--uid", help="the UID to run as (also sets GID to the same value if -g is not set)")
     ret.add_argument("-g", "--gid", help="the GID to run as")
-    ret.add_argument("-s", "--context", help="transition to the specified SELinux or AppArmor security context. No-op if -L is supplied.")
-    ret.add_argument("-L", "--nolsm", action="store_true", help="tell LXC not to perform security domain transition related to mandatory access control (e.g. SELinux, AppArmor). If this option is supplied, LXC won't apply a container-wide seccomp filter to the executed program. This is a dangerous option that can result in leaking privileges to the container!!!")
-    ret.add_argument("-C", "--allcaps", action="store_true", help="tell LXC not to drop capabilities. This is a dangerous option that can result in leaking privileges to the container!!!")
-    ret.add_argument("-G", "--nocgroup", action="store_true", help="tell LXC not to switch to the container cgroup. This is a dangerous option that can result in leaking privileges to the container!!!")
+    ret.add_argument("-s", "--context",
+                     help="transition to the specified SELinux or AppArmor security context. No-op if -L is supplied.")
+    ret.add_argument("-L", "--nolsm", action="store_true",
+                     help="tell LXC not to perform security domain transition related to mandatory access control (e.g. SELinux, AppArmor). If this option is supplied, LXC won't apply a container-wide seccomp filter to the executed program. This is a dangerous option that can result in leaking privileges to the container!!!")
+    ret.add_argument("-C", "--allcaps", action="store_true",
+                     help="tell LXC not to drop capabilities. This is a dangerous option that can result in leaking privileges to the container!!!")
+    ret.add_argument("-G", "--nocgroup", action="store_true",
+                     help="tell LXC not to switch to the container cgroup. This is a dangerous option that can result in leaking privileges to the container!!!")
     ret.add_argument('COMMAND', nargs='*', help="command to run")
     return ret
+
 
 def arguments_logcat(subparser):
     ret = subparser.add_parser("logcat", help="show android logcat")
     ret.add_argument('ARGS', nargs='*', help="arguments to pass to logcat")
     return ret
+
 
 def arguments_adb(subparser):
     ret = subparser.add_parser("adb", help="manage adb connection")
@@ -132,9 +151,9 @@ def arguments_adb(subparser):
     sub.add_parser("disconnect", help="disconnect adb from the Android container")
     return ret
 
+
 def arguments_bugreport(subparser):
-    ret = subparser.add_parser("bugreport", help="create a bugreport archive interactively")
-    return ret
+    return subparser.add_parser("bugreport", help="create a bugreport archive interactively")
 
 def arguments():
     parser = argparse.ArgumentParser(prog="waydroid")
@@ -152,7 +171,7 @@ def arguments():
                         action="store_true")
     parser.add_argument("-v", "--verbose", dest="verbose",
                         action="store_true", help="write even more to the"
-                        " logfiles (this may reduce performance)")
+                                                  " logfiles (this may reduce performance)")
     parser.add_argument("-q", "--quiet", dest="quiet", action="store_true",
                         help="do not output any log messages")
 

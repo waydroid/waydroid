@@ -17,14 +17,14 @@ def start(args):
     def sendClipboardData(value):
         try:
             pyclip.copy(value)
-        except Exception as e:
-            logging.debug(str(e))
+        except Exception:
+            logging.exception("Clipboard service is not even started")
 
     def getClipboardData():
         try:
             return pyclip.paste()
-        except Exception as e:
-            logging.debug(str(e))
+        except Exception:
+            logging.exception("Clipboard's unreadable.")
         return ""
 
     def service_thread():

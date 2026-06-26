@@ -132,7 +132,7 @@ def start(args, session, unlocked_cb=None):
 
     def userUnlocked(uid):
         cfg = tools.config.load(args)
-        logging.info("Android with user {} is ready".format(uid))
+        logging.info(f"Android with user {uid} is ready")
 
         user_migration()
 

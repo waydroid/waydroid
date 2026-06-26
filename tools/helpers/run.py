@@ -28,7 +28,7 @@ def flat_cmd(cmd, working_dir=None, env={}):
     # Prepend working dir
     ret = " ".join(escaped)
     if working_dir:
-        ret = "cd " + shlex.quote(working_dir) + ";" + ret
+        ret = f"cd {shlex.quote(working_dir)};" + ret
 
     return ret
 
@@ -47,9 +47,9 @@ def user(args, cmd, working_dir=None, output="log", output_return=False,
     # Readable log message (without all the escaping)
     msg = "% "
     for key, value in env.items():
-        msg += key + "=" + value + " "
+        msg += f"{key}={value} "
     if working_dir:
-        msg += "cd " + working_dir + "; "
+        msg += f"cd {working_dir}; "
     msg += " ".join(cmd)
 
     # Add environment variables and run

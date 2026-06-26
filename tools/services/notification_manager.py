@@ -1,12 +1,11 @@
 # Copyright 2025 Alessandro Astone
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
-import os
 import threading
-import tools.config
-from tools.interfaces import INotifications
-from gi.repository import GLib
+
 import dbus
+
+from tools.interfaces import INotifications
 
 stopping = False
 bus_signals = []

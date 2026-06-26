@@ -3,7 +3,7 @@
 import logging
 import threading
 import time
-import os
+
 import tools.actions.container_manager
 import tools.actions.session_manager
 import tools.config

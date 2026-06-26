@@ -23,7 +23,7 @@ def add_service(args, userUnlocked, packageStateChanged):
 
     def response_handler(req, code, flags):
         logging.debug(
-            "{}: Received transaction: {}".format(SERVICE_NAME, code))
+            f"{SERVICE_NAME}: Received transaction: {code}")
         reader = req.init_reader()
         local_response = response.new_reply()
         if code == TRANSACTION_userUnlocked:
@@ -46,8 +46,7 @@ def add_service(args, userUnlocked, packageStateChanged):
             status = serviceManager.add_service_sync(SERVICE_NAME, response)
 
             if status:
-                logging.error("Failed to add service {}: {}".format(
-                    SERVICE_NAME, status))
+                logging.error(f"Failed to add service {SERVICE_NAME}: {status}")
                 args.userMonitorLoop.quit()
 
     response = serviceManager.new_local_object(INTERFACE, response_handler)
@@ -59,5 +58,5 @@ def add_service(args, userUnlocked, packageStateChanged):
         serviceManager.remove_handler(status)
         del serviceManager
     else:
-        logging.error("Failed to add presence handler: {}".format(status))
+        logging.error(f"Failed to add presence handler: {status}")
 

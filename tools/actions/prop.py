@@ -1,9 +1,11 @@
 import logging
+from argparse import Namespace
+
 import tools.helpers.props
 import tools.helpers.ipc
 import dbus
 
-def get(args):
+def get(args:Namespace):
     try:
         tools.helpers.ipc.DBusSessionService()
 
@@ -21,7 +23,7 @@ def get(args):
     except (dbus.DBusException, KeyError):
         logging.error("WayDroid session is stopped")
 
-def set(args):
+def set(args:Namespace):
     try:
         tools.helpers.ipc.DBusSessionService()
 

@@ -70,17 +70,17 @@ def probeBinderDriver(args):
     has_vndbinder = False
     has_hwbinder = False
     for node in BINDER_DRIVERS:
-        if os.path.exists("/dev/" + node):
+        if os.path.exists(f"/dev/{node}"):
             has_binder = True
     if not has_binder:
         binder_dev_nodes.append(BINDER_DRIVERS[0])
     for node in VNDBINDER_DRIVERS:
-        if os.path.exists("/dev/" + node):
+        if os.path.exists(f"/dev/{node}"):
             has_vndbinder = True
     if not has_vndbinder:
         binder_dev_nodes.append(VNDBINDER_DRIVERS[0])
     for node in HWBINDER_DRIVERS:
-        if os.path.exists("/dev/" + node):
+        if os.path.exists(f"/dev/{node}"):
             has_hwbinder = True
     if not has_hwbinder:
         binder_dev_nodes.append(HWBINDER_DRIVERS[0])
@@ -89,7 +89,7 @@ def probeBinderDriver(args):
         if not isBinderfsLoaded(args):
             devices = ','.join(binder_dev_nodes)
             command = ["modprobe", "binder_linux",
-                       "devices=\"{}\"".format(devices)]
+                       f"devices=\"{devices}\""]
             output = tools.helpers.run.user(args, command, check=False, output_return=True)
             if output:
                 logging.error("Failed to load binder driver")

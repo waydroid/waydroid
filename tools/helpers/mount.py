@@ -5,7 +5,7 @@ import tools.helpers.run
 from tools.helpers.version import versiontuple, kernel_version
 
 
-def ismount(folder):
+def ismount(folder:str) -> bool:
     """
     Ismount() implementation, that works for mount --bind.
     Workaround for: https://bugs.python.org/issue29707
@@ -149,7 +149,7 @@ def mount(args, source, destination, create_folders=True, umount=False,
 
     # Verify, that it has worked
     if not ismount(destination):
-        raise RuntimeError("Mount failed: " + source + " -> " + destination)
+        raise RuntimeError(f"Mount failed: {source} -> {destination}")
 
 def mount_overlay(args, lower_dirs, destination, upper_dir=None, work_dir=None,
                   create_folders=True, readonly=True):

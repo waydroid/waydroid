@@ -47,7 +47,7 @@ def background(args, cmd, working_dir=None):
                             cwd=working_dir)
     threading.Thread(target=forward_stream, args=(proc.stdout, logging.DEBUG), daemon=True).start()
     threading.Thread(target=forward_stream, args=(proc.stderr, logging.DEBUG), daemon=True).start()
-    logging.debug("New background process: pid={}, output=background".format(proc.pid))
+    logging.debug(f"New background process: pid={proc.pid}, output=background")
     return proc
 
 
@@ -56,7 +56,7 @@ def pipe(args, cmd, working_dir=None):
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                            cwd=working_dir)
     threading.Thread(target=forward_stream, args=(proc.stderr, logging.DEBUG), daemon=True).start()
-    logging.verbose("New background process: pid={}, output=pipe".format(proc.pid))
+    logging.verbose(f"New background process: pid={proc.pid}, output=pipe")
     return proc
 
 
@@ -192,7 +192,7 @@ def foreground_pipe(args, cmd, working_dir=None, output_to_stdout=False,
     # Return the return code and output (the output gets built as list of
     # output chunks and combined at the end, this is faster than extending the
     # combined string with each new chunk)
-    return (process.returncode, b"".join(output_buffer).decode("utf-8"))
+    return process.returncode, b"".join(output_buffer).decode("utf-8")
 
 
 def foreground_tui(cmd, working_dir=None):
