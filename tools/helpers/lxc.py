@@ -324,6 +324,11 @@ def make_base_props(args):
         opengles = "196610"
     props.append("ro.opengles.version=" + opengles)
 
+    # Some Mali devices require ro.vendor.arm.egl.* props from the
+    # host for libEGL/GLES to work
+    for k, v in tools.helpers.props.host_list(args, "ro.vendor.arm.egl.").items():
+        props.append(k + "=" + v)
+
     if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
         props.append("waydroid.system_ota=" + args.system_ota)
         props.append("waydroid.vendor_ota=" + args.vendor_ota)

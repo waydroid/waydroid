@@ -14,6 +14,23 @@ def host_get(args, prop):
     else:
         return ""
 
+def host_list(args, prefix=""):
+    if which("getprop") is None:
+        return {}
+    output = subprocess.run(["getprop"], stdout=subprocess.PIPE).stdout.decode('utf-8', errors='ignore')
+    result = {}
+    for line in output.splitlines():
+        line = line.strip()
+        # getprop output format: [key]: [value]
+        if not line.startswith("[" + prefix) or "]: [" not in line:
+            continue
+        key, value = line.split("]: [", 1)
+        key = key[1:]
+        value = value[:-1] if value.endswith("]") else value
+        if key.startswith(prefix):
+            result[key] = value
+    return result
+
 def host_set(args, prop, value):
     if which("setprop") is not None:
         command = ["setprop", prop, value]
