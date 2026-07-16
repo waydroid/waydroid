@@ -357,6 +357,99 @@ def make_base_props(args):
     if prop_fp != "":
         props.append("ro.build.fingerprint=" + prop_fp)
 
+    # Generate necessary dalvik_dex2oat props which are used to dex2oat background compile dex files based on CPU's core quantity
+    try:
+        cpus_count = os.cpu_count()
+        cpus_range = ",".join(map(str, range(cpus_count)))
+        dalvik_dex2oat = [
+            f"dalvik.vm.background-dex2oat-cpu-set={cpus_range}",
+            f"dalvik.vm.background-dex2oat-threads={cpus_count}",
+            f"dalvik.vm.boot-dex2oat-cpu-set={cpus_range}",
+            f"dalvik.vm.boot-dex2oat-threads={cpus_count}",
+            f"dalvik.vm.dex2oat-cpu-set={cpus_range}",
+            f"dalvik.vm.dex2oat-threads={cpus_count}",
+        ]
+        props.extend(dalvik_dex2oat)
+    except Exception as e:
+        logging.info(f"Error: Can't be possible to generate Dalvik's DEX2OAT properties: {e}")
+
+    # Generate necessary dalvik_vm props based on total physical ram
+    try:
+        dalvik_vm = []
+        if platform.architecture()[0] == "64bit":
+            dalvik_vm.append("dalvik.vm.dex2oat64.enabled=true")
+        mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+        mem_gib = round(mem_bytes / (1024.**3))
+        if mem_gib >= 16:
+            dalvik_vm += [
+                "dalvik.vm.heapstartsize=32m",
+                "dalvik.vm.heapgrowthlimit=448m",
+                "dalvik.vm.heapsize=640m",
+                "dalvik.vm.heapminfree=16m",
+                "dalvik.vm.heapmaxfree=64m",
+                "dalvik.vm.heaptargetutilization=0.4",
+            ]
+        elif mem_gib >= 12:
+            dalvik_vm += [
+                "dalvik.vm.heapstartsize=24m",
+                "dalvik.vm.heapgrowthlimit=384m",
+                "dalvik.vm.heapsize=512m",
+                "dalvik.vm.heapminfree=8m",
+                "dalvik.vm.heapmaxfree=56m",
+                "dalvik.vm.heaptargetutilization=0.42",
+            ]
+        elif mem_gib >= 8:
+            dalvik_vm += [
+                "dalvik.vm.heapstartsize=24m",
+                "dalvik.vm.heapgrowthlimit=256m",
+                "dalvik.vm.heapsize=512m",
+                "dalvik.vm.heapminfree=8m",
+                "dalvik.vm.heapmaxfree=48m",
+                "dalvik.vm.heaptargetutilization=0.46",
+            ]
+        elif mem_gib >= 6:
+            dalvik_vm += [
+                "dalvik.vm.heapstartsize=16m",
+                "dalvik.vm.heapgrowthlimit=256m",
+                "dalvik.vm.heapsize=512m",
+                "dalvik.vm.heapminfree=8m",
+                "dalvik.vm.heapmaxfree=32m",
+                "dalvik.vm.heaptargetutilization=0.5",
+            ]
+        elif mem_gib >= 4:
+            dalvik_vm += [
+                "dalvik.vm.heapstartsize=8m",
+                "dalvik.vm.heapgrowthlimit=256m",
+                "dalvik.vm.heapsize=512m",
+                "dalvik.vm.heapminfree=8m",
+                "dalvik.vm.heapmaxfree=16m",
+                "dalvik.vm.heaptargetutilization=0.6",
+            ]
+        elif mem_gib >= 2:
+            dalvik_vm += [
+                "dalvik.vm.heapstartsize=8m",
+                "dalvik.vm.heapgrowthlimit=192m",
+                "dalvik.vm.heapsize=512m",
+                "dalvik.vm.heapminfree=512k",
+                "dalvik.vm.heapmaxfree=8m",
+                "dalvik.vm.heaptargetutilization=0.75",
+            ]
+        else:
+            logging.info("Your physical RAM is lower than 2GB: Dalvik's VM properties can't be generated")
+        props.extend(dalvik_vm)
+    except Exception as e:
+        logging.info(f"Error: Can't be possible to generate Dalvik's VM properties: {e}")
+
+    # Detect if System has Low Memory RAM
+    try:
+        mem_bytes = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+        mem_gib = round(mem_bytes / (1024.**3))
+        if mem_gib <= 5:
+            logging.info("Low Memory Ram detected: Adding Low Memory RAM property")
+            props.append("ro.config.low_ram=true")
+    except Exception as e:
+        logging.info(f"Can´t be possible detect if your system has a Low Memory RAM: {e}")
+
     # now append/override with values in [properties] section of waydroid.cfg
     cfg = tools.config.load(args)
     for k, v in cfg["properties"].items():
@@ -367,7 +460,6 @@ def make_base_props(args):
 
     with open(args.work + "/waydroid_base.prop", "w") as f:
         f.writelines(prop + "\n" for prop in props)
-
 
 def setup_host_perms(args):
     if not os.path.exists(tools.config.defaults["host_perms"]):
