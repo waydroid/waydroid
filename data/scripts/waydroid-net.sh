@@ -106,7 +106,7 @@ start_nftables() {
 add table ip6 lxc;
 flush table ip6 lxc;
 add chain ip6 lxc postrouting { type nat hook postrouting priority 100; };
-add rule ip6 lxc postrouting ip saddr ${LXC_IPV6_NETWORK} ip daddr != ${LXC_IPV6_NETWORK} counter masquerade;
+add rule ip6 lxc postrouting ip6 saddr ${LXC_IPV6_NETWORK} ip6 daddr != ${LXC_IPV6_NETWORK} counter masquerade;
 "
     fi
     NFT_RULESET="${NFT_RULESET};
