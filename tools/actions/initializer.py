@@ -21,6 +21,7 @@ def is_initialized(args):
 
 def get_vendor_type(args):
     vndk_str = helpers.props.host_get(args, "ro.vndk.version")
+    vendorapi_str = helpers.props.host_get(args, "ro.vendor.build.version.sdk")
     ret = "MAINLINE"
     if vndk_str != "":
         vndk = int(vndk_str)
@@ -31,6 +32,11 @@ def get_vendor_type(args):
             ret = "HALIUM_" + str(halium_ver)
             if vndk == 32:
                 ret += "L"
+    elif vendorapi_str != "":
+        vendorapi = int(vendorapi_str)
+        if vendorapi > 32:
+            halium_ver = vendorapi - 20
+            ret = "HALIUM_" + str(halium_ver)
 
     return ret
 
