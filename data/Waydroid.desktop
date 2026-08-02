@@ -2,8 +2,10 @@
 Type=Application
 Name=Waydroid
 GenericName=Android Container
+GenericName[ru]=Контейнер с Android
 Exec=waydroid
 Comment=Run Android apps in a containerized environment.
+Comment[ru]=Запуск Android-приложений в изолированном контейнере.
 Icon=waydroid
 Categories=X-WayDroid-App;Utility;
 Actions=stop;initialize;
@@ -11,9 +13,11 @@ X-Purism-FormFactor=Workstation;Mobile;
 
 [Desktop Action stop]
 Name=Stop Waydroid
+Name[ru]=Остановить Waydroid
 Exec=waydroid session stop
 Icon=waydroid
 
 [Desktop Action initialize]
 Name=Initialize Waydroid
+Name[ru]=Инициализировать Waydroid
 Exec=waydroid init --client

@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Waydroid Market
 Comment=Android Market Protocol Handler
+Comment[ru]=Обработчик ссылок Android Market
 Exec=waydroid app intent android.intent.action.VIEW %u
 Icon=waydroid
 Type=Application
