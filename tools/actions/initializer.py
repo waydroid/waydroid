@@ -59,8 +59,20 @@ def setup_config(args):
         if os.path.isdir(preinstalled_images):
             system_path = preinstalled_images + "/system.img"
             vendor_path = preinstalled_images + "/vendor.img"
-            system_exists = os.path.isfile(system_path) or stat.S_ISBLK(os.stat(system_path).st_mode)
-            vendor_exists = os.path.isfile(vendor_path) or stat.S_ISBLK(os.stat(vendor_path).st_mode)
+            def image_exists(path):
+                # os.stat() raises if the path is not there, and the isfile()
+                # on the left does not stop it being reached - so an empty
+                # preinstalled directory aborted "waydroid init" outright with
+                # "No such file or directory: .../system.img" instead of being
+                # passed over. A machine that has had its images removed, or
+                # that ships the directory but not the images, cannot
+                # initialise at all.
+                if not os.path.exists(path):
+                    return False
+                return os.path.isfile(path) or stat.S_ISBLK(os.stat(path).st_mode)
+
+            system_exists = image_exists(system_path)
+            vendor_exists = image_exists(vendor_path)
             if system_exists and vendor_exists:
                 has_preinstalled_images = True
                 args.images_path = preinstalled_images
