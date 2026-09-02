@@ -200,7 +200,8 @@ def generate_session_lxc_config(args, session):
         raise OSError("Failed to create XDG_RUNTIME_DIR mount point")
 
     wayland_host_socket = os.path.realpath(os.path.join(session["xdg_runtime_dir"], session["wayland_display"]))
-    wayland_container_socket = os.path.realpath(os.path.join(tools.config.defaults["container_xdg_runtime_dir"], tools.config.defaults["container_wayland_display"]))
+    # Container-side path: resolving it on the host gives the wrong one.
+    wayland_container_socket = os.path.join(tools.config.defaults["container_xdg_runtime_dir"], tools.config.defaults["container_wayland_display"])
     if not make_entry(wayland_host_socket, wayland_container_socket[1:]):
         raise OSError("Failed to bind Wayland socket")
 
