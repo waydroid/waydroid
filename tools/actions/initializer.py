@@ -59,8 +59,13 @@ def setup_config(args):
         if os.path.isdir(preinstalled_images):
             system_path = preinstalled_images + "/system.img"
             vendor_path = preinstalled_images + "/vendor.img"
-            system_exists = os.path.isfile(system_path) or stat.S_ISBLK(os.stat(system_path).st_mode)
-            vendor_exists = os.path.isfile(vendor_path) or stat.S_ISBLK(os.stat(vendor_path).st_mode)
+            def image_exists(path):
+                if not os.path.exists(path):
+                    return False
+                return os.path.isfile(path) or stat.S_ISBLK(os.stat(path).st_mode)
+
+            system_exists = image_exists(system_path)
+            vendor_exists = image_exists(vendor_path)
             if system_exists and vendor_exists:
                 has_preinstalled_images = True
                 args.images_path = preinstalled_images
