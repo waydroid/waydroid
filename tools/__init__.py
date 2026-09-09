@@ -145,6 +145,9 @@ def main():
 
         #logging.info("Done")
 
+    except KeyboardInterrupt:
+        print("\nAborted.")
+        return 1
     except Exception as e:
         # Dump log to stdout when args (and therefore logging) init failed
         if not args:
