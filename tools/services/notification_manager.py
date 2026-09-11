@@ -8,7 +8,7 @@ from tools.interfaces import INotifications
 from gi.repository import GLib
 import dbus
 
-stopping = False
+stopping = threading.Event()
 bus_signals = []
 
 def start(args, session):
@@ -67,8 +67,9 @@ def start(args, session):
             listener.onActionInvoked(int(notification_id), str(action_id), str(token))
 
     def service_thread():
-        while not stopping:
-            INotifications.add_service(args, registerListener, notify, closeNotification)
+        while not stopping.is_set():
+            if not INotifications.add_service(args, registerListener, notify, closeNotification):
+                stopping.wait(tools.config.binder_service_retry_interval)
 
     try:
         dbus_proxy = dbus.Interface(dbus.SessionBus().get_object("org.freedesktop.Notifications", "/org/freedesktop/Notifications"),
@@ -82,14 +83,12 @@ def start(args, session):
     bus_signals.append(dbus_proxy.connect_to_signal("ActivationToken", onActivationToken))
     bus_signals.append(dbus_proxy.connect_to_signal("ActionInvoked", onActionInvoked))
 
-    global stopping
-    stopping = False
+    stopping.clear()
     args.notification_manager = threading.Thread(target=service_thread)
     args.notification_manager.start()
 
 def stop(args):
-    global stopping
-    stopping = True
+    stopping.set()
     for signal in bus_signals:
         signal.remove()
     try:

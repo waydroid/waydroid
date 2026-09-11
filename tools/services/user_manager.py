@@ -10,7 +10,7 @@ from tools.interfaces import IUserMonitor
 from tools.interfaces import IPlatform
 from gi.repository import GLib
 
-stopping = False
+stopping = threading.Event()
 
 
 def start(args, session, unlocked_cb=None):
@@ -162,18 +162,17 @@ def start(args, session, unlocked_cb=None):
                 updateDesktopFile(appInfo)
 
     def service_thread():
-        while not stopping:
-            IUserMonitor.add_service(args, userUnlocked, packageStateChanged)
+        while not stopping.is_set():
+            if not IUserMonitor.add_service(args, userUnlocked, packageStateChanged):
+                stopping.wait(tools.config.binder_service_retry_interval)
 
-    global stopping
-    stopping = False
+    stopping.clear()
     args.user_manager = threading.Thread(target=service_thread)
     args.user_manager.start()
 
 
 def stop(args):
-    global stopping
-    stopping = True
+    stopping.set()
     try:
         if args.userMonitorLoop:
             args.userMonitorLoop.quit()
