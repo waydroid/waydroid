@@ -50,20 +50,13 @@ def host_mapper_fqnames(hal):
                     for i in hal.iterfind("interface/instance")]
     return fqnames
 
-def find_host_gralloc5():
-    """Look for a gralloc5 stack in the host VINTF.
-
-    Returns (allocator_version, mapper_fqname), both None if the host does not
-    provide one. The fqname carries a vendor specific instance name ("pixel",
-    "mediatek", ...), so it has to be read instead of assumed.
-    """
+def host_vintf_hals():
+    """Yield every <hal> element the host VINTF declares."""
     manifests = []
     for base in ["/vendor/etc/vintf", "/odm/etc/vintf"]:
         manifests.append(base + "/manifest.xml")
         manifests.extend(sorted(glob.glob(base + "/manifest/*.xml")))
 
-    allocator = None
-    mapper = None
     for manifest in manifests:
         try:
             root = ElementTree.parse(manifest).getroot()
@@ -71,16 +64,28 @@ def find_host_gralloc5():
             continue
 
         for hal in root.findall("hal"):
-            name = hal.findtext("name", "").strip()
-            fmt = hal.get("format")
+            yield hal
 
-            if fmt == "aidl" and name == "android.hardware.graphics.allocator":
-                allocator = hal.findtext("version", "1").strip()
-            elif fmt == "native" and name == "mapper":
-                for fqname in host_mapper_fqnames(hal):
-                    version, _, instance = fqname.partition("/")
-                    if version.startswith("@5.") and instance:
-                        mapper = fqname
+def find_host_gralloc5():
+    """Look for a gralloc5 stack in the host VINTF.
+
+    Returns (allocator_version, mapper_fqname), both None if the host does not
+    provide one. The fqname carries a vendor specific instance name ("pixel",
+    "mediatek", ...), so it has to be read instead of assumed.
+    """
+    allocator = None
+    mapper = None
+    for hal in host_vintf_hals():
+        name = hal.findtext("name", "").strip()
+        fmt = hal.get("format")
+
+        if fmt == "aidl" and name == "android.hardware.graphics.allocator":
+            allocator = hal.findtext("version", "1").strip()
+        elif fmt == "native" and name == "mapper":
+            for fqname in host_mapper_fqnames(hal):
+                version, _, instance = fqname.partition("/")
+                if version.startswith("@5.") and instance:
+                    mapper = fqname
 
     if allocator and mapper:
         return allocator, mapper
