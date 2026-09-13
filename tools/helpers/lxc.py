@@ -113,8 +113,51 @@ def add_host_gralloc5(manifest):
     logging.info("Host gralloc5 detected, using IMapper " + mapper_fqname)
     return True
 
+def find_host_camera_provider():
+    """Look for an AIDL camera provider in the host VINTF.
+
+    Returns (version, fqname), both None if the host has none. The instance is
+    vendor specific ("internal/0", "legacy/0", ...), so read it rather than
+    assume it.
+    """
+    for hal in host_vintf_hals():
+        if hal.get("format") != "aidl":
+            continue
+        if hal.findtext("name", "").strip() != "android.hardware.camera.provider":
+            continue
+
+        version = hal.findtext("version", "1").strip()
+        for fqname in [(f.text or "").strip() for f in hal.findall("fqname")]:
+            if fqname:
+                return version, fqname
+        for instance in hal.iterfind("interface/instance"):
+            name = (instance.text or "").strip()
+            if name:
+                return version, "ICameraProvider/" + name
+
+    return None, None
+
+def add_host_camera(manifest):
+    """Declare the host AIDL camera provider, if it has one.
+
+    libbinder already routes the provider to the host binder, but cameraserver
+    only asks for providers the container's VINTF declares, so without this it
+    enumerates no cameras at all.
+    """
+    version, fqname = find_host_camera_provider()
+    if not fqname:
+        return False
+
+    hal = ElementTree.SubElement(manifest, "hal", {"format": "aidl"})
+    ElementTree.SubElement(hal, "name").text = "android.hardware.camera.provider"
+    ElementTree.SubElement(hal, "version").text = version
+    ElementTree.SubElement(hal, "fqname").text = fqname
+
+    logging.info("Host AIDL camera provider detected, using " + fqname)
+    return True
+
 # Each one appends the HALs it found on the host to the fragment.
-host_hal_providers = [add_host_gralloc5]
+host_hal_providers = [add_host_gralloc5, add_host_camera]
 
 def generate_host_manifest(args):
     """Write a VINTF fragment declaring the host HALs the container may use.
