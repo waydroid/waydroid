@@ -13,6 +13,8 @@ APPS_MENU_DIR := $(SYSCONFDIR)/xdg/menus/applications-merged
 METAINFO_DIR := $(PREFIX)/share/metainfo
 ICONS_DIR := $(PREFIX)/share/icons
 SYSD_DIR := $(PREFIX)/lib/systemd/system
+OPENRC_INIT_DIR := $(SYSCONFDIR)/init.d
+OPENRC_CONF_DIR := $(SYSCONFDIR)/conf.d
 DBUS_DIR := $(PREFIX)/share/dbus-1
 POLKIT_DIR := $(PREFIX)/share/polkit-1
 APPARMOR_DIR := $(SYSCONFDIR)/apparmor.d
@@ -25,6 +27,8 @@ INSTALL_APPS_MENU_DIR := $(DESTDIR)$(APPS_MENU_DIR)
 INSTALL_METAINFO_DIR := $(DESTDIR)$(METAINFO_DIR)
 INSTALL_ICONS_DIR := $(DESTDIR)$(ICONS_DIR)
 INSTALL_SYSD_DIR := $(DESTDIR)$(SYSD_DIR)
+INSTALL_OPENRC_INIT_DIR := $(DESTDIR)$(OPENRC_INIT_DIR)
+INSTALL_OPENRC_CONF_DIR := $(DESTDIR)$(OPENRC_CONF_DIR)
 INSTALL_DBUS_DIR := $(DESTDIR)$(DBUS_DIR)
 INSTALL_POLKIT_DIR := $(DESTDIR)$(POLKIT_DIR)
 INSTALL_APPARMOR_DIR := $(DESTDIR)$(APPARMOR_DIR)
@@ -54,6 +58,11 @@ install:
 	if [ $(USE_SYSTEMD) = 1 ]; then \
 		install -d $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-container.service $(INSTALL_SYSD_DIR); \
+	fi
+	if [ $(USE_OPENRC) = 1 ]; then \
+		install -d $(INSTALL_OPENRC_INIT_DIR) $(INSTALL_OPENRC_CONF_DIR); \
+		cp openrc/waydroid-container $(INSTALL_OPENRC_INIT_DIR)/; \
+		cp openrc/waydroid-container.confd $(INSTALL_OPENRC_CONF_DIR)/; \
 	fi
 	if [ $(USE_NFTABLES) = 1 ]; then \
 		sed '/LXC_USE_NFT=/ s/false/true/' -i $(INSTALL_WAYDROID_DIR)/data/scripts/waydroid-net.sh; \
