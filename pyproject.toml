@@ -21,3 +21,7 @@ ignore = [
 	"F401", # TODO: Remove this once unused imports are removed.
 	"F811", # TODO: Remove this once redefined variables are refactored.
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
