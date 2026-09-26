@@ -69,10 +69,10 @@ session_defaults = {
     "background_start": "true"
 }
 
-if os.environ.get('WAYDROID_USER_HOME') == None:
+if os.environ.get('WAYDROIDPREFIX') == None:
     session_defaults["waydroid_user_state"] = session_defaults["xdg_data_home"] + "/waydroid"
 else:
-    session_defaults["waydroid_user_state"] = os.path.expanduser(os.environ.get('WAYDROID_USER_HOME'))
+    session_defaults["waydroid_user_state"] = os.path.expanduser(os.environ.get('WAYDROIDPREFIX'))
 session_defaults["waydroid_data"] = session_defaults["waydroid_user_state"] + "/data"
 if session_defaults["pulse_runtime_path"] == "None":
     session_defaults["pulse_runtime_path"] = session_defaults["xdg_runtime_dir"] + "/pulse"
