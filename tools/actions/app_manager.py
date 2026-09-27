@@ -20,7 +20,7 @@ def install(args):
         if session["state"] == "FROZEN":
             cm.Unfreeze()
 
-        tmp_dir = tools.config.session_defaults["waydroid_data"] + "/waydroid_tmp"
+        tmp_dir = tools.config.get_session_defaults()["waydroid_data"] + "/waydroid_tmp"
         if not os.path.exists(tmp_dir):
             os.makedirs(tmp_dir)
 

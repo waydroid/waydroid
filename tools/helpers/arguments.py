@@ -11,11 +11,9 @@ import tools.config
 
 """ This file is about parsing command line arguments passed to waydroid, as
     well as generating the help pages (waydroid -h). All this is done with
-    Python's argparse. The parsed arguments get extended and finally stored in
-    the "args" variable, which is prominently passed to most functions all
-    over the waydroid code base.
-
-    See tools/helpers/args.py for more information about the args variable. """
+    Python's argparse. The parsed arguments get extended in tools/__init__.py
+    (see prep_args) and finally stored in the "args" variable, which is
+    prominently passed to most functions all over the waydroid code base. """
 
 def arguments_init(subparser):
     ret = subparser.add_parser("init", help="set up waydroid specific"

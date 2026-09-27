@@ -280,7 +280,7 @@ class IPlatform:
         request.append_int32(arg1)
         request.append_string16(arg2)
         reply, status = self.client.transact_sync_reply(
-            TRANSACTION_settingsGetString, request)
+            TRANSACTION_settingsGetInt, request)
 
         if status:
             logging.error("Sending reply failed")

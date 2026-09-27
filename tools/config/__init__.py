@@ -54,24 +54,33 @@ defaults["lxc"] = defaults["work"] + "/lxc"
 defaults["host_perms"] = defaults["work"] + "/host-permissions"
 defaults["container_pulse_runtime_path"] = defaults["container_xdg_runtime_dir"] + "/pulse"
 
-session_defaults = {
-    "user_name": pwd.getpwuid(os.getuid()).pw_name,
-    "user_id": str(os.getuid()),
-    "group_id": str(os.getgid()),
-    "host_user": os.path.expanduser("~"),
-    "pid": str(os.getpid()),
-    "xdg_data_home": str(os.environ.get('XDG_DATA_HOME', os.path.expanduser("~") + "/.local/share")),
-    "xdg_runtime_dir": str(os.environ.get('XDG_RUNTIME_DIR')),
-    "wayland_display": str(os.environ.get('WAYLAND_DISPLAY')),
-    "pulse_runtime_path": str(os.environ.get('PULSE_RUNTIME_PATH')),
-    "state": "STOPPED",
-    "lcd_density": "0",
-    "background_start": "true"
-}
-session_defaults["waydroid_user_state"] = session_defaults["xdg_data_home"] + "/waydroid"
-session_defaults["waydroid_data"] = session_defaults["waydroid_user_state"] + "/data"
-if session_defaults["pulse_runtime_path"] == "None":
-    session_defaults["pulse_runtime_path"] = session_defaults["xdg_runtime_dir"] + "/pulse"
+def get_session_defaults():
+    """
+    Build a fresh session-defaults dict from the current environment.
+
+    This must be called at session-start time, not at import time, so the
+    values (WAYLAND_DISPLAY, XDG_RUNTIME_DIR, ...) reflect the compositor
+    environment that is actually running.
+    """
+    session = {
+        "user_name": pwd.getpwuid(os.getuid()).pw_name,
+        "user_id": str(os.getuid()),
+        "group_id": str(os.getgid()),
+        "host_user": os.path.expanduser("~"),
+        "pid": str(os.getpid()),
+        "xdg_data_home": str(os.environ.get('XDG_DATA_HOME', os.path.expanduser("~") + "/.local/share")),
+        "xdg_runtime_dir": str(os.environ.get('XDG_RUNTIME_DIR')),
+        "wayland_display": str(os.environ.get('WAYLAND_DISPLAY')),
+        "pulse_runtime_path": str(os.environ.get('PULSE_RUNTIME_PATH')),
+        "state": "STOPPED",
+        "lcd_density": "0",
+        "background_start": "true"
+    }
+    session["waydroid_user_state"] = session["xdg_data_home"] + "/waydroid"
+    session["waydroid_data"] = session["waydroid_user_state"] + "/data"
+    if session["pulse_runtime_path"] == "None":
+        session["pulse_runtime_path"] = session["xdg_runtime_dir"] + "/pulse"
+    return session
 
 channels_defaults = {
     "config_path": "/usr/share/waydroid-extra/channels.cfg",

@@ -11,7 +11,6 @@ import dbus
 import dbus.service
 import dbus.exceptions
 from gi.repository import GLib
-import copy
 
 class DbusSessionManager(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
@@ -46,11 +45,16 @@ def start(args, unlocked_cb=None, background=True):
             unlocked_cb()
         return
 
-    session = copy.copy(tools.config.session_defaults)
+    session = tools.config.get_session_defaults()
 
-    # TODO: also support WAYLAND_SOCKET?
     wayland_display = session["wayland_display"]
-    if wayland_display == "None" or not wayland_display:
+    wayland_socket_env = os.getenv("WAYLAND_SOCKET")
+    if wayland_socket_env:
+        # WAYLAND_SOCKET points directly at the compositor socket (a full
+        # path or a socket name relative to XDG_RUNTIME_DIR); it takes
+        # precedence over WAYLAND_DISPLAY, mirroring libwayland clients.
+        wayland_display = session["wayland_display"] = wayland_socket_env
+    elif wayland_display == "None" or not wayland_display:
         logging.warning('WAYLAND_DISPLAY is not set, defaulting to "wayland-0"')
         wayland_display = session["wayland_display"] = "wayland-0"
 
