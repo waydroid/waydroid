@@ -15,6 +15,7 @@ import tools.config
 import tools.helpers.run
 from contextlib import suppress
 from pathlib import Path
+from xml.etree import ElementTree
 
 def get_lxc_version(args):
     if shutil.which("lxc-info") is not None:
@@ -36,6 +37,148 @@ def add_node_entry(nodes, src, dist, mnt_type, options, check):
     entry += options
     nodes.append(entry)
     return True
+
+def host_mapper_fqnames(hal):
+    """Collect the mapper fqnames a host <hal> element declares.
+
+    Newer fragments use <fqname>@5.0/instance</fqname>, but most vendors still
+    spell the same thing out as <version> plus <interface><instance>.
+    """
+    fqnames = [(f.text or "").strip() for f in hal.findall("fqname")]
+    for version in hal.findall("version"):
+        fqnames += ["@" + (version.text or "").strip() + "/" + (i.text or "").strip()
+                    for i in hal.iterfind("interface/instance")]
+    return fqnames
+
+def host_vintf_hals():
+    """Yield every <hal> element the host VINTF declares."""
+    manifests = []
+    for base in ["/vendor/etc/vintf", "/odm/etc/vintf"]:
+        manifests.append(base + "/manifest.xml")
+        manifests.extend(sorted(glob.glob(base + "/manifest/*.xml")))
+
+    for manifest in manifests:
+        try:
+            root = ElementTree.parse(manifest).getroot()
+        except (OSError, ElementTree.ParseError):
+            continue
+
+        for hal in root.findall("hal"):
+            yield hal
+
+def find_host_gralloc5():
+    """Look for a gralloc5 stack in the host VINTF.
+
+    Returns (allocator_version, mapper_fqname), both None if the host does not
+    provide one. The fqname carries a vendor specific instance name ("pixel",
+    "mediatek", ...), so it has to be read instead of assumed.
+    """
+    allocator = None
+    mapper = None
+    for hal in host_vintf_hals():
+        name = hal.findtext("name", "").strip()
+        fmt = hal.get("format")
+
+        if fmt == "aidl" and name == "android.hardware.graphics.allocator":
+            allocator = hal.findtext("version", "1").strip()
+        elif fmt == "native" and name == "mapper":
+            for fqname in host_mapper_fqnames(hal):
+                version, _, instance = fqname.partition("/")
+                if version.startswith("@5.") and instance:
+                    mapper = fqname
+
+    if allocator and mapper:
+        return allocator, mapper
+    return None, None
+
+def add_host_gralloc5(manifest):
+    """Declare the host gralloc5 stack, if it has one.
+
+    Without the declaration libui falls back to HIDL gralloc and hands the
+    vendor EGL blob buffers its IMapper cannot resolve.
+    """
+    allocator_version, mapper_fqname = find_host_gralloc5()
+    if not mapper_fqname:
+        return False
+
+    hal = ElementTree.SubElement(manifest, "hal", {"format": "aidl"})
+    ElementTree.SubElement(hal, "name").text = "android.hardware.graphics.allocator"
+    ElementTree.SubElement(hal, "version").text = allocator_version
+    ElementTree.SubElement(hal, "fqname").text = "IAllocator/default"
+
+    hal = ElementTree.SubElement(manifest, "hal", {"format": "native"})
+    ElementTree.SubElement(hal, "name").text = "mapper"
+    ElementTree.SubElement(hal, "fqname").text = mapper_fqname
+
+    logging.info("Host gralloc5 detected, using IMapper " + mapper_fqname)
+    return True
+
+def find_host_camera_provider():
+    """Look for an AIDL camera provider in the host VINTF.
+
+    Returns (version, fqname), both None if the host has none. The instance is
+    vendor specific ("internal/0", "legacy/0", ...), so read it rather than
+    assume it.
+    """
+    for hal in host_vintf_hals():
+        if hal.get("format") != "aidl":
+            continue
+        if hal.findtext("name", "").strip() != "android.hardware.camera.provider":
+            continue
+
+        version = hal.findtext("version", "1").strip()
+        for fqname in [(f.text or "").strip() for f in hal.findall("fqname")]:
+            if fqname:
+                return version, fqname
+        for instance in hal.iterfind("interface/instance"):
+            name = (instance.text or "").strip()
+            if name:
+                return version, "ICameraProvider/" + name
+
+    return None, None
+
+def add_host_camera(manifest):
+    """Declare the host AIDL camera provider, if it has one.
+
+    libbinder already routes the provider to the host binder, but cameraserver
+    only asks for providers the container's VINTF declares, so without this it
+    enumerates no cameras at all.
+    """
+    version, fqname = find_host_camera_provider()
+    if not fqname:
+        return False
+
+    hal = ElementTree.SubElement(manifest, "hal", {"format": "aidl"})
+    ElementTree.SubElement(hal, "name").text = "android.hardware.camera.provider"
+    ElementTree.SubElement(hal, "version").text = version
+    ElementTree.SubElement(hal, "fqname").text = fqname
+
+    logging.info("Host AIDL camera provider detected, using " + fqname)
+    return True
+
+# Each one appends the HALs it found on the host to the fragment.
+host_hal_providers = [add_host_gralloc5, add_host_camera]
+
+def generate_host_manifest(args):
+    """Write a VINTF fragment declaring the host HALs the container may use.
+
+    Returns the path to the fragment, or None if the host provides none of
+    them. It is bind-mounted over an empty placeholder in the vendor image, so
+    declaring a further host HAL needs no image change.
+    """
+    if args.vendor_type == "MAINLINE":
+        return None
+
+    manifest = ElementTree.Element("manifest", {"version": "1.0", "type": "device"})
+    found = [provider(manifest) for provider in host_hal_providers]
+    if not any(found):
+        return None
+
+    tmp_path = args.work + "/manifest_host.xml"
+    path = tools.config.defaults["lxc"] + "/waydroid/manifest_host.xml"
+    ElementTree.ElementTree(manifest).write(tmp_path, encoding="utf-8", xml_declaration=True)
+    tools.helpers.run.user(args, ["mv", tmp_path, path])
+    return path
 
 def generate_nodes_lxc_config(args):
     nodes = []
@@ -79,6 +222,9 @@ def generate_nodes_lxc_config(args):
     if args.vendor_type != "MAINLINE":
         if not make_entry("/dev/hwbinder", "dev/host_hwbinder"):
             raise OSError('Binder node "hwbinder" of host not found')
+        # Host AIDL services are reached over this one; the image lists
+        # them in /system/etc/hostaidls.conf
+        make_entry("/dev/binder", "dev/host_binder")
         make_entry("/vendor", "vendor_extra", options="rbind,optional 0 0")
 
     # Necessary device nodes for adb
@@ -94,6 +240,13 @@ def generate_nodes_lxc_config(args):
     # Mount host permissions
     make_entry(tools.config.defaults["host_perms"],
                "vendor/etc/host-permissions", options="bind,optional 0 0")
+
+    # Declare the host HALs, over the placeholder fragment in the image
+    host_manifest = generate_host_manifest(args)
+    if host_manifest:
+        make_entry(host_manifest,
+                   "vendor/etc/vintf/manifest/manifest_host.xml",
+                   options="bind,optional 0 0")
 
     # Necessary sw_sync node for HWC
     make_entry("/dev/sw_sync")
@@ -120,6 +273,9 @@ def generate_nodes_lxc_config(args):
     make_entry("tmpfs", "tmp", "tmpfs", "nodev 0 0", False)
     make_entry("tmpfs", "var", "tmpfs", "nodev 0 0", False)
     make_entry("tmpfs", "run", "tmpfs", "nodev 0 0", False)
+
+    # Writable /metadata for aconfig storage
+    make_entry("tmpfs", "metadata", "tmpfs", "nodev,nosuid,mode=0771,optional 0 0", False)
 
     # NFC config
     make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
