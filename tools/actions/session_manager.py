@@ -7,6 +7,7 @@ import sys
 import tools.config
 import tools.helpers.ipc
 from tools import services
+from tools.interfaces import IPlatform
 import dbus
 import dbus.service
 import dbus.exceptions
@@ -107,6 +108,53 @@ def start(args, unlocked_cb=None, background=True):
     services.user_manager.start(args, session, unlocked_cb)
     services.clipboard_manager.start(args)
     services.notification_manager.start(args, session)
+
+    cfg = tools.config.load(args)
+    if cfg["waydroid"]["stop_on_idle"] == "True":
+        idle_state = {"count": 0, "platform": None}
+
+        def check_idle():
+            # Check if container is still alive via D-Bus
+            try:
+                container_session = tools.helpers.ipc.DBusContainerService().GetSession()
+                container_alive = container_session["state"] in ("RUNNING", "FROZEN")
+            except (dbus.DBusException, KeyError):
+                container_alive = False
+
+            if not container_alive:
+                idle_state["count"] += 1
+                idle_state["platform"] = None
+            else:
+                # Try to get or reuse the platform service (non-blocking)
+                if idle_state["platform"] is None:
+                    try:
+                        idle_state["platform"] = IPlatform.get_service_nowait(args)
+                    except Exception:
+                        pass
+
+                if idle_state["platform"]:
+                    try:
+                        running = idle_state["platform"].getRunningTasks()
+                    except Exception:
+                        idle_state["platform"] = None
+                        running = -1
+
+                    if running == 0:
+                        idle_state["count"] += 1
+                    elif running > 0:
+                        idle_state["count"] = 0
+                    # running == -1: unsupported, don't change count
+
+            if idle_state["count"] >= 2:
+                logging.info("No active tasks detected, stopping idle session")
+                do_stop(args, mainloop)
+                stop_container(quit_session=False)
+                return False
+
+            return True
+
+        GLib.timeout_add_seconds(15, check_idle)
+
     service(args, mainloop)
 
 def do_stop(args, looper):
