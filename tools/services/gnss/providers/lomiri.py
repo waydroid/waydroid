@@ -197,7 +197,11 @@ class LomiriLocationProvider(LocationProvider):
         self.on_satellites = on_satellites
 
         try:
-            self.bus = dbus.SystemBus()
+            # The service ends a session only when its client disconnects, so
+            # use a private connection per run and close it in stop().
+            self.bus = dbus.SystemBus(private=True)
+            # libdbus would otherwise _exit() the process when we close it.
+            self.bus.set_exit_on_disconnect(False)
 
             self.proxy = self.bus.get_object(
                 self.SERVICE_NAME,
@@ -242,6 +246,7 @@ class LomiriLocationProvider(LocationProvider):
                 logging.info("LomiriProvider: Position updates started")
             else:
                 logging.error("LomiriProvider: Failed to create session (no session path)")
+                self._close()
                 return False
 
             # Subscribe to satellite visibility if callback provided
@@ -253,12 +258,13 @@ class LomiriLocationProvider(LocationProvider):
 
         except dbus.DBusException as e:
             logging.error(f"LomiriProvider: D-Bus error: {e}")
-            return False
         except Exception as e:
             logging.error(f"LomiriProvider: Failed to start: {e}")
             import traceback
             traceback.print_exc()
-            return False
+
+        self._close()
+        return False
 
     def _handle_position_update(self, location):
         """Handle position update from D-Bus callback."""
@@ -276,21 +282,32 @@ class LomiriLocationProvider(LocationProvider):
                     self.session_proxy,
                     "com.lomiri.location.Service.Session"
                 )
-                session_iface.StopPositionUpdates()
+                # Don't wait for a reply: a busy service would block us.
+                session_iface.StopPositionUpdates(ignore_reply=True)
         except Exception as e:
             logging.warning(f"LomiriProvider: Error stopping session: {e}")
 
-        # Clean up callback object
+        self._close()
+
+    def _close(self):
+        """Close the private connection, dropping the session and our handlers."""
         if self.session_callback:
             try:
                 self.session_callback.remove_from_connection()
-            except:
+            except Exception:
                 pass
             self.session_callback = None
 
         if self._sv_signal:
             self._sv_signal.remove()
             self._sv_signal = None
+
+        if self.bus:
+            try:
+                self.bus.flush()
+                self.bus.close()
+            except Exception as e:
+                logging.warning(f"LomiriProvider: Error closing connection: {e}")
 
         self.session_proxy = None
         self.session_path = None
