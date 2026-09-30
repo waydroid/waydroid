@@ -70,7 +70,7 @@ class SessionCallback(dbus.service.Object):
         """Handle UpdatePosition with variable D-Bus signature."""
         try:
             args = message.get_args_list()
-            logging.info(f"SessionCallback: UpdatePosition raw args ({len(args)}): {args}")
+            logging.debug(f"SessionCallback: UpdatePosition raw args ({len(args)}): {args}")
 
             if len(args) < 2:
                 logging.warning("SessionCallback: Not enough arguments for UpdatePosition")
@@ -114,7 +114,7 @@ class SessionCallback(dbus.service.Object):
             if h_acc is not None:
                 location['accuracy'] = h_acc
 
-            logging.info(f"SessionCallback: Parsed position: lat={location['latitude']:.6f}, lon={location['longitude']:.6f}")
+            logging.debug(f"SessionCallback: Parsed position: lat={location['latitude']:.6f}, lon={location['longitude']:.6f}")
             self._provider._handle_position_update(location)
 
             # Send reply
@@ -262,7 +262,7 @@ class LomiriLocationProvider(LocationProvider):
 
     def _handle_position_update(self, location):
         """Handle position update from D-Bus callback."""
-        logging.info(f"LomiriProvider: Position update: {location}")
+        logging.debug(f"LomiriProvider: Position update: {location}")
         if self.on_location:
             self.on_location(location)
 
