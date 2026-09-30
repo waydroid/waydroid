@@ -29,6 +29,9 @@ class Gnss(IGnss):
     Extends IGnss (binder interface) with provider integration.
     """
 
+    # Used when a provider reports a fix without horizontal accuracy.
+    DEFAULT_HORIZONTAL_ACCURACY_METERS = 100.0
+
     def __init__(self, provider=None):
         super().__init__()
         self.provider = provider
@@ -178,10 +181,13 @@ class Gnss(IGnss):
             gnss_loc.bearingDegrees = float(bearing)
             flags |= GnssLocation.HAS_BEARING
 
+        # Always report horizontal accuracy: Location.isComplete() requires it, and
+        # GnssLocationProvider throws out of system_server on a fix without it.
         accuracy = location.get('accuracy')
-        if accuracy is not None:
-            gnss_loc.horizontalAccuracyMeters = float(accuracy)
-            flags |= GnssLocation.HAS_HORIZONTAL_ACCURACY
+        if accuracy is None:
+            accuracy = self.DEFAULT_HORIZONTAL_ACCURACY_METERS
+        gnss_loc.horizontalAccuracyMeters = float(accuracy)
+        flags |= GnssLocation.HAS_HORIZONTAL_ACCURACY
 
         gnss_loc.gnssLocationFlags = flags
 
