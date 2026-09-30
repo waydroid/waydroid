@@ -76,7 +76,17 @@ def main():
             if args.subaction == "start":
                 actions.container_manager.start(args)
             elif args.subaction == "stop":
-                actions.container_manager.stop(args)
+                # Ask the service to stop itself. It is the only process that can
+                # clear the session it tracks in args.session and quit its hardware
+                # manager thread, and going through it serialises the teardown
+                # against a session stopping at the same time. Falling back to a
+                # direct stop keeps this usable as a recovery command when the
+                # service is not running. Same idiom as upgrader.upgrade().
+                try:
+                    helpers.ipc.DBusContainerService().Stop(True)
+                except Exception as e:
+                    logging.debug(e)
+                    actions.container_manager.stop(args)
             elif args.subaction == "restart":
                 actions.container_manager.restart(args)
             elif args.subaction == "freeze":
