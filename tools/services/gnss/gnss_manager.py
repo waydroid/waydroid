@@ -32,10 +32,16 @@ class Gnss(IGnss):
     # Used when a provider reports a fix without horizontal accuracy.
     DEFAULT_HORIZONTAL_ACCURACY_METERS = 100.0
 
+    # Keep the provider running this long after Android stops GNSS. Apps often
+    # stop after 15-60 s, which is shorter than a cold start without A-GNSS.
+    PROVIDER_STOP_DELAY_SECONDS = 60
+
     def __init__(self, provider=None):
         super().__init__()
         self.provider = provider
         self._location_started = False
+        self._navigating = False
+        self._stop_timer = 0
         self._nmea_started = False
 
     def _create_extension_interfaces(self):
@@ -74,12 +80,30 @@ class Gnss(IGnss):
     def on_start(self):
         """Called when Android requests GNSS start."""
         logging.debug("Gnss: start requested")
+        self._navigating = True
+        self._cancel_stop_timer()
         if self.provider and not self._location_started:
             self._start_provider()
 
     def on_stop(self):
         """Called when Android requests GNSS stop."""
         logging.debug("Gnss: stop requested")
+        self._navigating = False
+        if self.provider and self._location_started and not self._stop_timer:
+            self._stop_timer = GLib.timeout_add_seconds(
+                self.PROVIDER_STOP_DELAY_SECONDS, self._on_stop_timer)
+
+    def _on_stop_timer(self):
+        self._stop_timer = 0
+        self._stop_provider()
+        return GLib.SOURCE_REMOVE
+
+    def _cancel_stop_timer(self):
+        if self._stop_timer:
+            GLib.source_remove(self._stop_timer)
+            self._stop_timer = 0
+
+    def _stop_provider(self):
         if self.provider and self._location_started:
             self.provider.stop()
             self._location_started = False
@@ -91,11 +115,13 @@ class Gnss(IGnss):
 
         def on_location(location):
             # Send location via IGnssCallback.gnssLocationCb
-            self._send_location(location)
+            if self._navigating:
+                self._send_location(location)
 
         def on_satellites(sv_list):
             # Send satellite visibility via gnssSvStatusCb
-            self._send_satellites(sv_list)
+            if self._navigating:
+                self._send_satellites(sv_list)
 
         def on_nmea(timestamp, nmea):
             # TODO: NMEA can be forwarded to gnssNmeaCb
@@ -210,9 +236,9 @@ class Gnss(IGnss):
     def on_close(self):
         """Called when Android closes the HAL."""
         logging.debug("Gnss: Closing")
-        if self.provider and self._location_started:
-            self.provider.stop()
-            self._location_started = False
+        self._navigating = False
+        self._cancel_stop_timer()
+        self._stop_provider()
         self._nmea_started = False
 
 
