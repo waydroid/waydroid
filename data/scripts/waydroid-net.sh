@@ -90,8 +90,8 @@ start_iptables() {
     fi
     $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p udp --dport 67 -j ACCEPT
     $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p tcp --dport 67 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p udp --dport 53 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p tcp --dport 53 -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p udp --dport 5354 -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -I INPUT -i ${LXC_BRIDGE} -p tcp --dport 5354 -j ACCEPT
     $IPTABLES_BIN $use_iptables_lock -I FORWARD -i ${LXC_BRIDGE} -j ACCEPT
     $IPTABLES_BIN $use_iptables_lock -I FORWARD -o ${LXC_BRIDGE} -j ACCEPT
     $IPTABLES_BIN $use_iptables_lock -t nat -A POSTROUTING -s ${LXC_NETWORK} ! -d ${LXC_NETWORK} -j MASQUERADE
@@ -113,8 +113,8 @@ add rule ip6 lxc postrouting ip saddr ${LXC_IPV6_NETWORK} ip daddr != ${LXC_IPV6
 add table inet lxc;
 flush table inet lxc;
 add chain inet lxc input { type filter hook input priority 0; };
-add rule inet lxc input iifname ${LXC_BRIDGE} udp dport { 53, 67 } accept;
-add rule inet lxc input iifname ${LXC_BRIDGE} tcp dport { 53, 67 } accept;
+add rule inet lxc input iifname ${LXC_BRIDGE} udp dport { 5354, 67 } accept;
+add rule inet lxc input iifname ${LXC_BRIDGE} tcp dport { 5354, 67 } accept;
 add chain inet lxc forward { type filter hook forward priority 0; };
 add rule inet lxc forward iifname ${LXC_BRIDGE} accept;
 add rule inet lxc forward oifname ${LXC_BRIDGE} accept;
@@ -201,7 +201,7 @@ start() {
             --strict-order --bind-interfaces --pid-file="${varrun}"/dnsmasq.pid \
             --listen-address ${LXC_ADDR} --dhcp-range ${LXC_DHCP_RANGE} \
             --dhcp-lease-max=${LXC_DHCP_MAX} --dhcp-no-override \
-            --except-interface=lo --interface=${LXC_BRIDGE} \
+            --except-interface=lo --interface=${LXC_BRIDGE} --port 5354 \
             --dhcp-leasefile="${varlib}"/misc/dnsmasq.${LXC_BRIDGE}.leases \
             --dhcp-authoritative $LXC_IPV6_ARG || cleanup
 
@@ -212,8 +212,8 @@ start() {
 stop_iptables() {
     $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p udp --dport 67 -j ACCEPT
     $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p tcp --dport 67 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p udp --dport 53 -j ACCEPT
-    $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p tcp --dport 53 -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p udp --dport 5354 -j ACCEPT
+    $IPTABLES_BIN $use_iptables_lock -D INPUT -i ${LXC_BRIDGE} -p tcp --dport 5354 -j ACCEPT
     $IPTABLES_BIN $use_iptables_lock -D FORWARD -i ${LXC_BRIDGE} -j ACCEPT
     $IPTABLES_BIN $use_iptables_lock -D FORWARD -o ${LXC_BRIDGE} -j ACCEPT
     $IPTABLES_BIN $use_iptables_lock -t nat -D POSTROUTING -s ${LXC_NETWORK} ! -d ${LXC_NETWORK} -j MASQUERADE
