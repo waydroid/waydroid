@@ -20,3 +20,7 @@ keyctl errno 0
 request_key errno 0
 swapoff errno 0
 swapon errno 0
+mknod errno 0
+mknodat errno 0
+syslog
+klogctl
