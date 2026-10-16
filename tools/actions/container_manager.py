@@ -16,6 +16,7 @@ import dbus.service
 import dbus.exceptions
 from gi.repository import GLib
 
+
 class DbusContainerManager(dbus.service.Object):
     def __init__(self, looper, bus, object_path, args):
         self.args = args
@@ -101,6 +102,16 @@ def set_permissions(args, perm_list=None, mode="777"):
         # DMA-BUF Heaps
         perm_list.extend(glob.glob("/dev/dma_heap/*"))
 
+        cfg = tools.config.load(args)
+        if "properties" in cfg and cfg["properties"].get("waydroid.controller_only_input", "false") == "true":
+            # Input devices (gamepads, joysticks, etc.)
+            for pattern in [
+                    "/dev/input/by-id/*-event-joystick",
+                    "/dev/input/by-path/*-event-joystick"]:
+                for path in glob.glob(pattern):
+                    perm_list.append(os.path.realpath(path))
+            perm_list.extend(glob.glob("/dev/input/js*"))
+
     for path in perm_list:
         chmod(path, mode)
 
@@ -165,6 +176,18 @@ def do_start(args, session):
     command = [tools.config.tools_src +
                "/data/scripts/waydroid-net.sh", "start"]
     tools.helpers.run.user(args, command)
+
+    # Regenerate device node config
+    cfg = tools.config.load(args)
+    args.vendor_type = cfg["waydroid"]["vendor_type"]
+    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+    nodes = helpers.lxc.generate_nodes_lxc_config(args)
+    config_nodes_tmp_path = args.work + "/config_nodes"
+    with open(config_nodes_tmp_path, "w") as f:
+        f.writelines(node + "\n" for node in nodes)
+    command = ["mv", config_nodes_tmp_path, lxc_path]
+    tools.helpers.run.user(args, command)
+    open(os.path.join(lxc_path, "config_session"), "a").close()
 
     # Sensors
     if which("waydroid-sensord"):
@@ -262,7 +285,7 @@ def stop(args, quit_session=True):
         with suppress(Exception):
             helpers.mount.umount_all(args, tools.config.defaults["data"])
 
-        if "session" in args:
+        if "session" in args and args.session is not None:
             if quit_session:
                 logging.info("Terminating session because the container was stopped")
                 with suppress(OSError):

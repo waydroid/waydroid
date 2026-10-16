@@ -85,6 +85,20 @@ def generate_nodes_lxc_config(args):
     make_entry("none", "dev/pts", "devpts", "defaults,mode=644,ptmxmode=666,create=dir 0 0", False)
     make_entry("/dev/uhid")
 
+    cfg = tools.config.load(args)
+    if "properties" in cfg and cfg["properties"].get("waydroid.controller_only_input", "false") == "true":
+        # Input device nodes (gamepads, joysticks, etc.)
+        input_nodes = set()
+        for pattern in [
+                "/dev/input/by-id/*-event-joystick",
+                "/dev/input/by-path/*-event-joystick"]:
+            for path in glob.glob(pattern):
+                input_nodes.add(os.path.realpath(path))
+        for n in sorted(input_nodes):
+            make_entry(n)
+        for n in glob.glob("/dev/input/js*"):
+            make_entry(n)
+
     # TUN/TAP device node for VPN
     make_entry("/dev/net/tun", "dev/tun")
 
@@ -164,15 +178,12 @@ def set_lxc_config(args):
     tools.helpers.run.user(args, command)
     command = ["sed", "-i", "s/LXCARCH/{}/".format(platform.machine()), lxc_path + "/config"]
     tools.helpers.run.user(args, command)
-    post_stop_script = tools.config.tools_src + "/data/scripts/waydroid-post-stop.sh"
-    command = ["sed", "-i", "s#LXCPOSTSTOP#{}#".format(post_stop_script), lxc_path + "/config"]
-    tools.helpers.run.user(args, command)
     command = ["cp", "-fpr", seccomp_profile, lxc_path + "/waydroid.seccomp"]
     tools.helpers.run.user(args, command)
     if get_apparmor_status(args):
         command = ["sed", "-i", "-E", "/lxc.aa_profile|lxc.apparmor.profile/ s/unconfined/{}/g".format(LXC_APPARMOR_PROFILE), lxc_path + "/config"]
         tools.helpers.run.user(args, command)
-
+    lxc_path = tools.config.defaults["lxc"] + "/waydroid"
     nodes = generate_nodes_lxc_config(args)
     config_nodes_tmp_path = args.work + "/config_nodes"
     with open(config_nodes_tmp_path, "w") as f:
