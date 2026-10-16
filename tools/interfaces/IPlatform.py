@@ -22,6 +22,7 @@ TRANSACTION_settingsGetString = 10
 TRANSACTION_settingsPutInt = 11
 TRANSACTION_settingsGetInt = 12
 TRANSACTION_launchIntent = 13
+TRANSACTION_getRunningTasks = 14
 
 class IPlatform:
     def __init__(self, remote):
@@ -294,6 +295,40 @@ class IPlatform:
                 logging.error("Failed with code: {}".format(exception))
 
         return None
+
+    def getRunningTasks(self):
+        request = self.client.new_request()
+        reply, status = self.client.transact_sync_reply(
+            TRANSACTION_getRunningTasks, request)
+
+        if status:
+            return -1
+        else:
+            reader = reply.init_reader()
+            status, exception = reader.read_int32()
+            if exception == 0:
+                status, count = reader.read_int32()
+                return count
+            else:
+                return -1
+
+def get_service_nowait(args):
+    """Like get_service but returns None immediately if service is unavailable."""
+    helpers.drivers.loadBinderNodes(args)
+    try:
+        serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER, args.SERVICE_MANAGER_PROTOCOL, args.BINDER_PROTOCOL)
+    except TypeError:
+        serviceManager = gbinder.ServiceManager("/dev/" + args.BINDER_DRIVER)
+
+    if not serviceManager.is_present():
+        return None
+
+    remote, status = serviceManager.get_service_sync(SERVICE_NAME)
+    if not remote:
+        return None
+
+    return IPlatform(remote)
+
 
 def get_service(args):
     helpers.drivers.loadBinderNodes(args)
