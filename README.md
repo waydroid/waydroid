@@ -14,8 +14,22 @@ any GNU/Linux-based platform.
 The Android system inside the container has direct access to any needed hardware.
 
 The Android runtime environment ships with a minimal customized Android system
-image based on [LineageOS](https://lineageos.org/). The image is currently based
-on Android 13.
+image based on [LineageOS](https://lineageos.org/). The tooling supports
+Android 13 through Android 16 (API 36, LineageOS 20–23): the service-manager
+protocol and HAL detection follow the image's API level at runtime
+(`tools/helpers/protocol.py`, `tools/helpers/lxc.py`).
+
+The official images on the Waydroid OTA channel are still built on Android 13;
+newer LineageOS 22/23 (Android 15/16) images are available as community builds
+(e.g. [waydroid-builds](https://github.com/supechicken/waydroid-builds)) and
+can be installed with a custom channel:
+
+```
+waydroid init -c <system channel> -v <vendor channel> -r lineage
+```
+
+Upstream tracks the official image rebuild in
+[waydroid/waydroid#2229](https://github.com/waydroid/waydroid/issues/2229).
 
 ## Install
 
