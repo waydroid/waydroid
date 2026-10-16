@@ -35,3 +35,10 @@ jobs:
         run: pip install ruff
       - name: Run linter
         run: ruff check --output-format=github
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run unit tests
+        run: python3 -m unittest discover -s tests -v
