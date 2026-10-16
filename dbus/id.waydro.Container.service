@@ -1,5 +1,5 @@
 [D-BUS Service]
 Name=id.waydro.Container
-Exec=/usr/bin/waydroid -w container start
+Exec=/usr/bin/waydroid container start
 User=root
 SystemdService=waydroid-container.service
