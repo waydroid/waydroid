@@ -13,6 +13,7 @@ from tools.config.save import save
 # Exported variables (internal configuration)
 #
 version = "1.6.3"
+binder_service_retry_interval = 5
 tools_src = os.path.normpath(os.path.realpath(__file__) + "/../../..")
 
 # Keys saved in the config file (mostly what we ask in 'waydroid init')

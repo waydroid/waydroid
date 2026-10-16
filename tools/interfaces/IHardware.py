@@ -66,22 +66,29 @@ def add_service(args, enableNFC, enableBluetooth, suspend, reboot, upgrade, shut
 
         return local_response, 0
 
+    failed = False
+
     def binder_presence():
+        nonlocal failed
         if serviceManager.is_present():
             status = serviceManager.add_service_sync(SERVICE_NAME, response)
 
             if status:
                 logging.error("Failed to add service {}: {}".format(
                     SERVICE_NAME, status))
+                failed = True
                 args.hardwareLoop.quit()
 
     response = serviceManager.new_local_object(INTERFACE, response_handler)
     args.hardwareLoop = GLib.MainLoop()
     binder_presence()
+    if failed:
+        return False
     status = serviceManager.add_presence_handler(binder_presence)
-    if status:
-        args.hardwareLoop.run()
-        serviceManager.remove_handler(status)
-        del serviceManager
-    else:
+    if not status:
         logging.error("Failed to add presence handler: {}".format(status))
+        return False
+
+    args.hardwareLoop.run()
+    serviceManager.remove_handler(status)
+    return not failed
