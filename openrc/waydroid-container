@@ -1,0 +1,18 @@
+#!/sbin/openrc-run
+
+description="Waydroid Container"
+command="/usr/bin/waydroid"
+command_args="container start"
+command_user="root"
+umask="${umask:-0022}"
+
+depend() {
+	need dbus
+	after lxc
+}
+
+start_pre() {
+	if [ ! -c /dev/binderfs/binder-control ]; then
+		modprobe binder_linux
+	fi
+}
