@@ -2,11 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import argparse
 
-try:
-    import argcomplete
-except ImportError:
-    argcomplete = False
-
 import tools.config
 
 """ This file is about parsing command line arguments passed to waydroid, as
@@ -174,8 +169,12 @@ def arguments():
     arguments_adb(sub)
     arguments_bugreport(sub)
 
-    if argcomplete:
-        argcomplete.autocomplete(parser, always_complete_options="long")
+    try:
+        import shtab
+    except ImportError:
+        pass
+    else:
+        shtab.add_argument_to(parser)
 
     # Parse and extend arguments (also backup unmodified result from argparse)
     args = parser.parse_args()
