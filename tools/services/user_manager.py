@@ -1,16 +1,16 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
-import threading
 import tools.config
 import tools.helpers.net
 from pathlib import Path
 from contextlib import suppress
 from tools.interfaces import IUserMonitor
 from tools.interfaces import IPlatform
+from tools.services.runner import ServiceRunner
 from gi.repository import GLib
 
-stopping = False
+runner = ServiceRunner("UserMonitor", "userMonitorLoop")
 
 
 def start(args, session, unlocked_cb=None):
@@ -125,7 +125,10 @@ def start(args, session, unlocked_cb=None):
             desktop_file.set_boolean("Desktop Entry", "NoDisplay", True)
 
         desktop_file.set_string("Desktop Action app-settings", "Name", "App Settings")
-        desktop_file.set_string("Desktop Action app-settings", "Exec", f"waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:{packageName}")
+        desktop_file.set_string(
+            "Desktop Action app-settings", "Exec",
+            f"waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS "
+            f"package:{packageName}")
         desktop_file.set_string("Desktop Action app-settings", "Icon", str(waydroid_data_icons_dir / "com.android.settings.png"))
 
         desktop_file.save_to_file(str(desktop_file_path))
@@ -161,21 +164,8 @@ def start(args, session, unlocked_cb=None):
                 appInfo = platformService.getAppInfo(packageName)
                 updateDesktopFile(appInfo)
 
-    def service_thread():
-        while not stopping:
-            IUserMonitor.add_service(args, userUnlocked, packageStateChanged)
-
-    global stopping
-    stopping = False
-    args.user_manager = threading.Thread(target=service_thread)
-    args.user_manager.start()
+    runner.start(lambda: IUserMonitor.add_service(args, userUnlocked, packageStateChanged))
 
 
 def stop(args):
-    global stopping
-    stopping = True
-    try:
-        if args.userMonitorLoop:
-            args.userMonitorLoop.quit()
-    except AttributeError:
-        logging.debug("UserMonitor service is not even started")
+    runner.stop(args)

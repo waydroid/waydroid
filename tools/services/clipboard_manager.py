@@ -1,8 +1,8 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
-import threading
 from tools.interfaces import IClipboard
+from tools.services.runner import ServiceRunner
 
 try:
     import pyclip
@@ -11,7 +11,7 @@ except Exception as e:
     logging.debug(str(e))
     canClip = False
 
-stopping = False
+runner = ServiceRunner("Clipboard", "clipboardLoop")
 
 def start(args):
     def sendClipboardData(value):
@@ -27,23 +27,11 @@ def start(args):
             logging.debug(str(e))
         return ""
 
-    def service_thread():
-        while not stopping:
-            IClipboard.add_service(args, sendClipboardData, getClipboardData)
-
-    if canClip:
-        global stopping
-        stopping = False
-        args.clipboard_manager = threading.Thread(target=service_thread)
-        args.clipboard_manager.start()
-    else:
+    if not canClip:
         logging.debug("Skipping clipboard manager service because of missing pyclip package")
+        return
+
+    runner.start(lambda: IClipboard.add_service(args, sendClipboardData, getClipboardData))
 
 def stop(args):
-    global stopping
-    stopping = True
-    try:
-        if args.clipboardLoop:
-            args.clipboardLoop.quit()
-    except AttributeError:
-        logging.debug("Clipboard service is not even started")
+    runner.stop(args)

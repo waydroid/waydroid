@@ -1,6 +1,7 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
-from tools.services.user_manager import start, stop
-from tools.services.clipboard_manager import start, stop
-from tools.services.hardware_manager import start, stop
-from tools.services.notification_manager import start, stop
+from tools.services import (clipboard_manager, hardware_manager,
+                            notification_manager, user_manager)
+
+__all__ = ["clipboard_manager", "hardware_manager",
+           "notification_manager", "user_manager"]
