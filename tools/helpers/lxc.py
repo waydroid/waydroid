@@ -156,8 +156,44 @@ def add_host_camera(manifest):
     logging.info("Host AIDL camera provider detected, using " + fqname)
     return True
 
+def find_host_codec2_stores():
+    """List the host's AIDL Codec2 store instances, except "software"."""
+    instances = []
+    for hal in host_vintf_hals():
+        if hal.get("format") != "aidl":
+            continue
+        if hal.findtext("name", "").strip() != "android.hardware.media.c2":
+            continue
+
+        names = [(f.text or "").strip().partition("/")[2] for f in hal.findall("fqname")]
+        names += [(i.text or "").strip() for i in hal.iterfind("interface/instance")]
+        for name in names:
+            # The container runs its own "software" store
+            if name and name != "software" and name not in instances:
+                instances.append(name)
+
+    return instances
+
+def add_host_codec2(manifest):
+    """Declare the host AIDL Codec2 stores, if it has any.
+
+    Codec2Client only uses declared stores, and the host media_codecs.xml
+    lists only their codecs.
+    """
+    instances = find_host_codec2_stores()
+    if not instances:
+        return False
+
+    hal = ElementTree.SubElement(manifest, "hal", {"format": "aidl"})
+    ElementTree.SubElement(hal, "name").text = "android.hardware.media.c2"
+    for name in instances:
+        ElementTree.SubElement(hal, "fqname").text = "IComponentStore/" + name
+
+    logging.info("Host AIDL Codec2 stores detected: " + ", ".join(instances))
+    return True
+
 # Each one appends the HALs it found on the host to the fragment.
-host_hal_providers = [add_host_gralloc5, add_host_camera]
+host_hal_providers = [add_host_gralloc5, add_host_camera, add_host_codec2]
 
 def generate_host_manifest(args):
     """Write a VINTF fragment declaring the host HALs the container may use.
@@ -453,6 +489,10 @@ def make_base_props(args):
     ccodec = tools.helpers.props.host_get(args, "debug.stagefright.ccodec")
     if ccodec != "":
         props.append("debug.stagefright.ccodec=" + ccodec)
+
+    # Codec2Client looks only at HIDL stores unless told otherwise
+    if args.vendor_type != "MAINLINE" and find_host_codec2_stores():
+        props.append("media.c2.hal.selection=aidl")
 
     ext_library = tools.helpers.props.host_get(args, "ro.vendor.extension_library")
     if ext_library != "":
