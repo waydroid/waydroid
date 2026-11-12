@@ -184,17 +184,18 @@ def mount_rootfs(args, images_dir, session):
                                     upper_dir=tools.config.defaults["overlay_rw"] + "/vendor",
                                     work_dir=tools.config.defaults["overlay_work"] + "/vendor")
 
-    for egl_path in ["/vendor/lib/egl", "/vendor/lib64/egl"]:
-        if os.path.isdir(egl_path):
+    if cfg["waydroid"]["vendor_type"] != "MAINLINE":
+        for egl_path in ["/vendor/lib/egl", "/vendor/lib64/egl"]:
+            if os.path.isdir(egl_path):
+                helpers.mount.bind(
+                    args, egl_path, tools.config.defaults["rootfs"] + egl_path)
+        if helpers.mount.ismount("/odm"):
             helpers.mount.bind(
-                args, egl_path, tools.config.defaults["rootfs"] + egl_path)
-    if helpers.mount.ismount("/odm"):
-        helpers.mount.bind(
-            args, "/odm", tools.config.defaults["rootfs"] + "/odm_extra")
-    else:
-        if os.path.isdir("/vendor/odm"):
-            helpers.mount.bind(
-                args, "/vendor/odm", tools.config.defaults["rootfs"] + "/odm_extra")
+                args, "/odm", tools.config.defaults["rootfs"] + "/odm_extra")
+        else:
+            if os.path.isdir("/vendor/odm"):
+                helpers.mount.bind(
+                    args, "/vendor/odm", tools.config.defaults["rootfs"] + "/odm_extra")
 
     make_prop(args, session, args.work + "/waydroid.prop")
     helpers.mount.bind_file(args, args.work + "/waydroid.prop",
