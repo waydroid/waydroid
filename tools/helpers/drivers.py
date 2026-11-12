@@ -124,10 +124,13 @@ def setupBinderNodes(args):
     has_hwbinder = False
     if args.vendor_type == "MAINLINE":
         probeBinderDriver(args)
+        # The lists are in order of preference: take the first node that
+        # exists, not the last.
         for node in BINDER_DRIVERS:
             if os.path.exists("/dev/" + node):
                 has_binder = True
                 args.BINDER_DRIVER = node
+                break
         if not has_binder:
             raise OSError('Binder node "binder" for waydroid not found')
 
@@ -135,6 +138,7 @@ def setupBinderNodes(args):
             if os.path.exists("/dev/" + node):
                 has_vndbinder = True
                 args.VNDBINDER_DRIVER = node
+                break
         if not has_vndbinder:
             raise OSError('Binder node "vndbinder" for waydroid not found')
 
@@ -142,6 +146,7 @@ def setupBinderNodes(args):
             if os.path.exists("/dev/" + node):
                 has_hwbinder = True
                 args.HWBINDER_DRIVER = node
+                break
         if not has_hwbinder:
             raise OSError('Binder node "hwbinder" for waydroid not found')
     else:
@@ -149,6 +154,7 @@ def setupBinderNodes(args):
             if os.path.exists("/dev/" + node):
                 has_binder = True
                 args.BINDER_DRIVER = node
+                break
         if not has_binder:
             raise OSError('Binder node "binder" for waydroid not found')
 
@@ -156,6 +162,7 @@ def setupBinderNodes(args):
             if os.path.exists("/dev/" + node):
                 has_vndbinder = True
                 args.VNDBINDER_DRIVER = node
+                break
         if not has_vndbinder:
             raise OSError('Binder node "vndbinder" for waydroid not found')
 
@@ -163,6 +170,7 @@ def setupBinderNodes(args):
             if os.path.exists("/dev/" + node):
                 has_hwbinder = True
                 args.HWBINDER_DRIVER = node
+                break
         if not has_hwbinder:
             raise OSError('Binder node "hwbinder" for waydroid not found')
 
