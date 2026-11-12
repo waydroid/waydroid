@@ -184,7 +184,12 @@ def mount_rootfs(args, images_dir, session):
                                     upper_dir=tools.config.defaults["overlay_rw"] + "/vendor",
                                     work_dir=tools.config.defaults["overlay_work"] + "/vendor")
 
+    # The host's EGL is only of use with a vendor image built against host
+    # vendor blobs. A MAINLINE vendor brings its own (Mesa, ANGLE), and the
+    # bind would hide it.
     for egl_path in ["/vendor/lib/egl", "/vendor/lib64/egl"]:
+        if cfg["waydroid"]["vendor_type"] == "MAINLINE":
+            break
         if os.path.isdir(egl_path):
             helpers.mount.bind(
                 args, egl_path, tools.config.defaults["rootfs"] + egl_path)
