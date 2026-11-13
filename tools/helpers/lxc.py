@@ -373,10 +373,6 @@ def setup_host_perms(args):
     if not os.path.exists(tools.config.defaults["host_perms"]):
         os.mkdir(tools.config.defaults["host_perms"])
 
-    treble = tools.helpers.props.host_get(args, "ro.treble.enabled")
-    if treble != "true":
-        return
-
     sku = tools.helpers.props.host_get(args, "ro.boot.product.hardware.sku")
     copy_list = []
     copy_list.extend(
