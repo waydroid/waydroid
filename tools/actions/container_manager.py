@@ -130,6 +130,13 @@ def start(args):
         initializer.worker_thread.kill()
         initializer.worker_thread.join()
 
+def kill_sensord(args):
+    command = ["pidof", "waydroid-sensord"]
+    pids = tools.helpers.run.user(args, command, check=False, output_return=True).split()
+    if pids:
+        command = ["kill", "-9"] + pids
+        tools.helpers.run.user(args, command, check=False)
+
 prepared_drivers = False
 def prepare_drivers_once(args):
     global prepared_drivers
@@ -168,6 +175,7 @@ def do_start(args, session):
 
     # Sensors
     if which("waydroid-sensord"):
+        kill_sensord(args)
         tools.helpers.run.user(
             args, ["waydroid-sensord", "/dev/" + args.HWBINDER_DRIVER], output="background")
 
@@ -249,11 +257,7 @@ def stop(args, quit_session=True):
 
         # Sensors
         if which("waydroid-sensord"):
-            command = ["pidof", "waydroid-sensord"]
-            pid = tools.helpers.run.user(args, command, check=False, output_return=True).strip()
-            if pid:
-                command = ["kill", "-9", pid]
-                tools.helpers.run.user(args, command, check=False)
+            kill_sensord(args)
 
         # Umount rootfs
         helpers.images.umount_rootfs(args)
