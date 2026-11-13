@@ -213,6 +213,28 @@ def generate_session_lxc_config(args, session):
         raise OSError("Failed to bind userdata")
 
     lxc_path = tools.config.defaults["lxc"] + "/waydroid"
+
+    # Waydroid Config - System and User configuration files
+    system_config = "/usr/share/waydroid-extra"
+    global_config = os.path.join(session["xdg_config_home"], "waydroid")
+    session_config = session["waydroid_user_state"]
+
+    system_config_files = [
+        os.path.join(system_config, "config_nodes_system"),
+        os.path.join(system_config, "config_system"),
+    ]
+
+    user_config_files = [
+        os.path.join(global_config, "config_nodes_global_user"),
+        os.path.join(session_config, "config_nodes_session_user"),
+        os.path.join(global_config, "config_global_user"),
+        os.path.join(session_config, "config_session_user"),
+    ]
+
+    for config_file in system_config_files + user_config_files:
+        if os.path.isfile(config_file):
+            nodes.append("lxc.include = " + config_file)
+
     config_nodes_tmp_path = args.work + "/config_session"
     with open(config_nodes_tmp_path, "w") as f:
         f.writelines(node + "\n" for node in nodes)

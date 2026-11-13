@@ -6,7 +6,7 @@ import pwd
 #
 # Exported functions
 #
-from tools.config.load import load, load_channels
+from tools.config.load import load, load_extra, load_channels
 from tools.config.save import save
 
 #

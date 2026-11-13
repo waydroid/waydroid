@@ -210,7 +210,7 @@ def do_start(args, session):
                                tools.config.defaults["data"])
 
     # Mount rootfs
-    cfg = tools.config.load(args)
+    cfg = tools.config.load_extra(args, session)
     helpers.images.mount_rootfs(args, cfg["waydroid"]["images_path"], session)
 
     helpers.protocol.set_aidl_version(args)

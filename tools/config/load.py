@@ -32,6 +32,39 @@ def load(args):
 
     return cfg
 
+def load_extra(args, session=None):
+    cfg = load(args)
+
+    config_files = [
+        "/usr/share/waydroid-extra/waydroid.cfg",
+    ]
+
+    if session:
+        global_config = os.path.join(
+            session["xdg_config_home"], "waydroid", "waydroid.cfg"
+        )
+        session_config = os.path.join(
+            session["waydroid_user_state"], "waydroid.cfg"
+        )
+
+        config_files.extend([global_config, session_config])
+
+    for config_file in config_files:
+        if not os.path.isfile(config_file):
+            continue
+
+        extra_cfg = configparser.ConfigParser()
+        extra_cfg.read(config_file)
+
+        if "waydroid" not in extra_cfg:
+            continue
+
+        for key, value in extra_cfg["waydroid"].items():
+            if key in tools.config.config_keys:
+                cfg["waydroid"][key] = value
+
+    return cfg
+
 def load_channels():
     config_path = tools.config.channels_defaults["config_path"]
     cfg = configparser.ConfigParser()
