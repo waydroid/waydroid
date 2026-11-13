@@ -134,6 +134,23 @@ def make_prop(args, cfg, full_props_path):
     if not props:
         raise RuntimeError("waydroid_base.prop is broken!!?")
 
+    # Without a render node make_base_props() asks for SwiftShader, which the
+    # current MAINLINE vendor images no longer ship - they have ANGLE and
+    # Mesa's lavapipe instead, and libEGL then finds no renderer at all. The
+    # base props are written before the vendor image is mounted; here it is,
+    # so check what it really carries and use ANGLE on lavapipe if that is
+    # what is there.
+    vendor = tools.config.defaults["rootfs"] + "/vendor"
+    def vendor_has(path):
+        return any(os.path.isfile(vendor + lib + path) for lib in ["/lib64/", "/lib/"])
+    if "ro.hardware.egl=swiftshader" in props and \
+            not vendor_has("egl/libEGL_swiftshader.so") and \
+            vendor_has("egl/libEGL_angle.so") and vendor_has("hw/vulkan.lvp.so"):
+        props = [p for p in props
+                 if not p.startswith(("ro.hardware.egl=", "ro.hardware.vulkan="))]
+        props.append("ro.hardware.egl=angle")
+        props.append("ro.hardware.vulkan=lvp")
+
     def add_prop(key, cfg_key):
         value = cfg[cfg_key]
         if value != "None":
