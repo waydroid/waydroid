@@ -212,6 +212,20 @@ def generate_session_lxc_config(args, session):
     if not make_entry(session["waydroid_data"], "data", options="rbind 0 0"):
         raise OSError("Failed to bind userdata")
 
+    # Android init reads the host kernel command line. A phone bootloader that
+    # booted on charger insertion passes androidboot.mode=charger, and Android
+    # then stays in charger mode (no zygote). Hide that argument from it.
+    with open("/proc/cmdline") as f:
+        cmdline = f.read().split()
+    if any(arg.startswith("androidboot.mode=") for arg in cmdline):
+        clean_cmdline = args.work + "/cmdline"
+        with open(clean_cmdline, "w") as f:
+            f.write(" ".join(arg for arg in cmdline if not arg.startswith("androidboot.mode=")) + "\n")
+        os.chmod(clean_cmdline, 0o440)
+        # Not read-only: Android's first stage init chmods /proc/cmdline and
+        # aborts if that fails.
+        add_node_entry(nodes, clean_cmdline, "proc/cmdline", "none", "bind 0 0", check=False)
+
     lxc_path = tools.config.defaults["lxc"] + "/waydroid"
     config_nodes_tmp_path = args.work + "/config_session"
     with open(config_nodes_tmp_path, "w") as f:
