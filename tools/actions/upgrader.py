@@ -31,6 +31,24 @@ def migration(args):
     except Exception as e:
         logging.debug("Error during migration: %s", e)
 
+def reselect_binder_nodes(args):
+    if args.vendor_type != "MAINLINE":
+        return
+    old = (args.BINDER_DRIVER, args.VNDBINDER_DRIVER, args.HWBINDER_DRIVER)
+    try:
+        helpers.drivers.setupBinderNodes(args)
+    except OSError as e:
+        logging.debug("Keeping the configured binder nodes: %s", e)
+        args.BINDER_DRIVER, args.VNDBINDER_DRIVER, args.HWBINDER_DRIVER = old
+        return
+    new = (args.BINDER_DRIVER, args.VNDBINDER_DRIVER, args.HWBINDER_DRIVER)
+    if new == old:
+        return
+    logging.info("Binder nodes changed from {} to {}".format(", ".join(old), ", ".join(new)))
+    cfg = tools.config.load(args)
+    cfg["waydroid"]["binder"], cfg["waydroid"]["vndbinder"], cfg["waydroid"]["hwbinder"] = new
+    tools.config.save(args, cfg)
+
 def upgrade(args):
     get_config(args)
     status = "STOPPED"
@@ -47,6 +65,7 @@ def upgrade(args):
             tools.actions.container_manager.stop(args)
     migration(args)
     helpers.drivers.loadBinderNodes(args)
+    reselect_binder_nodes(args)
     if not args.offline:
         if args.images_path not in tools.config.defaults["preinstalled_images_paths"]:
             helpers.images.get(args)
