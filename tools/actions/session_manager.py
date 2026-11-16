@@ -70,6 +70,27 @@ def start(args, unlocked_cb=None, background=True):
     if not os.path.isdir(waydroid_data):
         os.makedirs(waydroid_data)
 
+    # Waydroid Config - User configuration files
+    xdg_config_home = os.environ.get(
+        "XDG_CONFIG_HOME",
+        os.path.join(session["host_user"], ".config")
+    )
+
+    session["xdg_config_home"] = xdg_config_home
+    waydroid_global_config = os.path.join(xdg_config_home, "waydroid")
+    waydroid_session_config = session["waydroid_user_state"]
+
+    user_config_files = [
+        os.path.join(waydroid_global_config, "config_nodes_global_user"),
+        os.path.join(waydroid_global_config, "config_global_user"),
+        os.path.join(waydroid_session_config, "config_nodes_session_user"),
+        os.path.join(waydroid_session_config, "config_session_user"),
+    ]
+
+    for config_file in user_config_files:
+        os.makedirs(os.path.dirname(config_file), exist_ok=True)
+        open(config_file, "a").close()
+
     dpi = tools.helpers.props.host_get(args, "ro.sf.lcd_density")
     if dpi == "":
         dpi = os.getenv("GRID_UNIT_PX")

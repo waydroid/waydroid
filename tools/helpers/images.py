@@ -1,6 +1,7 @@
 # Copyright 2021 Erfan Abdi
 # SPDX-License-Identifier: GPL-3.0-or-later
 import logging
+import configparser
 import zipfile
 import json
 import hashlib
@@ -130,33 +131,109 @@ def make_prop(args, cfg, full_props_path):
     if not os.path.isfile(args.work + "/waydroid_base.prop"):
         raise RuntimeError("waydroid_base.prop Not found")
     with open(args.work + "/waydroid_base.prop") as f:
-        props = f.read().splitlines()
-    if not props:
+        base_props = f.read().splitlines()
+    if not base_props:
         raise RuntimeError("waydroid_base.prop is broken!!?")
 
-    def add_prop(key, cfg_key):
+    props = {}
+
+    def add_prop(key, value):
+        props[key] = value
+
+    def load_cfg_properties(path):
+        if not os.path.isfile(path):
+            return
+
+        extra_cfg = configparser.ConfigParser()
+        extra_cfg.read(path)
+
+        if "properties" in extra_cfg:
+            for key, value in extra_cfg["properties"].items():
+                add_prop(key, value)
+
+    def load_prop_file(path):
+        if not os.path.isfile(path):
+            return
+
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+
+                key, value = line.split("=", 1)
+                add_prop(key.strip(), value.strip())
+
+    # Native Waydroid properties
+    for prop in base_props:
+        if "=" in prop:
+            key, value = prop.split("=", 1)
+            add_prop(key.strip(), value.strip())
+
+    # System properties
+    load_cfg_properties("/usr/share/waydroid-extra/waydroid.cfg")
+    load_prop_file("/usr/share/waydroid-extra/waydroid.prop")
+
+    # Global user properties
+    global_config = os.path.join(
+        cfg["xdg_config_home"], "waydroid", "waydroid.cfg"
+    )
+    global_prop = os.path.join(
+        cfg["xdg_config_home"], "waydroid", "waydroid.prop"
+    )
+
+    load_cfg_properties(global_config)
+    load_prop_file(global_prop)
+
+    # Automatically generated session properties
+    def add_session_prop(key, cfg_key):
         value = cfg[cfg_key]
         if value != "None":
             value = value.replace("/mnt/", "/mnt_extra/")
-            props.append(key + "=" + value)
+            add_prop(key, value)
 
-    add_prop("waydroid.host.user", "user_name")
-    add_prop("waydroid.host.uid", "user_id")
-    add_prop("waydroid.host.gid", "group_id")
-    add_prop("waydroid.host_data_path", "waydroid_data")
-    add_prop("waydroid.background_start", "background_start")
-    props.append("waydroid.xdg_runtime_dir=" + tools.config.defaults["container_xdg_runtime_dir"])
-    props.append("waydroid.pulse_runtime_path=" + tools.config.defaults["container_pulse_runtime_path"])
-    props.append("waydroid.wayland_display=" + tools.config.defaults["container_wayland_display"])
+    add_session_prop("waydroid.host.user", "user_name")
+    add_session_prop("waydroid.host.uid", "user_id")
+    add_session_prop("waydroid.host.gid", "group_id")
+    add_session_prop("waydroid.host_data_path", "waydroid_data")
+    add_session_prop("waydroid.background_start", "background_start")
+
+    add_prop(
+        "waydroid.xdg_runtime_dir",
+        tools.config.defaults["container_xdg_runtime_dir"]
+    )
+    add_prop(
+        "waydroid.pulse_runtime_path",
+        tools.config.defaults["container_pulse_runtime_path"]
+    )
+    add_prop(
+        "waydroid.wayland_display",
+        tools.config.defaults["container_wayland_display"]
+    )
+
     if which("waydroid-sensord") is None:
-        props.append("waydroid.stub_sensors_hal=1")
+        add_prop("waydroid.stub_sensors_hal", "1")
+
     dpi = cfg["lcd_density"]
     if dpi != "0":
-        props.append("ro.sf.lcd_density=" + dpi)
+        add_prop("ro.sf.lcd_density", dpi)
 
+    # Session user properties
+    session_config = os.path.join(
+        cfg["waydroid_user_state"], "waydroid.cfg"
+    )
+    session_prop = os.path.join(
+        cfg["waydroid_user_state"], "waydroid.prop"
+    )
+
+    load_cfg_properties(session_config)
+    load_prop_file(session_prop)
+
+    # Write merged properties
     with open(full_props_path, "w") as f:
-        for prop in props:
-            f.write(prop + "\n")
+        for key, value in props.items():
+            f.write(key + "=" + value + "\n")
+
     os.chmod(full_props_path, 0o644)
 
 def mount_rootfs(args, images_dir, session):
