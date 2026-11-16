@@ -124,6 +124,9 @@ def generate_nodes_lxc_config(args):
     # NFC config
     make_entry("/system/etc/libnfc-nci.conf", options="bind,optional 0 0")
 
+    # Kernel command line seen by Android, instead of the host's one
+    make_entry(args.work + "/cmdline", "proc/cmdline", options="bind,optional 0 0", check=False)
+
     return nodes
 
 LXC_APPARMOR_PROFILE = "lxc-waydroid"
@@ -139,6 +142,20 @@ def get_apparmor_status(args):
     except Exception:
         enabled = False
     return enabled
+
+def make_cmdline(args):
+    """Android init turns every androidboot.* argument of /proc/cmdline into
+    a ro.boot.* property, but the host's arguments describe the host: a phone
+    bootloader that booted on charger insertion passes androidboot.mode=charger
+    and Android then stays in charger mode. Give the container its own
+    command line, empty unless the user edits the file."""
+    path = args.work + "/cmdline"
+    if not os.path.exists(path):
+        with open(path, "w") as f:
+            f.write("\n")
+        # Android's first stage init changes it to 0440 itself, which is why
+        # the bind mount cannot be read-only
+        os.chmod(path, 0o644)
 
 def set_lxc_config(args):
     lxc_path = tools.config.defaults["lxc"] + "/waydroid"
@@ -173,6 +190,7 @@ def set_lxc_config(args):
         command = ["sed", "-i", "-E", "/lxc.aa_profile|lxc.apparmor.profile/ s/unconfined/{}/g".format(LXC_APPARMOR_PROFILE), lxc_path + "/config"]
         tools.helpers.run.user(args, command)
 
+    make_cmdline(args)
     nodes = generate_nodes_lxc_config(args)
     config_nodes_tmp_path = args.work + "/config_nodes"
     with open(config_nodes_tmp_path, "w") as f:
