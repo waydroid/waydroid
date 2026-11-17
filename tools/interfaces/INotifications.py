@@ -84,7 +84,10 @@ def add_service(args, registerListener, notify, closeNotification):
             _, resident = reader.read_bool()
             _, transient = reader.read_bool()
             _, urgency = reader.read_byte()
-            notification_id = notify(replaces_id, app_name, package_name, summary, body, actions, image_data, category, suppress_sound, expire_timeout, resident, transient, urgency)
+            notification_id = notify(replaces_id, app_name, package_name, summary,
+                                     body, actions, image_data, category,
+                                     suppress_sound, expire_timeout, resident,
+                                     transient, urgency)
             local_response.append_int32(0)
             local_response.append_int32(notification_id)
         elif code == TRANSACTION_closeNotification:
