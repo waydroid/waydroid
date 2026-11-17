@@ -167,6 +167,9 @@ def set_lxc_config(args):
     post_stop_script = tools.config.tools_src + "/data/scripts/waydroid-post-stop.sh"
     command = ["sed", "-i", "s#LXCPOSTSTOP#{}#".format(post_stop_script), lxc_path + "/config"]
     tools.helpers.run.user(args, command)
+    start_host_script = tools.config.tools_src + "/data/scripts/waydroid-start-host.sh"
+    command = ["sed", "-i", "s#LXCSTARTHOST#{}#".format(start_host_script), lxc_path + "/config"]
+    tools.helpers.run.user(args, command)
     command = ["cp", "-fpr", seccomp_profile, lxc_path + "/waydroid.seccomp"]
     tools.helpers.run.user(args, command)
     if get_apparmor_status(args):
