@@ -65,6 +65,21 @@ class DbusContainerManager(dbus.service.Object):
         except AttributeError:
             return {}
 
+def pid_start_time(pid):
+    """
+    Read a process's start time, field 22 of /proc/<pid>/stat.
+
+    Used to confirm a recorded pid still refers to the same process before
+    signalling it. Returns None when the process is gone or unreadable.
+    """
+    try:
+        with open("/proc/{}/stat".format(pid)) as f:
+            # comm (field 2) may contain spaces and parentheses, so split on the
+            # last ')': everything after it is fixed-width, starting at field 3.
+            return f.read().rsplit(")", 1)[1].split()[19]
+    except (OSError, IndexError):
+        return None
+
 def set_permissions(args, perm_list=None, mode="777"):
     def chmod(path, mode):
         if os.path.exists(path):
@@ -219,6 +234,7 @@ def do_start(args, session):
     services.hardware_manager.start(args)
 
     args.session = session
+    args.session_pid_start_time = pid_start_time(session["pid"])
 
 def stop(args, quit_session=True):
     if not actions.initializer.is_initialized(args):
@@ -264,10 +280,21 @@ def stop(args, quit_session=True):
 
         if "session" in args:
             if quit_session:
-                logging.info("Terminating session because the container was stopped")
-                with suppress(OSError):
-                    os.kill(int(args.session["pid"]), signal.SIGUSR1)
+                # Only signal the pid recorded at Start() if it is still the same
+                # process. pids are reused, and SIGUSR1's default disposition is
+                # to terminate, so a stale pid means killing something unrelated.
+                pid = int(args.session["pid"])
+                started = getattr(args, "session_pid_start_time", None)
+                if started is not None and pid_start_time(pid) != started:
+                    logging.debug(
+                        "Session pid %d is no longer the session process, not signalling it", pid)
+                else:
+                    logging.info("Terminating session because the container was stopped")
+                    with suppress(OSError):
+                        os.kill(pid, signal.SIGUSR1)
             del args.session
+            with suppress(AttributeError):
+                del args.session_pid_start_time
     except Exception as e:
         logging.debug("Error while stopping container: %s", e)
 
