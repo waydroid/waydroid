@@ -1,0 +1,62 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the waydroid package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: waydroid\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-24 23:57+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: tools/actions/initializer.py:321
+msgid "Initialize Waydroid"
+msgstr ""
+
+#: tools/actions/initializer.py:332
+msgid "System OTA"
+msgstr ""
+
+#: tools/actions/initializer.py:339
+msgid "Vendor OTA"
+msgstr ""
+
+#: tools/actions/initializer.py:346
+msgid "Android Type"
+msgstr ""
+
+#: tools/actions/initializer.py:348
+msgid "Minimal Android"
+msgstr ""
+
+#: tools/actions/initializer.py:349
+msgid "Android with Google Apps"
+msgstr ""
+
+#: tools/actions/initializer.py:360
+msgid "Download"
+msgstr ""
+
+#: tools/actions/initializer.py:365 tools/actions/initializer.py:414
+msgid "Done"
+msgstr ""
+
+#: tools/actions/initializer.py:418
+msgid "Interrupted"
+msgstr ""
+
+#: tools/actions/initializer.py:442
+msgid "Waiting for waydroid container service..."
+msgstr ""
+
+#: tools/services/user_manager.py:128
+msgid "App Settings"
+msgstr ""

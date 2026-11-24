@@ -14,6 +14,7 @@ import time
 import dbus
 import dbus.service
 import argparse
+from gettext import gettext as _
 from gi.repository import GLib
 
 def is_initialized(args):
@@ -317,7 +318,7 @@ def remote_init_client(args):
 
     class WaydroidInitWindow(Gtk.Window):
         def __init__(self):
-            super().__init__(title="Initialize Waydroid")
+            super().__init__(title=_("Initialize Waydroid"))
             channels_cfg = tools.config.load_channels()
 
             self.set_default_size(600, 250)
@@ -328,24 +329,24 @@ def remote_init_client(args):
             grid.set_vexpand(True)
             self.add(grid)
 
-            sysOtaLabel = Gtk.Label("System OTA")
+            sysOtaLabel = Gtk.Label(_("System OTA"))
             sysOtaEntry = Gtk.Entry()
             sysOtaEntry.set_text(channels_cfg["channels"]["system_channel"])
             grid.attach(sysOtaLabel, 0, 0, 1, 1)
             grid.attach_next_to(sysOtaEntry ,sysOtaLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.sysOta = sysOtaEntry.get_buffer()
 
-            vndOtaLabel = Gtk.Label("Vendor OTA")
+            vndOtaLabel = Gtk.Label(_("Vendor OTA"))
             vndOtaEntry = Gtk.Entry()
             vndOtaEntry.set_text(channels_cfg["channels"]["vendor_channel"])
             grid.attach(vndOtaLabel, 0, 1, 1, 1)
             grid.attach_next_to(vndOtaEntry, vndOtaLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.vndOta = vndOtaEntry.get_buffer()
 
-            sysTypeLabel = Gtk.Label("Android Type")
+            sysTypeLabel = Gtk.Label(_("Android Type"))
             sysTypesStore = Gtk.ListStore(str, str)
-            sysTypesStore.append(["VANILLA", "Minimal Android"])
-            sysTypesStore.append(["GAPPS", "Android with Google Apps"])
+            sysTypesStore.append(["VANILLA", _("Minimal Android")])
+            sysTypesStore.append(["GAPPS", _("Android with Google Apps")])
 
             sysTypeCombo = Gtk.ComboBox.new_with_model(sysTypesStore)
             renderer_text = Gtk.CellRendererText()
@@ -356,12 +357,12 @@ def remote_init_client(args):
             grid.attach_next_to(sysTypeCombo, sysTypeLabel, Gtk.PositionType.RIGHT, 2, 1)
             self.sysType = sysTypeCombo
 
-            downloadBtn = Gtk.Button("Download")
+            downloadBtn = Gtk.Button(_("Download"))
             downloadBtn.connect("clicked", self.on_download_btn_clicked)
             grid.attach(downloadBtn, 1,3,1,1)
             self.downloadBtn = downloadBtn
 
-            doneBtn = Gtk.Button("Done")
+            doneBtn = Gtk.Button(_("Done"))
             doneBtn.connect("clicked", lambda x: self.destroy())
             doneBtn.get_style_context().add_class('suggested-action')
             grid.attach_next_to(doneBtn, downloadBtn, Gtk.PositionType.RIGHT, 1, 1)
@@ -410,11 +411,11 @@ def remote_init_client(args):
             self.initializing = False
             if is_initialized(args):
                 self.doneBtn.show()
-                self.draw("\nDone\n")
+                self.draw("\n" + _("Done") + "\n")
 
         def on_interrupted(self):
             self.initializing = False
-            self.draw("\nInterrupted\n")
+            self.draw("\n" + _("Interrupted") + "\n")
 
         def on_reply(self):
             self.downloadBtn.set_sensitive(True)
@@ -438,7 +439,7 @@ def remote_init_client(args):
             for signal in self.bus_signals:
                 signal.remove()
 
-            self.draw("\nWaiting for waydroid container service...\n")
+            self.draw("\n" + _("Waiting for waydroid container service...") + "\n")
             self.bus_signals = []
             self.initializing = True
 

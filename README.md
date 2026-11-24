@@ -29,6 +29,12 @@ Our documentation can be found at [docs.waydro.id](https://docs.waydro.id)
 
 If you have found an issue with Waydroid, please [file a bug](https://github.com/Waydroid/waydroid/issues/new/choose).
 
+## Translations
+
+User-facing strings are translated with gettext. To add a language, copy
+`po/waydroid.pot` to `po/<lang>.po` and translate it. After changing strings
+in the code, run `make pot` to update the template.
+
 ## Get in Touch
 
 If you want to get in contact with the developers please feel free to join the
