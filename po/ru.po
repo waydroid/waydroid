@@ -1,0 +1,62 @@
+# Russian translation for waydroid.
+# This file is distributed under the same license as the waydroid package.
+# Alexander Berg (Wehrwolfmann), 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: waydroid\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-24 23:57+0100\n"
+"PO-Revision-Date: 2026-11-25 00:05+0100\n"
+"Last-Translator: Alexander Berg (Wehrwolfmann)\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: tools/actions/initializer.py:321
+msgid "Initialize Waydroid"
+msgstr "Инициализировать Waydroid"
+
+#: tools/actions/initializer.py:332
+msgid "System OTA"
+msgstr "OTA системы"
+
+#: tools/actions/initializer.py:339
+msgid "Vendor OTA"
+msgstr "OTA производителя"
+
+#: tools/actions/initializer.py:346
+msgid "Android Type"
+msgstr "Тип Android"
+
+#: tools/actions/initializer.py:348
+msgid "Minimal Android"
+msgstr "Минимальный Android"
+
+#: tools/actions/initializer.py:349
+msgid "Android with Google Apps"
+msgstr "Android с приложениями Google"
+
+#: tools/actions/initializer.py:360
+msgid "Download"
+msgstr "Скачать"
+
+#: tools/actions/initializer.py:365 tools/actions/initializer.py:414
+msgid "Done"
+msgstr "Готово"
+
+#: tools/actions/initializer.py:418
+msgid "Interrupted"
+msgstr "Прервано"
+
+#: tools/actions/initializer.py:442
+msgid "Waiting for waydroid container service..."
+msgstr "Ожидание службы контейнера Waydroid…"
+
+#: tools/services/user_manager.py:128
+msgid "App Settings"
+msgstr "Настройки приложения"
