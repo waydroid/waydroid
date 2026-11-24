@@ -5,6 +5,7 @@ import sys
 import logging
 import os
 import traceback
+import gettext
 import dbus.mainloop.glib
 import dbus
 import dbus.exceptions
@@ -27,6 +28,8 @@ def main():
         if os.geteuid() != 0:
             raise RuntimeError(
                 "Action \"{}\" needs root access".format(action))
+
+    gettext.textdomain("waydroid")
 
     # Wrap everything to display nice error messages
     args = None

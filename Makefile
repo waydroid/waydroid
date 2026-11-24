@@ -12,6 +12,7 @@ APPS_DIRECTORY_DIR := $(PREFIX)/share/desktop-directories
 APPS_MENU_DIR := $(SYSCONFDIR)/xdg/menus/applications-merged
 METAINFO_DIR := $(PREFIX)/share/metainfo
 ICONS_DIR := $(PREFIX)/share/icons
+LOCALE_DIR := $(PREFIX)/share/locale
 SYSD_DIR := $(PREFIX)/lib/systemd/system
 DBUS_DIR := $(PREFIX)/share/dbus-1
 POLKIT_DIR := $(PREFIX)/share/polkit-1
@@ -24,6 +25,7 @@ INSTALL_APPS_DIRECTORY_DIR := $(DESTDIR)$(APPS_DIRECTORY_DIR)
 INSTALL_APPS_MENU_DIR := $(DESTDIR)$(APPS_MENU_DIR)
 INSTALL_METAINFO_DIR := $(DESTDIR)$(METAINFO_DIR)
 INSTALL_ICONS_DIR := $(DESTDIR)$(ICONS_DIR)
+INSTALL_LOCALE_DIR := $(DESTDIR)$(LOCALE_DIR)
 INSTALL_SYSD_DIR := $(DESTDIR)$(SYSD_DIR)
 INSTALL_DBUS_DIR := $(DESTDIR)$(DBUS_DIR)
 INSTALL_POLKIT_DIR := $(DESTDIR)$(POLKIT_DIR)
@@ -31,6 +33,10 @@ INSTALL_APPARMOR_DIR := $(DESTDIR)$(APPARMOR_DIR)
 
 build:
 	@echo "Nothing to build, run 'make install' to copy the files!"
+
+pot:
+	xgettext -L Python -k_ --package-name=waydroid --from-code=UTF-8 -o po/waydroid.pot \
+		$$(grep -rl --include='*.py' 'gettext import gettext as _' tools | sort)
 
 install:
 	install -d $(INSTALL_WAYDROID_DIR) $(INSTALL_BIN_DIR) $(INSTALL_DBUS_DIR)/system.d $(INSTALL_POLKIT_DIR)/actions
@@ -55,6 +61,12 @@ install:
 		install -d $(INSTALL_SYSD_DIR); \
 		cp systemd/waydroid-container.service $(INSTALL_SYSD_DIR); \
 	fi
+	for po in po/*.po; do \
+		[ -e "$$po" ] || continue; \
+		lang=$$(basename $$po .po); \
+		install -d $(INSTALL_LOCALE_DIR)/$$lang/LC_MESSAGES; \
+		msgfmt -o $(INSTALL_LOCALE_DIR)/$$lang/LC_MESSAGES/waydroid.mo $$po; \
+	done
 	if [ $(USE_NFTABLES) = 1 ]; then \
 		sed '/LXC_USE_NFT=/ s/false/true/' -i $(INSTALL_WAYDROID_DIR)/data/scripts/waydroid-net.sh; \
 	fi

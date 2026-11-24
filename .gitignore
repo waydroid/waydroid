@@ -57,6 +57,7 @@ coverage.xml
 # Translations
 *.mo
 *.pot
+!/po/waydroid.pot
 
 # Django stuff:
 *.log
