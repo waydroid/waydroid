@@ -6,6 +6,7 @@ import tools.config
 import tools.helpers.net
 from pathlib import Path
 from contextlib import suppress
+from gettext import gettext as _
 from tools.interfaces import IUserMonitor
 from tools.interfaces import IPlatform
 from gi.repository import GLib
@@ -124,7 +125,7 @@ def start(args, session, unlocked_cb=None):
         if packageName in system_apps and not glib_key_file_has_value(desktop_file, "Desktop Entry", "NoDisplay"):
             desktop_file.set_boolean("Desktop Entry", "NoDisplay", True)
 
-        desktop_file.set_string("Desktop Action app-settings", "Name", "App Settings")
+        desktop_file.set_string("Desktop Action app-settings", "Name", _("App Settings"))
         desktop_file.set_string("Desktop Action app-settings", "Exec", f"waydroid app intent android.settings.APPLICATION_DETAILS_SETTINGS package:{packageName}")
         desktop_file.set_string("Desktop Action app-settings", "Icon", str(waydroid_data_icons_dir / "com.android.settings.png"))
 

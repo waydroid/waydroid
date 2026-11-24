@@ -4,6 +4,7 @@ Section: misc
 Priority: optional
 Build-Depends: debhelper (>= 10),
                dh-python,
+               gettext,
                python3,
                dh-apparmor
 Standards-Version: 4.5.0.3
