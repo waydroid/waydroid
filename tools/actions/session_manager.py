@@ -107,6 +107,16 @@ def start(args, unlocked_cb=None, background=True):
     services.user_manager.start(args, session, unlocked_cb)
     services.clipboard_manager.start(args)
     services.notification_manager.start(args, session)
+
+    cfg = tools.config.load(args)
+    if cfg.getboolean("waydroid", "replug_controllers_on_startup", fallback=False):
+        # The privileged container service performs the sysfs writes, so this
+        # works without the user having to run waydroid with sudo/pkexec.
+        try:
+            tools.helpers.ipc.DBusContainerService().ReplugControllers()
+        except Exception as e:
+            logging.warning("Failed to replug controllers: {}".format(e))
+
     service(args, mainloop)
 
 def do_stop(args, looper):
