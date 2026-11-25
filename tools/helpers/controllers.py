@@ -2,8 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """Helpers for power-cycling USB gamepads through sysfs.
-It detaches gamepad's USB interfaces from their drivers and attaches them again, which
-makes the host (and therefore Waydroid) re-enumerate the controller.
+
+It detaches a gamepad's USB interfaces from their drivers and attaches them
+again, which makes the host (and therefore Waydroid) re-enumerate the
+controller.  Mice, keyboards, touchpads and touchscreens are deliberately left
+alone: cycling those while a Waydroid session is running can leave Android's
+input stack with a half-pressed pointer, so taps animate but never click.
 """
 
 import glob
@@ -23,12 +27,23 @@ POLL_INTERVAL = 0.05
 SETTLE_TIMEOUT = 10.0
 
 CONTROLLER_DRIVERS = {
-    "xpad", "hid-generic", "usbhid", "hid-sony", "hid-microsoft",
-    "hid-nintendo", "hid-logitech", "hid-steam", "xone", "ds4drv",
-    "ps3", "ps4",
+    "xpad", "hid-sony", "hid-microsoft", "hid-nintendo", "hid-logitech",
+    "hid-steam", "xone", "ds4drv", "ps3", "ps4",
 }
 
 CONTROLLER_NAME_HINTS = ("controller", "gamepad", "joystick")
+
+# evdev capability bits (see linux/input-event-codes.h).  These are used to
+# tell a gamepad/joystick apart from a mouse, keyboard or touchscreen before
+# deciding that an interface may be replugged.
+MOUSE_BUTTONS = set(range(0x110, 0x118))       # BTN_LEFT .. BTN_TASK
+TABLET_BUTTONS = set(range(0x140, 0x160))      # BTN_TOOL_*/BTN_TOUCH/BTN_STYLUS
+GAMEPAD_BUTTONS = (set(range(0x120, 0x140)) |  # BTN_JOYSTICK / BTN_GAMEPAD
+                   set(range(0x220, 0x230)) |  # BTN_DPAD_*
+                   set(range(0x2c0, 0x2d0)))   # BTN_TRIGGER_HAPPY*
+POINTER_REL = {0x00, 0x01}                     # REL_X, REL_Y
+GAMEPAD_ABS = set(range(0x00, 0x0b)) | set(range(0x10, 0x18))
+TOUCH_ABS = set(range(0x2f, 0x40))             # ABS_MT_*
 
 
 def _hex(value):
@@ -64,18 +79,18 @@ def _interface_driver(interface):
     return ""
 
 
-def _is_input_interface(iface_class, driver, product):
-    """Decide whether a USB interface is one Waydroid needs re-enumerated."""
-    name_hint = any(hint in (product or "").lower() for hint in CONTROLLER_NAME_HINTS)
-    iface_class = _hex(iface_class)
-
-    if iface_class == 0x03:
-        return True
-
-    if iface_class == 0xFF:
-        return driver in CONTROLLER_DRIVERS or name_hint
-
-    return name_hint and driver in CONTROLLER_DRIVERS
+def _capability_bits(path):
+    """Parse a sysfs evdev capability mask (space separated 32-bit hex words)."""
+    bits = set()
+    for index, word in enumerate(_read_sysfs(path).split()):
+        try:
+            value = int(word, 16)
+        except ValueError:
+            continue
+        for bit in range(32):
+            if value & (1 << bit):
+                bits.add(index * 32 + bit)
+    return bits
 
 
 def _input_nodes(interface):
@@ -96,6 +111,59 @@ def _input_nodes(interface):
         except OSError:
             continue
     return nodes
+
+
+def _input_capabilities(node):
+    """Return the (abs, rel, key) capability bit sets of an event node."""
+    device = os.path.realpath(os.path.join(SYS_INPUT_CLASS, node, "device"))
+    return tuple(
+        _capability_bits(os.path.join(device, "capabilities", kind))
+        for kind in ("abs", "rel", "key"))
+
+
+def _looks_like_gamepad(node):
+    """True when an event node belongs to a joystick/gamepad, not a pointer."""
+    abs_bits, rel_bits, key_bits = _input_capabilities(node)
+    if abs_bits & TOUCH_ABS or key_bits & (MOUSE_BUTTONS | TABLET_BUTTONS):
+        return False
+    if key_bits & GAMEPAD_BUTTONS:
+        return True
+    return bool(abs_bits & GAMEPAD_ABS) and not (rel_bits & POINTER_REL)
+
+
+def _is_pointing_device(node):
+    """True for mice, touchpads, touchscreens and graphics tablets."""
+    abs_bits, rel_bits, key_bits = _input_capabilities(node)
+    if key_bits & GAMEPAD_BUTTONS:
+        return False
+    return bool((abs_bits & TOUCH_ABS) or
+                (key_bits & (MOUSE_BUTTONS | TABLET_BUTTONS)) or
+                (rel_bits & POINTER_REL))
+
+
+def _is_gamepad_interface(interface, product):
+    """Decide whether a USB interface may be safely replugged.
+
+    A composite USB device can contain a gamepad plus other input devices.
+    Only interfaces that actually expose joystick/gamepad capabilities (or
+    that belong to a known controller driver without an evdev node) qualify.
+    This keeps the mouse used for clicking Android's UI out of the replug.
+    """
+    nodes = _input_nodes(interface)
+    if nodes:
+        if any(_is_pointing_device(node) for node in nodes):
+            return False
+        if any(_looks_like_gamepad(node) for node in nodes):
+            return True
+
+    # Fallback for vendor-specific controller interfaces that don't expose an
+    # evdev node (extra xpad interfaces, for example).
+    driver = _interface_driver(interface)
+    iface_class = _hex(_read_sysfs(os.path.join(interface, "bInterfaceClass")))
+    name_hint = any(hint in (product or "").lower()
+                    for hint in CONTROLLER_NAME_HINTS)
+    return ((iface_class == 0xFF and driver in CONTROLLER_DRIVERS) or
+            (name_hint and driver in CONTROLLER_DRIVERS))
 
 
 def _nodes_present(nodes):
@@ -132,11 +200,11 @@ def _wait_until(predicate, description):
 
 
 def find_controller_devices():
-    """Find USB devices with interfaces Waydroid needs re-enumerated.
+    """Find USB devices with gamepad/joystick interfaces to re-enumerate.
 
-    Includes HID keyboards/mice as well as gamepads.  When a device qualifies,
-    all of its interfaces are returned (as in the original script) so a
-    composite device gets fully replugged.
+    Keyboards, mice, touchpads and touchscreens are intentionally excluded:
+    rebinding them while Waydroid is running can leave clicks half-pressed,
+    where the button animates but never activates.
     """
     controllers = []
 
@@ -151,23 +219,16 @@ def find_controller_devices():
         product = _read_sysfs(os.path.join(dev_path, "product"))
 
         interfaces = []
-        has_input_interface = False
         for iface in sorted(glob.glob(os.path.join(dev_path, "*:*"))):
-            if not os.path.isdir(iface):
+            if not os.path.isdir(iface) or not _is_gamepad_interface(iface, product):
                 continue
-            driver = _interface_driver(iface)
-            iface_class = _read_sysfs(os.path.join(iface, "bInterfaceClass"))
-
-            if _is_input_interface(iface_class, driver, product):
-                has_input_interface = True
-
             interfaces.append({
                 "name": os.path.basename(iface),
                 "path": iface,
-                "driver": driver,
+                "driver": _interface_driver(iface),
             })
 
-        if not has_input_interface:
+        if not interfaces:
             continue
 
         controllers.append({
@@ -245,7 +306,7 @@ def _log_results(action, controller, results):
 
 
 def replug():
-    """Unbind and rebind every detected input device.
+    """Unbind and rebind every detected gamepad/joystick.
 
     Returns the number of devices processed.  Failures are logged but
     never raised: a controller problem must not break session startup.
