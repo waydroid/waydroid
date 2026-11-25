@@ -4,9 +4,11 @@ import logging
 import os
 import signal
 import sys
+import threading
 import tools.config
 import tools.helpers.ipc
 from tools import services
+from tools.interfaces import IPlatform
 import dbus
 import dbus.service
 import dbus.exceptions
@@ -108,24 +110,41 @@ def start(args, unlocked_cb=None, background=True):
     replug_on_startup = cfg.getboolean(
         "waydroid", "replug_controllers_on_startup", fallback=False)
     replugged = False
+    replug_lock = threading.Lock()
+
+    def replug_once():
+        nonlocal replugged
+        with replug_lock:
+            if not replug_on_startup or replugged:
+                return
+            replugged = True
+        # The privileged container service performs the sysfs writes, so this
+        # needs no sudo/pkexec from the user session.
+        try:
+            tools.helpers.ipc.DBusContainerService().ReplugControllers()
+        except Exception as e:
+            logging.warning("Failed to replug controllers: {}".format(e))
+
+    def wait_for_android():
+        # IPlatform is registered as soon as Android's system server is up,
+        # which is well before boot_completed or user unlock.  Replugging at
+        # that point means the controller starts enumerating together with
+        # Android's input stack instead of after the UI is already usable.
+        try:
+            if IPlatform.get_service(args):
+                GLib.idle_add(replug_once)
+        except Exception as e:
+            logging.debug("Could not watch Android startup: {}".format(e))
 
     def on_unlocked():
-        nonlocal replugged
-        # Android is only ready to enumerate input devices once the user is
-        # unlocked.  Replugging earlier makes the host re-add the device before
-        # Android's input stack is listening, so the controller is missed.
-        if replug_on_startup and not replugged:
-            replugged = True
-            # The privileged container service performs the sysfs writes, so
-            # this needs no sudo/pkexec from the user session.
-            try:
-                tools.helpers.ipc.DBusContainerService().ReplugControllers()
-            except Exception as e:
-                logging.warning("Failed to replug controllers: {}".format(e))
+        # Fallback in case the platform service appears too late or not at all.
+        replug_once()
         if unlocked_cb:
             unlocked_cb()
 
     services.user_manager.start(args, session, on_unlocked)
+    if replug_on_startup:
+        threading.Thread(target=wait_for_android, daemon=True).start()
     services.clipboard_manager.start(args)
     services.notification_manager.start(args, session)
 

@@ -44,11 +44,13 @@ and mice (all USB HID class 03 interfaces, plus vendor-specific devices with
 known controller drivers). There are no VID/PID filters. Waydroid needs all
 input devices re-enumerated, not just gamepads.
 
-Timing is event-driven, not a fixed sleep. The replug is triggered when Android
-reports that the user is unlocked, i.e. once its input stack is ready to pick
-up newly enumerated devices. For each device, Waydroid then waits until the
-driver symlink is gone, the input device node has disappeared from both
-`/dev/input` and sysfs, and udev has finished processing the disconnect
+Timing is event-driven, not a fixed sleep. The replug is triggered as soon as
+Android's platform binder service appears during system-server startup, so the
+controller starts enumerating while Android's input stack is coming up instead
+of after the UI is already usable. A user-unlock fallback covers builds where
+that service appears too early. For each device, Waydroid then waits
+until the driver symlink is gone, the input device node has disappeared from
+both `/dev/input` and sysfs, and udev has finished processing the disconnect
 (`udevadm settle`). Only then is the driver bound again, and it waits for the
 input node to return. This adapts to each machine instead of relying on a
 hardcoded delay.
