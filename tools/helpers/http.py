@@ -1,14 +1,23 @@
 # Copyright 2021 Oliver Smith
 # SPDX-License-Identifier: GPL-3.0-or-later
 import hashlib
+import http.client
 import logging
 import os
 import shutil
+import socket
+import ssl
 import threading
 import urllib.request
 
 import tools.helpers.run
 import time
+
+# Seconds without any data before a connection is considered dead
+DOWNLOAD_TIMEOUT = 60
+# Attempts in a row that make no progress before giving up
+DOWNLOAD_RETRIES = 5
+DOWNLOAD_RETRY_DELAY = 5
 
 
 def download(args, url, prefix, cache=True, loglevel=logging.INFO,
@@ -49,46 +58,56 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
         return (round(sizeDifference/timeTaken, decimalPlaces), speedUnit)
 
     # Show progress while downloading
-    downloadEnded = False
-    def progress(totalSize, destinationPath):
-        # convert totalSize to MB before hand,
-        # it's value won't change inside while loop and
-        # will be unnecessarily calculated every .01 seconds
-        totalSize = fromBytesToMB(totalSize)
-
-        # this value will be used to figure out maximum chars
-        # required to denote downloaded size later on
-        totalSizeStrLen = len(str(totalSize))
-
+    state = {"total": None, "paused": False, "line": False}
+    downloadEnded = threading.Event()
+    printLock = threading.Lock()
+    def progress(destinationPath):
         # lastSize and lastSizeChangeAt is used to calculate speed
         lastSize = 0
         lastSizeChangeAt = time.time()
 
-        downloadSpeed = 0, "MB/s"
-
-        while not downloadEnded:
-            currentSize = fromBytesToMB(os.path.getsize(destinationPath))
+        while not downloadEnded.wait(2):
+            # the file may not exist yet, or may have been removed
+            # by another waydroid process
+            try:
+                currentSize = fromBytesToMB(os.path.getsize(destinationPath))
+            except OSError:
+                currentSize = 0
 
             sizeChangeAt = time.time()
             downloadSpeed = getDownloadSpeed(
-                lastSize, currentSize,
+                lastSize, max(currentSize, lastSize),
                 timeTaken=sizeChangeAt-lastSizeChangeAt
             )
 
             lastSize = currentSize
             lastSizeChangeAt = sizeChangeAt
 
+            if state["total"]:
+                totalSize = fromBytesToMB(state["total"])
+            else:
+                totalSize = "?"
+            # this value will be used to figure out maximum chars
+            # required to denote downloaded size later on
+            totalSizeStrLen = len(str(totalSize))
+
             # make currentSize and downloadSpeed of a fix max len,
             # to avoid previously printed chars to appear while \
             # printing recursively
-            # currentSize is not going to exceed totalSize
             currentSize = str(currentSize).rjust(totalSizeStrLen)
             # assuming max downloadSpeed to be 9999.99 MB/s
             downloadSpeed = f"{str(downloadSpeed[0]).rjust(7)} {downloadSpeed[1]}"
 
             # print progress bar
-            print(f"\r[Downloading] {currentSize} MB/{totalSize} MB    {downloadSpeed}(approx.)", end=" ")
-            time.sleep(2)
+            with printLock:
+                if not state["paused"]:
+                    print(f"\r[Downloading] {currentSize} MB/{totalSize} MB    {downloadSpeed}(approx.)", end=" ")
+                    state["line"] = True
+
+    def endProgressLine():
+        if state["line"]:
+            print()
+            state["line"] = False
 
     # Create cache folder
     if not os.path.exists(args.work + "/cache_http"):
@@ -103,22 +122,75 @@ def download(args, url, prefix, cache=True, loglevel=logging.INFO,
             return path
         tools.helpers.run.user(args, ["rm", path])
 
-    # Download the file
+    # Download into a .part file, which is kept on failure so that the next
+    # attempt (or the next run) can resume it with a Range request. It is only
+    # renamed to the final path once the server says the transfer is complete;
+    # callers still verify the checksum.
+    part = path + ".part"
     logging.log(loglevel, "Downloading " + url)
+    progressThread = threading.Thread(target=progress, args=(part,), daemon=True)
+    progressThread.start()
+    failures = 0
     try:
-        with urllib.request.urlopen(url) as response:
-            with open(path, "wb") as handle:
-                # adding daemon=True will kill this thread if main thread is killed
-                # else progress_bar will continue to show even if user cancels download by ctrl+c
-                threading.Thread(target=progress, args=(response.headers.get('content-length'), path), daemon=True).start()
-                shutil.copyfileobj(response, handle)
-    # Handle 404
-    except urllib.error.HTTPError as e:
-        if e.code == 404 and allow_404:
-            logging.warning("WARNING: file not found: " + url)
-            return None
-        raise
-    downloadEnded = True
+        while True:
+            offset = os.path.getsize(part) if os.path.exists(part) else 0
+            try:
+                headers = {"Range": f"bytes={offset}-"} if offset else {}
+                req = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(req, timeout=DOWNLOAD_TIMEOUT) as response:
+                    content_range = response.headers.get("Content-Range", "")
+                    length = response.headers.get("Content-Length")
+                    if response.status == 206:
+                        if not content_range.startswith(f"bytes {offset}-"):
+                            os.remove(part)
+                            raise ConnectionError(f"unexpected Content-Range: {content_range}")
+                        mode = "ab"
+                        total = content_range.rpartition("/")[2]
+                        total = int(total) if total.isdigit() else None
+                    else:
+                        # The server ignored the range: start over
+                        mode = "wb"
+                        offset = 0
+                        total = int(length) if length else None
+                    if total is None and length:
+                        total = offset + int(length)
+                    state["total"] = total
+                    with open(part, mode) as handle:
+                        shutil.copyfileobj(response, handle)
+                size = os.path.getsize(part)
+                if total is not None and size < total:
+                    raise ConnectionError(f"connection closed at {size} of {total} bytes")
+                break
+            except urllib.error.HTTPError as e:
+                if e.code == 404 and allow_404:
+                    logging.warning("WARNING: file not found: " + url)
+                    return None
+                if e.code == 416 and offset:
+                    # The partial file is not usable, start over
+                    os.remove(part)
+                elif e.code < 500:
+                    raise
+                error = e
+            except (socket.timeout, ConnectionError, http.client.HTTPException,
+                    ssl.SSLError, urllib.error.URLError) as e:
+                error = e
+            new_offset = os.path.getsize(part) if os.path.exists(part) else 0
+            failures = 0 if new_offset > offset else failures + 1
+            if failures >= DOWNLOAD_RETRIES:
+                raise error
+            with printLock:
+                state["paused"] = True
+                endProgressLine()
+                logging.warning(f"Download interrupted ({error}), retrying in "
+                                f"{DOWNLOAD_RETRY_DELAY} seconds...")
+            time.sleep(DOWNLOAD_RETRY_DELAY)
+            state["paused"] = False
+    finally:
+        downloadEnded.set()
+        progressThread.join()
+        endProgressLine()
+
+    os.replace(part, path)
 
     # Return path in cache
     return path
@@ -139,7 +211,7 @@ def retrieve(url, headers=None):
 
     try:
         req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=DOWNLOAD_TIMEOUT) as response:
             return 200, response.read()
     # Handle malformed URL
     except ValueError:
@@ -147,5 +219,5 @@ def retrieve(url, headers=None):
     # Handle 404
     except urllib.error.HTTPError as e:
         return e.code, ""
-    except urllib.error.URLError:
+    except (urllib.error.URLError, socket.timeout, ConnectionError):
         return -2, ""
