@@ -254,14 +254,6 @@ def bind_interfaces(controller):
     return results
 
 
-def reset_device(controller):
-    """Trigger a USB port reset, if the device supports it."""
-    reset_file = os.path.join(controller["path"], "reset")
-    if not os.path.exists(reset_file):
-        return False, "reset not supported"
-    return _write_sysfs(reset_file, "1")
-
-
 def _log_results(action, controller, results):
     for iface, success, error in results:
         if success:
@@ -272,10 +264,10 @@ def _log_results(action, controller, results):
                 controller["device"], action, iface, error))
 
 
-def replug(reset=False):
-    """Unbind and rebind every detected gamepad.
+def replug():
+    """Unbind and rebind every detected input device.
 
-    Returns the number of controllers processed.  Failures are logged but
+    Returns the number of devices processed.  Failures are logged but
     never raised: a controller problem must not break session startup.
     """
     controllers = find_controller_devices()
@@ -295,16 +287,4 @@ def replug(reset=False):
         _udev_settle()
         _log_results("bind", controller, bind_interfaces(controller))
 
-        if reset:
-            success, error = reset_device(controller)
-            if not success:
-                logging.warning("Controller {}: reset failed: {}".format(
-                    controller["device"], error))
-
     return len(controllers)
-
-
-def replug_from_config(args, cfg):
-    """Read the replug settings from waydroid.cfg and apply them."""
-    reset = cfg["waydroid"].getboolean("replug_controllers_reset", fallback=False)
-    return replug(reset=reset)

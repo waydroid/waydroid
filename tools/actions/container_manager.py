@@ -79,8 +79,7 @@ class DbusContainerManager(dbus.service.Object):
         if uid != "0" and (session is None or uid != str(session["user_id"])):
             raise RuntimeError("Cannot replug controllers on behalf of another user")
 
-        tools.helpers.controllers.replug_from_config(
-            self.args, tools.config.load(self.args))
+        tools.helpers.controllers.replug()
 
 def set_permissions(args, perm_list=None, mode="777"):
     def chmod(path, mode):
