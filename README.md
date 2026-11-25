@@ -35,14 +35,23 @@ session starts:
 ```ini
 [waydroid]
 replug_controllers_on_startup = True
-# Optional settings:
-# replug_controllers_delay = 2.0
+# Optional setting:
 # replug_controllers_reset = False
 ```
 
-Every detected USB gamepad/joystick is replugged; there are no VID/PID filters.
-`replug_controllers_delay` is the pause in seconds between unbinding and
-rebinding the driver (default: `2.0`).
+Every detected USB input device is replugged: gamepads, joysticks, keyboards
+and mice (all USB HID class 03 interfaces, plus vendor-specific devices with
+known controller drivers). There are no VID/PID filters. Waydroid needs all
+input devices re-enumerated, not just gamepads.
+
+Timing is event-driven, not a fixed sleep. The replug is triggered when Android
+reports that the user is unlocked, i.e. once its input stack is ready to pick
+up newly enumerated devices. For each device, Waydroid then waits until the
+driver symlink is gone, the input device node has disappeared from both
+`/dev/input` and sysfs, and udev has finished processing the disconnect
+(`udevadm settle`). Only then is the driver bound again, and it waits for the
+input node to return. This adapts to each machine instead of relying on a
+hardcoded delay.
 
 `replug_controllers_reset` (default: `False`) additionally writes `1` to the
 device's sysfs `reset` file after the driver has been rebound. That triggers a

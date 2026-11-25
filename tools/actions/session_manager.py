@@ -104,18 +104,30 @@ def start(args, unlocked_cb=None, background=True):
             logging.error("WayDroid container is not listening")
         sys.exit(0)
 
-    services.user_manager.start(args, session, unlocked_cb)
+    cfg = tools.config.load(args)
+    replug_on_startup = cfg.getboolean(
+        "waydroid", "replug_controllers_on_startup", fallback=False)
+    replugged = False
+
+    def on_unlocked():
+        nonlocal replugged
+        # Android is only ready to enumerate input devices once the user is
+        # unlocked.  Replugging earlier makes the host re-add the device before
+        # Android's input stack is listening, so the controller is missed.
+        if replug_on_startup and not replugged:
+            replugged = True
+            # The privileged container service performs the sysfs writes, so
+            # this needs no sudo/pkexec from the user session.
+            try:
+                tools.helpers.ipc.DBusContainerService().ReplugControllers()
+            except Exception as e:
+                logging.warning("Failed to replug controllers: {}".format(e))
+        if unlocked_cb:
+            unlocked_cb()
+
+    services.user_manager.start(args, session, on_unlocked)
     services.clipboard_manager.start(args)
     services.notification_manager.start(args, session)
-
-    cfg = tools.config.load(args)
-    if cfg.getboolean("waydroid", "replug_controllers_on_startup", fallback=False):
-        # The privileged container service performs the sysfs writes, so this
-        # works without the user having to run waydroid with sudo/pkexec.
-        try:
-            tools.helpers.ipc.DBusContainerService().ReplugControllers()
-        except Exception as e:
-            logging.warning("Failed to replug controllers: {}".format(e))
 
     service(args, mainloop)
 

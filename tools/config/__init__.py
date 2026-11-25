@@ -25,7 +25,6 @@ config_keys = ["arch",
                "mount_overlays",
                "auto_adb",
                "replug_controllers_on_startup",
-               "replug_controllers_delay",
                "replug_controllers_reset"]
 
 # Config file/commandline default values
@@ -45,7 +44,6 @@ defaults = {
     "mount_overlays": "True",
     "auto_adb": "False",
     "replug_controllers_on_startup": "False",
-    "replug_controllers_delay": "2.0",
     "replug_controllers_reset": "False",
     "container_xdg_runtime_dir": "/run/xdg",
     "container_wayland_display": "wayland-0",
