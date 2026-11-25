@@ -4,9 +4,11 @@ import logging
 import os
 import signal
 import sys
+import threading
 import tools.config
 import tools.helpers.ipc
 from tools import services
+from tools.interfaces import IPlatform
 import dbus
 import dbus.service
 import dbus.exceptions
@@ -104,7 +106,41 @@ def start(args, unlocked_cb=None, background=True):
             logging.error("WayDroid container is not listening")
         sys.exit(0)
 
-    services.user_manager.start(args, session, unlocked_cb)
+    cfg = tools.config.load(args)
+    replug_on_startup = cfg.getboolean(
+        "waydroid", "replug_controllers_on_startup", fallback=False)
+    replugged = False
+    replug_lock = threading.Lock()
+
+    def replug_once():
+        nonlocal replugged
+        with replug_lock:
+            if not replug_on_startup or replugged:
+                return
+            replugged = True
+        try:
+            tools.helpers.ipc.DBusContainerService().ReplugControllers()
+        except Exception as e:
+            logging.warning("Failed to replug controllers: {}".format(e))
+
+    def wait_for_android():
+        # IPlatform is registered as soon as Android's system server is up.
+        # Perform the replug at the right time
+        try:
+            if IPlatform.get_service(args):
+                GLib.idle_add(replug_once)
+        except Exception as e:
+            logging.debug("Could not watch Android startup: {}".format(e))
+
+    def on_unlocked():
+        # Fallback in case the platform service appears too late or not at all.
+        replug_once()
+        if unlocked_cb:
+            unlocked_cb()
+
+    services.user_manager.start(args, session, on_unlocked)
+    if replug_on_startup:
+        threading.Thread(target=wait_for_android, daemon=True).start()
     services.clipboard_manager.start(args)
     services.notification_manager.start(args, session)
     service(args, mainloop)

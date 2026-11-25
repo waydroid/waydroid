@@ -65,6 +65,21 @@ class DbusContainerManager(dbus.service.Object):
         except AttributeError:
             return {}
 
+    @helpers.logging.log_exceptions
+    @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='',
+                         sender_keyword="sender", connection_keyword="conn")
+    def ReplugControllers(self, sender, conn):
+        # sysfs unbind/bind is root-only.
+        dbus_info = dbus.Interface(conn.get_object(
+            "org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False),
+            "org.freedesktop.DBus")
+        uid = str(dbus_info.GetConnectionUnixUser(sender))
+        session = getattr(self.args, "session", None)
+        if uid != "0" and (session is None or uid != str(session["user_id"])):
+            raise RuntimeError("Cannot replug controllers on behalf of another user")
+
+        tools.helpers.controllers.replug()
+
 def set_permissions(args, perm_list=None, mode="777"):
     def chmod(path, mode):
         if os.path.exists(path):
