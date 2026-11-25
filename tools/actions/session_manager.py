@@ -118,18 +118,14 @@ def start(args, unlocked_cb=None, background=True):
             if not replug_on_startup or replugged:
                 return
             replugged = True
-        # The privileged container service performs the sysfs writes, so this
-        # needs no sudo/pkexec from the user session.
         try:
             tools.helpers.ipc.DBusContainerService().ReplugControllers()
         except Exception as e:
             logging.warning("Failed to replug controllers: {}".format(e))
 
     def wait_for_android():
-        # IPlatform is registered as soon as Android's system server is up,
-        # which is well before boot_completed or user unlock.  Replugging at
-        # that point means the controller starts enumerating together with
-        # Android's input stack instead of after the UI is already usable.
+        # IPlatform is registered as soon as Android's system server is up.
+        # Perform the replug at the right time
         try:
             if IPlatform.get_service(args):
                 GLib.idle_add(replug_once)
@@ -147,7 +143,6 @@ def start(args, unlocked_cb=None, background=True):
         threading.Thread(target=wait_for_android, daemon=True).start()
     services.clipboard_manager.start(args)
     services.notification_manager.start(args, session)
-
     service(args, mainloop)
 
 def do_stop(args, looper):

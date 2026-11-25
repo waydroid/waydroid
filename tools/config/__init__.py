@@ -42,7 +42,7 @@ defaults = {
     "suspend_action": "freeze",
     "mount_overlays": "True",
     "auto_adb": "False",
-    "replug_controllers_on_startup": "False",
+    "replug_controllers_on_startup": "True",
     "container_xdg_runtime_dir": "/run/xdg",
     "container_wayland_display": "wayland-0",
 }

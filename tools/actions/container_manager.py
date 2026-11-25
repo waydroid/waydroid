@@ -69,8 +69,7 @@ class DbusContainerManager(dbus.service.Object):
     @dbus.service.method("id.waydro.ContainerManager", in_signature='', out_signature='',
                          sender_keyword="sender", connection_keyword="conn")
     def ReplugControllers(self, sender, conn):
-        # sysfs unbind/bind is root-only.  This method runs in the root-owned
-        # container service, so the user session does not need sudo/pkexec.
+        # sysfs unbind/bind is root-only.
         dbus_info = dbus.Interface(conn.get_object(
             "org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False),
             "org.freedesktop.DBus")

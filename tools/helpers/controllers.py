@@ -2,20 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 """Helpers for power-cycling USB gamepads through sysfs.
-
-This is the library version of the controller_reset.py script: it detaches a
-gamepad's USB interfaces from their drivers and attaches them again, which
+It detaches gamepad's USB interfaces from their drivers and attaches them again, which
 makes the host (and therefore Waydroid) re-enumerate the controller.
-
-All sysfs writes performed here need root.  They are meant to be called from
-the root-owned container manager, so no interactive sudo/pkexec prompt is
-needed when starting a Waydroid session as a regular user.
-
-Rather than sleeping for a fixed number of seconds, we wait for the kernel to
-actually finish each step: the driver symlink must disappear after unbind and
-reappear after bind, and any input node that was present must be removed and
-then recreated.  This adapts to each machine instead of relying on a magic
-delay.
 """
 
 import glob
@@ -77,15 +65,7 @@ def _interface_driver(interface):
 
 
 def _is_input_interface(iface_class, driver, product):
-    """Decide whether a USB interface is one Waydroid needs re-enumerated.
-
-    This matches the original controller_reset.py behaviour: all HID (class
-    03) interfaces are included, including keyboards and mice.  Waydroid
-    needs every input device replugged, not just gamepads -- excluding
-    keyboards/mice makes them invisible inside Android.  Vendor-specific
-    (class ff) interfaces count when a known controller driver is bound or
-    the product name says gamepad/joystick/controller.
-    """
+    """Decide whether a USB interface is one Waydroid needs re-enumerated."""
     name_hint = any(hint in (product or "").lower() for hint in CONTROLLER_NAME_HINTS)
     iface_class = _hex(iface_class)
 
