@@ -123,6 +123,32 @@ flush table ip lxc;
 add chain ip lxc postrouting { type nat hook postrouting priority 100; };
 add rule ip lxc postrouting ip saddr ${LXC_NETWORK} ip daddr != ${LXC_NETWORK} counter masquerade"
     nft "${NFT_RULESET}"
+    iptables_nft_rules start
+}
+
+# Firewalls managed through iptables-nft (ufw, Docker, ...) keep their INPUT and
+# FORWARD base chains in "table ip filter", often with a drop policy. An accept in
+# our inet lxc table does not override a drop in another table, so DHCP, DNS and
+# forwarding for the bridge get dropped. Insert the same accept rules as
+# start_iptables into those chains when they exist. Use iptables-nft rather than
+# nft so the rules stay readable by iptables-save/iptables-restore.
+IPTABLES_NFT_BIN="$(command -v iptables-nft)"
+
+iptables_nft_rules() {
+    [ -n "$IPTABLES_NFT_BIN" ] || return 0
+    for rule in "INPUT -i ${LXC_BRIDGE} -p udp --dport 67" \
+                "INPUT -i ${LXC_BRIDGE} -p tcp --dport 67" \
+                "INPUT -i ${LXC_BRIDGE} -p udp --dport 53" \
+                "INPUT -i ${LXC_BRIDGE} -p tcp --dport 53" \
+                "FORWARD -i ${LXC_BRIDGE}" \
+                "FORWARD -o ${LXC_BRIDGE}"; do
+        chain=${rule%% *}
+        nft list chain ip filter ${chain} > /dev/null 2>&1 || continue
+        while $IPTABLES_NFT_BIN -w -D $rule -m comment --comment waydroid-net -j ACCEPT 2>/dev/null; do :; done
+        if [ "$1" = "start" ]; then
+            $IPTABLES_NFT_BIN -w -I $rule -m comment --comment waydroid-net -j ACCEPT
+        fi
+    done
 }
 
 start() {
@@ -237,6 +263,7 @@ add table ip6 lxc;
 delete table ip6 lxc;"
     fi
     nft "${NFT_RULESET}"
+    iptables_nft_rules stop
 }
 
 stop() {
