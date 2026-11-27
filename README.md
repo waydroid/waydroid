@@ -17,6 +17,13 @@ The Android runtime environment ships with a minimal customized Android system
 image based on [LineageOS](https://lineageos.org/). The image is currently based
 on Android 13.
 
+## Install options
+
+By default, Waydroid will be installed with systemd support. To use OpenRC instead,
+set the `USE_OPENRC` make variable to 1. For example:
+
+    make install USE_OPENRC=1
+
 ## Install
 
 See install instructions [here](https://docs.waydro.id/usage/install-on-desktops)
